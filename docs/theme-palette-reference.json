@@ -2,7 +2,7 @@
   "version": 2,
   "usage": "runtime-theme-catalog",
   "sourceUpdatedAt": "2026-06-03",
-  "extractionNotes": "Palette values are maintained as a local reference baseline; accent is the public theme color, while renderAccent/accentSoft/accentSofter/border/text fields describe rendered output samples.",
+  "extractionNotes": "The 48-theme runtime catalog is aligned with md2wechat's public theme surface: 6 built-in themes, 10 imported themes, and 4 template families across 8 color variants. Palette values are maintained as the local machine-readable reference; accent is the public theme color, while renderAccent/accentSoft/accentSofter/border/text fields describe rendered output samples. Optional md2wechat-style renderer fields such as h5/h6, codespan, figure/figcaption, wxLink, footnotes, alerts, gallery, longimage, and dialogue styles are accepted by external theme files but are not required here.",
   "palettes": [
     {
       "id": "default",

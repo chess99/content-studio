@@ -59,7 +59,7 @@ function readPaletteReference(): PaletteReference {
 }
 
 describe("theme palette reference", () => {
-  it("keeps a local-only catalog of exactly 48 palettes", () => {
+  it("keeps the md2wechat-aligned public catalog at exactly 48 palettes", () => {
     const reference = readPaletteReference()
 
     expect(reference.version).toBe(2)

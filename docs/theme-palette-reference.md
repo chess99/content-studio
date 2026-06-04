@@ -1,14 +1,16 @@
 # Theme Palette Reference
 
-This file documents the 48 runtime themes exposed by `wxp themes`. Runtime support comes from `src/converter/themes.ts`; `docs/theme-palette-reference.json` is the canonical machine-readable reference for AI and script callers.
+This file documents the 48 runtime themes exposed by `wxp themes`. The public theme surface is aligned with md2wechat's public themes: 6 built-in themes, 10 imported themes, and 4 template families across 8 color variants. Runtime support comes from `src/converter/themes.ts`; `docs/theme-palette-reference.json` is the canonical machine-readable reference for AI and script callers.
 
 ## Baseline
 
-- Runtime theme IDs remain the public 48-theme catalog.
-- Palette values are maintained as a local reference baseline.
+- Runtime theme IDs remain the public 48-theme md2wechat-aligned catalog.
+- Palette values are maintained as the local machine-readable reference for those public themes.
 - Last local update: 2026-06-03
 
 `accent` is the public theme color. `renderAccent`, `accentSoft`, `accentSofter`, `border`, `headingText`, and `text` describe the rendered baseline. Keep both layers: the public color is not always the same as the rendered module accent.
+
+The Markdown renderer also supports optional md2wechat-style extension fields on theme files, including `h5`, `h6`, `codespan`, `codePre`, `figure`, `figcaption`, `wxLink`, `footnotes`, alert blockquote fields, and the `gallery*`, `longimage*`, and `dialogue*` module fields. External theme files still only require the original base style keys; extension fields are optional.
 
 ## Usage
 
@@ -21,7 +23,7 @@ This file documents the 48 runtime themes exposed by `wxp themes`. Runtime suppo
 
 | Group | Count | Purpose |
 | --- | ---: | --- |
-| `native` | 6 | Broad default directions for common content types. |
+| `native` | 6 | Built-in md2wechat directions for common content types. |
 | `classic` | 2 | Conservative editorial directions for familiar, serious reading. |
 | `modern` | 4 | Product, developer, media, and lifestyle directions. |
 | `extra` | 4 | Stronger expressive directions for distinct columns or campaigns. |
@@ -120,7 +122,7 @@ This file documents the 48 runtime themes exposed by `wxp themes`. Runtime suppo
 
 ## Maintenance Checks
 
-- Keep `docs/theme-palette-reference.json` at exactly 48 palettes unless the intended source set changes.
+- Keep `docs/theme-palette-reference.json` at exactly 48 palettes unless the public md2wechat-aligned source set changes.
 - Keep every palette ID unique and aligned with `src/converter/themes.ts`.
 - Keep all palette color values in six-digit hex format.
 - Revisit both source URLs when changing theme colors; do not infer palette values from theme names alone.
