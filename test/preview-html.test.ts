@@ -77,15 +77,24 @@ describe("generatePreviewHtml", () => {
     expect(html).not.toContain("high contrast")
   })
 
-  it("renders a Chinese editorial hero for content-oriented theme selection", () => {
+  it("renders a compact gallery header for theme selection", () => {
     const html = generatePreviewHtml(MOCK_RESULTS, FILE_PATH)
 
-    expect(html).toContain("主题不是换配色，")
-    expect(html).toContain("是切换内容气质")
-    expect(html).toContain("主题负责气质")
-    expect(html).toContain("表达密度")
+    expect(html).toContain("主题画廊")
+    expect(html).toContain("样稿：article.md")
+    expect(html).toContain("<span class=\"stat-label\">主题</span>")
+    expect(html).toContain("<span class=\"stat-label\">成功</span>")
     expect(html).toContain("搜索主题、场景或气质")
     expect(html).toContain("全部系列")
+  })
+
+  it("scales card previews to fill the preview frame", () => {
+    const html = generatePreviewHtml(MOCK_RESULTS, FILE_PATH)
+
+    expect(html).toContain("--preview-scale")
+    expect(html).toContain("syncPreviewScales")
+    expect(html).toContain("frame.clientWidth / 677")
+    expect(html).toContain("translateX(-50%) scale(var(--preview-scale))")
   })
 
   it("contains a full preview drawer and copy command controls", () => {

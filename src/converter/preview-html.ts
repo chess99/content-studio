@@ -99,60 +99,70 @@ export function generatePreviewHtml(
   .gallery-shell { min-height: 100vh; padding: clamp(22px, 3vw, 42px); }
   .gallery-hero {
     max-width: 1480px;
-    margin: 0 auto 18px;
-    padding: clamp(26px, 5vw, 54px);
+    margin: 0 auto 14px;
+    padding: clamp(18px, 3vw, 28px);
     border: 1px solid rgba(229,222,213,.9);
-    border-radius: 28px;
+    border-radius: 24px;
     background:
       linear-gradient(135deg, rgba(255,255,255,.92), rgba(250,248,243,.78)),
       repeating-linear-gradient(135deg, rgba(180,90,58,.05) 0 1px, transparent 1px 18px);
-    box-shadow: 0 28px 80px rgba(38, 31, 24, .12);
+    box-shadow: 0 18px 50px rgba(38, 31, 24, .10);
   }
   .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
-    gap: clamp(22px, 4vw, 54px);
-    align-items: end;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: clamp(18px, 3vw, 36px);
+    align-items: center;
   }
-  .eyebrow {
-    margin: 0 0 13px;
+  .hero-kicker {
+    margin: 0 0 6px;
     color: var(--brand);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: .18em;
   }
   .hero-title {
-    max-width: 780px;
     margin: 0;
-    font-size: clamp(34px, 5vw, 68px);
-    line-height: 1.05;
+    font-size: clamp(30px, 4vw, 46px);
+    line-height: 1.12;
     letter-spacing: 0;
     color: #151a22;
     overflow-wrap: anywhere;
   }
-  .hero-title span { display: block; }
-  .hero-copy {
-    max-width: 760px;
-    margin: 18px 0 0;
-    color: #475467;
-    font-size: clamp(16px, 2vw, 20px);
-    line-height: 1.75;
-    overflow-wrap: anywhere;
+  .source-path {
+    display: inline-flex;
+    max-width: min(760px, 100%);
+    margin: 12px 0 0;
+    padding: 6px 10px;
+    color: #74695f;
+    font-size: 13px;
+    line-height: 1.45;
+    border: 1px solid rgba(222,215,206,.95);
+    border-radius: 999px;
+    background: rgba(255,255,255,.66);
+    word-break: break-all;
   }
-  .hero-copy strong { color: var(--brand); font-weight: 800; }
-  .source-path { margin: 18px 0 0; color: #7a6f66; font-size: 13px; word-break: break-all; }
   .stats-panel {
-    display: grid;
-    gap: 12px;
-    padding: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 280px;
     border: 1px solid rgba(180,90,58,.18);
-    border-radius: 22px;
-    background: rgba(255,255,255,.74);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    border-radius: 18px;
+    padding: 10px;
+    background: rgba(255,255,255,.72);
   }
-  .stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  .stat-row {
+    display: grid;
+    min-width: 74px;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(250,248,243,.72);
+  }
   .stat-label { color: #667085; font-size: 13px; }
-  .stat-value { color: #18202d; font-size: 24px; font-weight: 850; }
+  .stat-value { color: #18202d; font-size: 23px; font-weight: 850; font-variant-numeric: tabular-nums; }
   .toolbar {
     position: sticky;
     top: 0;
@@ -182,8 +192,15 @@ export function generatePreviewHtml(
   }
   .search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(180,90,58,.12); }
   .filter-stack { display: grid; gap: 9px; min-width: 0; }
-  .filter-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; min-width: 0; }
-  .filter-label { min-width: 68px; color: #7a6f66; font-size: 12px; font-weight: 800; }
+  .filter-row {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 7px 10px;
+    align-items: start;
+    min-width: 0;
+  }
+  .filter-label { color: #7a6f66; font-size: 12px; font-weight: 800; line-height: 28px; }
+  .filter-options { display: flex; flex-wrap: wrap; gap: 7px; min-width: 0; }
   .filter-chip {
     border: 1px solid #ded7ce;
     background: #fff;
@@ -237,7 +254,13 @@ export function generatePreviewHtml(
     line-height: 1.45;
   }
   .meta-badge.primary { border-color: rgba(180,90,58,.2); background: var(--brand-soft); color: var(--brand); font-weight: 750; }
-  .card-preview-frame { position: relative; overflow: hidden; background: #f4f1ec; border-bottom: 1px solid #eee7df; }
+  .card-preview-frame {
+    position: relative;
+    overflow: hidden;
+    background: #f4f1ec;
+    border-bottom: 1px solid #eee7df;
+    --preview-scale: .52;
+  }
   .card-preview-frame::after {
     content: "";
     position: absolute;
@@ -249,10 +272,13 @@ export function generatePreviewHtml(
     pointer-events: none;
   }
   .preview-source {
+    position: absolute;
+    top: 0;
+    left: 50%;
     width: 677px;
     min-height: 760px;
-    transform: scale(.46);
-    transform-origin: top left;
+    transform: translateX(-50%) scale(var(--preview-scale));
+    transform-origin: top center;
     background: #fff;
   }
   .card-foot { padding: 14px 18px 18px; min-height: 96px; color: #586474; font-size: 13px; line-height: 1.65; }
@@ -316,6 +342,7 @@ export function generatePreviewHtml(
   }
   @media (max-width: 900px) {
     .hero-grid, .toolbar { grid-template-columns: 1fr; }
+    .stats-panel { justify-content: flex-start; min-width: 0; }
     .detail-panel.open { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
     .detail-sidebar { max-height: 42vh; border-right: 0; border-bottom: 1px solid #e2dcd5; }
   }
@@ -323,13 +350,13 @@ export function generatePreviewHtml(
     .gallery-shell { padding: 16px; overflow-x: hidden; }
     .gallery-hero { padding: 24px 18px; border-radius: 22px; overflow: hidden; }
     .hero-title { font-size: 31px; line-height: 1.16; }
-    .hero-copy { font-size: 15px; line-height: 1.7; }
     .stats-panel, .toolbar, .theme-card { min-width: 0; }
-    .toolbar { padding: 12px; border-radius: 18px; }
-    .filter-label { min-width: 48px; }
+    .toolbar { width: 100%; max-width: calc(100vw - 32px); padding: 12px; border-radius: 18px; }
+    .filter-row { grid-template-columns: 1fr; gap: 6px; }
+    .filter-label { line-height: 1.4; }
+    .filter-options { width: min(100%, 300px); max-width: calc(100vw - 64px); }
     .theme-grid { grid-template-columns: minmax(0, 1fr); }
     .theme-card { grid-template-rows: auto 300px auto; }
-    .preview-source { transform: scale(.44); }
   }
 </style>
 </head>
@@ -338,15 +365,14 @@ export function generatePreviewHtml(
   <header class="gallery-hero">
     <div class="hero-grid">
       <section>
-        <p class="eyebrow">THEME GALLERY</p>
-        <h1 class="hero-title"><span>主题不是换配色，</span><span>是切换内容气质</span></h1>
-        <p class="hero-copy"><strong>主题负责气质</strong>，模块负责说服力。这里把 48 个主题放在同一篇样稿里，方便按内容场景、表达密度和视觉语气快速比较。</p>
-        <p class="source-path">样稿：${escapeHtml(filePath)}</p>
+        <p class="hero-kicker">THEME GALLERY</p>
+        <h1 class="hero-title">主题画廊</h1>
+        <p class="source-path" title="${escapeAttr(filePath)}">样稿：${escapeHtml(fileName)}</p>
       </section>
       <aside class="stats-panel" aria-label="主题统计">
-        <div class="stat-row"><span class="stat-label">公开主题</span><span class="stat-value">${results.length}</span></div>
-        <div class="stat-row"><span class="stat-label">渲染成功</span><span class="stat-value">${successfulThemes.length}</span></div>
-        <div class="stat-row"><span class="stat-label">内容系列</span><span class="stat-value">${collections.length}</span></div>
+        <div class="stat-row"><span class="stat-label">主题</span><span class="stat-value">${results.length}</span></div>
+        <div class="stat-row"><span class="stat-label">成功</span><span class="stat-value">${successfulThemes.length}</span></div>
+        <div class="stat-row"><span class="stat-label">系列</span><span class="stat-value">${collections.length}</span></div>
       </aside>
     </div>
   </header>
@@ -455,11 +481,25 @@ export function generatePreviewHtml(
       if (show) visible += 1;
     });
     document.getElementById("emptyState").classList.toggle("visible", visible === 0);
+    syncPreviewScales();
+  }
+
+  function syncPreviewScales() {
+    document.querySelectorAll(".card-preview-frame").forEach(frame => {
+      const scale = Math.max(0.38, frame.clientWidth / 677);
+      frame.style.setProperty("--preview-scale", String(scale));
+    });
   }
 
   document.querySelectorAll(".theme-card").forEach(card => {
     card.addEventListener("click", () => openDetail(card.dataset.theme));
   });
+  const previewObserver = "ResizeObserver" in window
+    ? new ResizeObserver(syncPreviewScales)
+    : null;
+  document.querySelectorAll(".card-preview-frame").forEach(frame => previewObserver?.observe(frame));
+  window.addEventListener("resize", syncPreviewScales);
+  syncPreviewScales();
   document.querySelectorAll(".filter-chip").forEach(chip => {
     chip.addEventListener("click", () => {
       const group = chip.dataset.filterGroup;
@@ -546,7 +586,7 @@ function renderFilterGroup(group: FilterGroup, label: string, values: string[]):
     const text = value === "all" ? allText : filterValueLabel(group, value)
     return `<button class="filter-chip${active}" data-filter-group="${group}" data-filter-value="${escapeAttr(value)}" type="button">${escapeHtml(text)}</button>`
   }).join("")
-  return `<div class="filter-row" data-filter-group="${group}"><span class="filter-label">${label}</span>${chips}</div>`
+  return `<div class="filter-row" data-filter-group="${group}"><span class="filter-label">${label}</span><div class="filter-options">${chips}</div></div>`
 }
 
 const COLLECTION_ORDER = ["built-in", "classic", "modern", "extra", "minimal", "focus", "elegant", "bold", "custom"]
