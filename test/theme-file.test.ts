@@ -5,7 +5,9 @@ import {
   loadThemeFile,
   validateThemeObject,
   THEME_STYLE_KEYS,
+  OPTIONAL_THEME_STYLE_KEYS,
 } from "../src/converter/theme-file.js"
+import { convertMarkdown } from "../src/converter/index.js"
 
 const fixture = (name: string) => resolve("test", "fixtures", name)
 
@@ -16,6 +18,10 @@ describe("external theme files", () => {
     for (const key of THEME_STYLE_KEYS) {
       expect(schema.properties.styles.required).toContain(key)
     }
+    for (const key of OPTIONAL_THEME_STYLE_KEYS) {
+      expect(schema.properties.styles.required).not.toContain(key)
+      expect(schema.properties.styles.properties[key]).toEqual({ type: "string" })
+    }
   })
 
   it("loads a valid external theme", () => {
@@ -24,6 +30,32 @@ describe("external theme files", () => {
     expect(result.errors).toEqual([])
     expect(result.warnings).toEqual([])
     expect(result.theme.styles.h2).toContain("border-left")
+  })
+
+  it("accepts optional md2wechat extension style fields", async () => {
+    const base = loadThemeFile(fixture("external-theme-valid.json")).theme
+    const result = validateThemeObject({
+      name: "extended-theme",
+      description: "fixture with optional md2wechat fields",
+      styles: {
+        ...base.styles,
+        codespan: "background:#123456;color:#fff;",
+        figure: "margin:20px 0;text-align:center;",
+        figcaption: "font-size:12px;color:#666;",
+      },
+    })
+
+    expect(result.errors).toEqual([])
+    expect(result.warnings).toEqual([])
+    expect(result.theme?.styles.codespan).toContain("#123456")
+
+    const converted = await convertMarkdown("`x`\n\n![说明](https://example.com/a.png)", {
+      themeDefinition: result.theme,
+    })
+    expect(converted.html).toContain("background:#123456")
+    expect(converted.html).toContain("<figure")
+    expect(converted.html).toContain("<figcaption")
+    expect(converted.html).toContain("说明")
   })
 
   it("rejects missing required style keys", () => {

@@ -23,11 +23,11 @@ export function renderAdvancedModules(modules: AdvancedModule[], theme: Theme): 
   const palette = getAdvancedPalette(theme)
   return modules.map(module => ({
     marker: module.marker,
-    html: renderAdvancedModule(module, palette),
+    html: renderAdvancedModule(module, palette, theme),
   }))
 }
 
-export function renderAdvancedModule(module: AdvancedModule, p: AdvancedPalette): string {
+export function renderAdvancedModule(module: AdvancedModule, p: AdvancedPalette, theme?: Theme): string {
   switch (module.name) {
     case "hero": return renderHero(module, p)
     case "cards": return renderCards(module, p)
@@ -58,7 +58,7 @@ export function renderAdvancedModule(module: AdvancedModule, p: AdvancedPalette)
     case "specs": return renderSpecs(module, p)
     case "image-steps": return renderImageSteps(module, p)
     case "notice": return renderNotice(module, p)
-    case "dialogue": return renderDialogue(module, p)
+    case "dialogue": return renderDialogue(module, p, theme)
     case "summary": return renderSummary(module, p)
     case "author-card": return renderAuthorCard(module, p)
     case "series": return renderSeries(module, p)
@@ -73,8 +73,8 @@ export function renderAdvancedModule(module: AdvancedModule, p: AdvancedPalette)
     case "resource-list": return renderResourceList(module, p)
     case "stat-row": return renderStatRow(module, p)
     case "tweet": return renderTweet(module, p)
-    case "gallery": return renderGallery(module, p)
-    case "longimage": return renderLongImage(module, p)
+    case "gallery": return renderGallery(module, p, theme)
+    case "longimage": return renderLongImage(module, p, theme)
     default: return ""
   }
 }
@@ -280,12 +280,15 @@ function renderNotice(module: AdvancedModule, p: AdvancedPalette): string {
   return keyValueRows("notice", module.title, module.rows, p, true)
 }
 
-function renderDialogue(module: AdvancedModule, p: AdvancedPalette): string {
+function renderDialogue(module: AdvancedModule, p: AdvancedPalette, theme?: Theme): string {
   const turns = module.body.split("\n")
     .map(line => line.match(/^([^:：]{1,20})[:：]\s*(.+)$/))
     .filter((match): match is RegExpMatchArray => Boolean(match))
     .map(match => ({ role: match[1].trim(), text: match[2].trim() }))
-  return `<section data-mpa-action-id="dialogue" style="margin:12px 8px 16px;padding:12px;background:linear-gradient(135deg, ${p.surface}, ${p.surfaceAlt});border:1px solid ${p.border};border-radius:12px;box-shadow:${p.accentShadow};box-sizing:border-box;"><section style="text-align:center;font-size:17px;font-weight:600;color:${p.accentDark};margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid ${p.border};letter-spacing:0.5px;"><p style="margin:0;text-align:center;">${esc(module.title)}</p></section>${turns.map((turn, index) => dialogueTurn(turn.role, turn.text, index % 2 === 1, p)).join("")}</section>`
+  const s = theme?.styles
+  const container = s?.dialogueContainer ?? `margin:12px 8px 16px;padding:12px;background:linear-gradient(135deg, ${p.surface}, ${p.surfaceAlt});border:1px solid ${p.border};border-radius:12px;box-shadow:${p.accentShadow};box-sizing:border-box;`
+  const title = s?.dialogueTitle ?? `text-align:center;font-size:17px;font-weight:600;color:${p.accentDark};margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid ${p.border};letter-spacing:0.5px;`
+  return `<section data-mpa-action-id="dialogue" style="${attr(container)}"><section style="${attr(title)}"><p style="margin:0;text-align:center;">${esc(module.title)}</p></section>${turns.map((turn, index) => dialogueTurn(turn.role, turn.text, index % 2 === 1, p, theme)).join("")}</section>`
 }
 
 function renderSummary(module: AdvancedModule, p: AdvancedPalette): string {
@@ -380,17 +383,28 @@ function renderTweet(module: AdvancedModule, p: AdvancedPalette): string {
   return `<section data-mpa-action-id="tweet" style="${cardStyle(p)}padding:16px;margin:20px 0;display:flex;flex-direction:column;gap:8px;"><div style="display:flex;align-items:center;gap:8px;">${avatar ? `<span style="width:40px;height:40px;border-radius:999px;overflow:hidden;background:${p.accentSoft};border:1px solid ${p.border};display:inline-block;">${imageTag(avatar, name, "width:100% !important;height:100% !important;object-fit:cover;display:block;")}</span>` : `<span style="width:40px;height:40px;border-radius:999px;background:${p.accentSoft};color:${p.accentDark};display:inline-flex;align-items:center;justify-content:center;font-weight:700;">${esc(name.slice(0, 1))}</span>`}<div><div style="font-size:15px;font-weight:700;color:${p.text};line-height:1.3;">${esc(name)}</div>${meta ? `<div style="font-size:13px;color:${p.muted};line-height:1.3;">${esc(meta)}</div>` : ""}</div></div><div style="font-size:15px;line-height:1.7;color:${p.textStrong};white-space:pre-wrap;">${esc(stringValue(data.text))}</div>${stringValue(data.url) ? `<div style="font-size:13px;color:${p.muted};line-height:1.4;">${esc(stringValue(data.url))}</div>` : ""}</section>`
 }
 
-function renderGallery(module: AdvancedModule, p: AdvancedPalette): string {
+function renderGallery(module: AdvancedModule, p: AdvancedPalette, theme?: Theme): string {
   const images = parseMarkdownImages(module.body)
-  const cards = images.map(img => `<section style="padding:16px 12px 12px 12px;border-radius:12px;background:${p.surface};border:1px solid ${p.mutedBorder};box-shadow:${p.shadow};flex:0 0 78%;max-width:360px;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;gap:8px;box-sizing:border-box;"><section style="border-radius:12px;overflow:hidden;background:${p.surface};aspect-ratio:4/3;width:100%;">${imageTag(img.src, img.alt, "display:block;width:100% !important;height:100% !important;object-fit:cover;")}</section>${img.alt ? `<p style="margin:0;font-size:13px;color:${p.muted};line-height:1.5;text-align:left;">${esc(img.alt)}</p>` : ""}</section>`).join("")
-  const title = module.title ? `<p style="margin:8px 0 0;font-size:13px;color:${p.muted};text-align:center;line-height:1.5;">${esc(module.title)}</p>` : ""
-  return `<section data-mpa-action-id="gallery" style="margin:32px 0;overflow:hidden;"><section style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;-webkit-overflow-scrolling:touch;">${cards}</section>${title}</section>`
+  const s = theme?.styles
+  const container = s?.galleryContainer ?? "margin:32px 0;overflow:hidden;"
+  let imageContainer = s?.galleryImageContainer ?? `border-radius:12px;overflow:hidden;background:${p.surface};aspect-ratio:4/3;width:100%;`
+  if (!imageContainer.includes("aspect-ratio")) imageContainer = `${imageContainer};aspect-ratio:4/3;width:100%;`
+  const caption = s?.galleryCaption ?? `margin:0;font-size:13px;color:${p.muted};line-height:1.5;text-align:left;`
+  const cards = images.map(img => `<section style="flex:0 0 78%;max-width:360px;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;gap:8px;box-sizing:border-box;"><section style="${attr(imageContainer)}">${imageTag(img.src, img.alt, "display:block;width:100% !important;height:100% !important;object-fit:cover;")}</section>${img.alt ? `<p style="${attr(caption)}">${esc(img.alt)}</p>` : ""}</section>`).join("")
+  const title = module.title ? `<p style="${attr(caption)}">${esc(module.title)}</p>` : ""
+  return `<section data-mpa-action-id="gallery" style="${attr(container)}"><section style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;-webkit-overflow-scrolling:touch;">${cards}</section>${title}</section>`
 }
 
-function renderLongImage(module: AdvancedModule, p: AdvancedPalette): string {
+function renderLongImage(module: AdvancedModule, p: AdvancedPalette, theme?: Theme): string {
   const image = parseMarkdownImages(module.body)[0]
-  const title = module.title ? `<p style="margin:12px 0 0;padding:10px 16px;font-size:12px;color:${p.accentDark};text-align:center;line-height:1.5;font-weight:500;letter-spacing:0.3px;background:linear-gradient(135deg, ${p.surface} 0%, ${p.accentSoft} 100%);border:1px solid ${p.border};border-radius:12px;box-shadow:${p.shadow};">${esc(module.title)}</p>` : ""
-  return `<section data-mpa-action-id="longimage" style="margin:32px 0;"><section style="margin:16px 8px 20px;padding:16px;background:linear-gradient(135deg, ${p.accentSoft}, ${p.surface});border:1px solid ${p.border};border-radius:12px;box-shadow:${p.accentShadow};position:relative;overflow:hidden;box-sizing:border-box;"><section class="longimage-scroll-container" style="max-height:420px;max-height:min(75vh,600px);overflow-y:auto;border-radius:8px;background:${p.surface};box-shadow:${p.shadow};border:1px solid ${p.mutedBorder};padding:4px;scrollbar-width:thin;scrollbar-color:${p.border} transparent;-webkit-overflow-scrolling:touch;box-sizing:border-box;">${image ? imageTag(image.src, image.alt, "width:100% !important;display:block;height:auto !important;") : ""}</section>${title}</section></section>`
+  const s = theme?.styles
+  const container = s?.longimageContainer ?? `margin:16px 8px 20px;padding:16px;background:linear-gradient(135deg, ${p.accentSoft}, ${p.surface});border:1px solid ${p.border};border-radius:12px;box-shadow:${p.accentShadow};position:relative;overflow:hidden;box-sizing:border-box;`
+  let imageContainer = s?.longimageImageContainer ?? `max-height:420px;max-height:min(75vh,600px);overflow-y:auto;border-radius:8px;background:${p.surface};box-shadow:${p.shadow};border:1px solid ${p.mutedBorder};padding:4px;scrollbar-width:thin;scrollbar-color:${p.border} transparent;-webkit-overflow-scrolling:touch;box-sizing:border-box;`
+  if (!imageContainer.includes("max-height:420px")) imageContainer = `${imageContainer};max-height:420px;`
+  if (!imageContainer.includes("max-height:min(75vh,600px)")) imageContainer = `${imageContainer};max-height:min(75vh,600px);`
+  const caption = s?.longimageCaption ?? `margin:12px 0 0;padding:10px 16px;font-size:12px;color:${p.accentDark};text-align:center;line-height:1.5;font-weight:500;letter-spacing:0.3px;background:linear-gradient(135deg, ${p.surface} 0%, ${p.accentSoft} 100%);border:1px solid ${p.border};border-radius:12px;box-shadow:${p.shadow};`
+  const title = module.title ? `<p style="${attr(caption)}">${esc(module.title)}</p>` : ""
+  return `<section data-mpa-action-id="longimage" style="margin:32px 0;"><section style="${attr(container)}"><section class="longimage-scroll-container" style="${attr(imageContainer)}">${image ? imageTag(image.src, image.alt, "width:100% !important;display:block;height:auto !important;") : ""}</section>${title}</section></section>`
 }
 
 type JsonRecord = Record<string, unknown>
@@ -479,9 +493,20 @@ function tocRow(row: string[], p: AdvancedPalette): string {
   return `<section style="display:flex;align-items:flex-start;gap:12px;padding-bottom:10px;border-bottom:1px solid ${p.mutedBorder};"><p style="margin:0;min-width:34px;font-size:13px;font-weight:800;color:${p.accentDark};letter-spacing:0.6px;">${esc(row[0])}</p><section style="flex:1 1 0%;min-width:0;"><p style="margin:0 0 2px;font-size:17px;font-weight:800;color:${p.text};line-height:1.55;">${esc(row[1])}</p><p style="margin:0;font-size:15px;color:${p.muted};line-height:1.6;">${esc(row[2])}</p></section></section>`
 }
 
-function dialogueTurn(role: string, text: string, right: boolean, p: AdvancedPalette): string {
+function dialogueTurn(role: string, text: string, right: boolean, p: AdvancedPalette, theme?: Theme): string {
   const avatar = esc(role.slice(0, 1).toUpperCase())
-  return `<section style="margin:0.8em 0;display:flex;align-items:flex-start;justify-content:${right ? "flex-end;flex-direction:row-reverse" : "flex-start"};"><section style="display:inline-block;vertical-align:middle;width:36px;height:36px;${right ? "margin-left" : "margin-right"}:10px;box-sizing:border-box;position:relative;top:2px;"><section style="width:32px;height:32px;border-radius:50%;background:${right ? p.muted : `linear-gradient(135deg, ${p.accentDark}, ${p.accentDark})`};color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;box-shadow:${right ? p.shadow : p.accentShadow};">${avatar}</section></section><section style="display:inline-block;vertical-align:middle;width:calc(100% - 50px);box-sizing:border-box;"><section style="background:linear-gradient(135deg, ${p.surface}, ${p.surfaceAlt});border:1px solid ${p.border};border-radius:${right ? "16px 16px 4px 16px" : "16px 16px 16px 4px"};padding:8px 14px;max-width:80%;color:${p.textStrong};line-height:1.5;font-size:15px;${right ? "margin-left:auto;" : ""}box-shadow:${p.shadow};word-wrap:break-word;box-sizing:border-box;text-align:left;"><p style="margin:0;color:inherit;line-height:inherit;font-size:inherit;text-align:left;">${esc(text)}</p></section></section></section>`
+  const s = theme?.styles
+  const baseItem = s?.dialogueItem ?? "margin:0.8em 0;display:flex;align-items:flex-start;"
+  const sideItem = right
+    ? s?.dialogueItemRight ?? "justify-content:flex-end;flex-direction:row-reverse;"
+    : s?.dialogueItemLeft ?? "justify-content:flex-start;"
+  const avatarStyle = right
+    ? s?.dialogueAvatarRight ?? `width:32px;height:32px;border-radius:50%;background:${p.muted};color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;box-shadow:${p.shadow};`
+    : s?.dialogueAvatarLeft ?? `width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg, ${p.accentDark}, ${p.accentDark});color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;box-shadow:${p.accentShadow};`
+  const bubble = right
+    ? s?.dialogueBubbleRight ?? `background:linear-gradient(135deg, ${p.surface}, ${p.surfaceAlt});border:1px solid ${p.border};border-radius:16px 16px 4px 16px;padding:8px 14px;max-width:80%;color:${p.textStrong};line-height:1.5;font-size:15px;margin-left:auto;box-shadow:${p.shadow};word-wrap:break-word;box-sizing:border-box;text-align:left;`
+    : s?.dialogueBubbleLeft ?? `background:linear-gradient(135deg, ${p.surface}, ${p.surfaceAlt});border:1px solid ${p.border};border-radius:16px 16px 16px 4px;padding:8px 14px;max-width:80%;color:${p.textStrong};line-height:1.5;font-size:15px;box-shadow:${p.shadow};word-wrap:break-word;box-sizing:border-box;text-align:left;`
+  return `<section style="${attr(`${baseItem}${sideItem}`)}"><section style="display:inline-block;vertical-align:middle;width:36px;height:36px;${right ? "margin-left" : "margin-right"}:10px;box-sizing:border-box;position:relative;top:2px;"><section style="${attr(avatarStyle)}">${avatar}</section></section><section style="display:inline-block;vertical-align:middle;width:calc(100% - 50px);box-sizing:border-box;"><section style="${attr(bubble)}"><p style="margin:0;color:inherit;line-height:inherit;font-size:inherit;text-align:left;">${esc(text)}</p></section></section></section>`
 }
 
 function buttonLike(text: string, primary: boolean, p: AdvancedPalette): string {

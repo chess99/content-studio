@@ -43,6 +43,8 @@ describe("CLI external theme files", () => {
 
     expect(exitCode).toBe(0)
     expect(payload.data.schema.properties.styles.required).toContain("preCode")
+    expect(payload.data.schema.properties.styles.required).not.toContain("codespan")
+    expect(payload.data.schema.properties.styles.properties.codespan).toEqual({ type: "string" })
   })
 
   it("validates a valid external theme file", async () => {

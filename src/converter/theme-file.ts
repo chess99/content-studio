@@ -25,10 +25,53 @@ export const THEME_STYLE_KEYS = [
   "td",
 ] as const satisfies readonly (keyof NodeStyles)[]
 
+export const OPTIONAL_THEME_STYLE_KEYS = [
+  "h5",
+  "h6",
+  "codespan",
+  "codePre",
+  "blockquoteP",
+  "blockquoteNote",
+  "blockquoteTip",
+  "blockquoteImportant",
+  "blockquoteWarning",
+  "blockquoteCaution",
+  "blockquoteTitle",
+  "blockquoteTitleNote",
+  "blockquoteTitleTip",
+  "blockquoteTitleImportant",
+  "blockquoteTitleWarning",
+  "blockquoteTitleCaution",
+  "blockquotePNote",
+  "blockquotePTip",
+  "blockquotePImportant",
+  "blockquotePWarning",
+  "blockquotePCaution",
+  "figure",
+  "figcaption",
+  "wxLink",
+  "footnotes",
+  "footnoteItem",
+  "galleryContainer",
+  "galleryImageContainer",
+  "galleryCaption",
+  "longimageContainer",
+  "longimageImageContainer",
+  "longimageCaption",
+  "dialogueContainer",
+  "dialogueTitle",
+  "dialogueItem",
+  "dialogueAvatarLeft",
+  "dialogueAvatarRight",
+  "dialogueBubbleLeft",
+  "dialogueBubbleRight",
+  "dialogueItemLeft",
+  "dialogueItemRight",
+] as const satisfies readonly (keyof NodeStyles)[]
+
 type ThemeStyleKey = (typeof THEME_STYLE_KEYS)[number]
-type MissingThemeStyleKeys = Exclude<keyof NodeStyles, ThemeStyleKey>
-const _assertAllNodeStyleKeysCovered: MissingThemeStyleKeys extends never ? true : never = true
-void _assertAllNodeStyleKeysCovered
+type OptionalThemeStyleKey = (typeof OPTIONAL_THEME_STYLE_KEYS)[number]
+type KnownThemeStyleKey = ThemeStyleKey | OptionalThemeStyleKey
 
 export interface ThemeValidationResult {
   theme: Theme | null
@@ -50,13 +93,13 @@ export interface ThemeFileSchema {
     styles: {
       type: "object"
       required: ThemeStyleKey[]
-      properties: Record<ThemeStyleKey, { type: "string" }>
+      properties: Record<KnownThemeStyleKey, { type: "string" }>
     }
   }
 }
 
 const TOP_LEVEL_KEYS = new Set(["name", "description", "styles"])
-const STYLE_KEYS = new Set<string>(THEME_STYLE_KEYS)
+const STYLE_KEYS = new Set<string>([...THEME_STYLE_KEYS, ...OPTIONAL_THEME_STYLE_KEYS])
 const FORBIDDEN_STYLE_PATTERNS = ["<script", "javascript:", "onerror=", "onclick=", "onload="]
 
 export function getThemeFileSchema(): ThemeFileSchema {
@@ -74,12 +117,12 @@ export function getThemeFileSchema(): ThemeFileSchema {
       styles: {
         type: "object",
         required: [...THEME_STYLE_KEYS],
-        properties: THEME_STYLE_KEYS.reduce(
+        properties: [...THEME_STYLE_KEYS, ...OPTIONAL_THEME_STYLE_KEYS].reduce(
           (properties, key) => {
             properties[key] = { type: "string" }
             return properties
           },
-          {} as Record<ThemeStyleKey, { type: "string" }>,
+          {} as Record<KnownThemeStyleKey, { type: "string" }>,
         ),
       },
     },
@@ -158,21 +201,27 @@ export function validateThemeObject(value: unknown): ThemeValidationResult {
     theme: {
       name: name as string,
       description: description as string,
-      styles: normalizeNodeStyles(styles as Record<ThemeStyleKey, string>),
+      styles: normalizeNodeStyles(styles as Record<KnownThemeStyleKey, string>),
     },
     errors,
     warnings,
   }
 }
 
-function normalizeNodeStyles(styles: Record<ThemeStyleKey, string>): NodeStyles {
-  return THEME_STYLE_KEYS.reduce(
+function normalizeNodeStyles(styles: Record<KnownThemeStyleKey, string>): NodeStyles {
+  const normalized = THEME_STYLE_KEYS.reduce(
     (normalizedStyles, key) => {
       normalizedStyles[key] = styles[key]
       return normalizedStyles
     },
     {} as NodeStyles,
   )
+  for (const key of OPTIONAL_THEME_STYLE_KEYS) {
+    if (typeof styles[key] === "string") {
+      normalized[key] = styles[key]
+    }
+  }
+  return normalized
 }
 
 function validateStyles(
@@ -196,10 +245,20 @@ function validateStyles(
 
     validateStyleContent(key, style, errors, warnings)
   }
+
+  for (const key of OPTIONAL_THEME_STYLE_KEYS) {
+    const style = styles[key]
+    if (style === undefined) continue
+    if (typeof style !== "string") {
+      errors.push(`styles.${key} must be a string`)
+      continue
+    }
+    validateStyleContent(key, style, errors, warnings)
+  }
 }
 
 function validateStyleContent(
-  key: ThemeStyleKey,
+  key: KnownThemeStyleKey,
   style: string,
   errors: string[],
   warnings: string[],

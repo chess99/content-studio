@@ -100,7 +100,7 @@ export async function convertMarkdown(markdown: string, options: ConvertOptions 
     .use(remarkRehype, { allowDangerousHtml: false })
     .use(() => (tree: Root) => {
       injectAdvancedBlocks(tree, advancedBlocks)
-      inlineStyles(tree, theme.styles, externalImages, localImages, stripLinks)
+      inlineStyles(tree, theme, externalImages, localImages, stripLinks)
     })
     .use(rehypeStringify, { allowDangerousHtml: true })
 
@@ -256,11 +256,12 @@ function escapeAttr(text: string): string {
  */
 function inlineStyles(
   tree: Root,
-  styles: NodeStyles,
+  theme: Theme,
   externalImages: string[],
   localImages: string[],
   stripLinks: boolean
 ): void {
+  const styles = theme.styles
   visit(tree, "element", (node: Element, index, parent) => {
     const tag = node.tagName
 
@@ -268,16 +269,22 @@ function inlineStyles(
       case "h1": applyStyle(node, styles.h1); break
       case "h2": applyStyle(node, styles.h2); break
       case "h3": applyStyle(node, styles.h3); break
-      case "h4":
-      case "h5":
-      case "h6": applyStyle(node, styles.h4); break
+      case "h4": {
+        if (theme.name === "bytedance") prefixHeadingText(node, "◆ ")
+        applyStyle(node, styles.h4)
+        break
+      }
+      case "h5": applyStyle(node, styles.h5 ?? styles.h4); break
+      case "h6": applyStyle(node, styles.h6 ?? styles.h5 ?? styles.h4); break
       case "p": {
         node.tagName = "section"
         node.properties = {
           ...(node.properties ?? {}),
           "data-wxp-paragraph": "true",
         }
-        applyStyle(node, styles.p)
+        applyStyle(node, parent?.type === "element" && parent.tagName === "blockquote"
+          ? styles.blockquoteP ?? styles.p
+          : styles.p)
         break
       }
 
@@ -308,6 +315,7 @@ function inlineStyles(
       case "blockquote": {
         if (styleGfmAlert(node, styles, externalImages, localImages, stripLinks)) return SKIP
         applyStyle(node, styles.blockquote)
+        if (theme.name === "bytedance") prependBlockquoteMark(node)
         break
       }
       case "section": {
@@ -333,7 +341,7 @@ function inlineStyles(
 
           // 编辑器兼容结构：pre 加 hljs class，code 加 language-xxx class
           // 部分富文本编辑器识别 hljs class 从而保留内容；style 双写保证样式
-          const preStyle = styles.pre
+          const preStyle = styles.codePre ?? styles.pre
           const codeStyle = hasCssDeclaration(styles.preCode, "white-space")
             ? styles.preCode
             : `${styles.preCode};white-space:nowrap;`
@@ -358,7 +366,7 @@ function inlineStyles(
         const escaped = escapeHtml(codeText);
         (node as unknown as { type: string; value: string }).type = "raw";
         (node as unknown as { value: string }).value =
-          `<code class="inline-code" style="${escapeAttr(styles.code)}">${escaped}</code>`
+          `<code class="inline-code" style="${escapeAttr(styles.codespan ?? styles.code)}">${escaped}</code>`
         break
       }
 
@@ -400,11 +408,11 @@ function styleGfmAlert(
   stripAlertMarker(first, match[0])
   const preservedChildren = node.children.filter(child => child !== first || !isEmptyElement(first))
   for (const child of preservedChildren) {
-    styleAlertContent(child, styles, externalImages, localImages, stripLinks)
+    styleAlertContent(child, styles, externalImages, localImages, stripLinks, match[1])
   }
   node.properties = {
     class: `markdown-alert markdown-alert-${match[1].toLowerCase()}`,
-    style: `margin:1.5em 0 2em;padding:1.2em 1.5em;border-left:4px solid ${alert.color};background:linear-gradient(135deg, ${hexToRgba(alert.color, 0.08)}, rgba(255,255,255,0.95));border:1px solid ${hexToRgba(alert.color, 0.2)};border-radius:8px;color:rgb(60,60,60);`,
+    style: alertBlockquoteStyle(styles, match[1], alert.color),
   }
   node.children = [
     {
@@ -412,7 +420,7 @@ function styleGfmAlert(
       tagName: "p",
       properties: {
         class: "markdown-alert-title",
-        style: `color:${alert.color};margin:0 0 8px;font-size:15px;font-weight:800;line-height:1.5;`,
+        style: alertTitleStyle(styles, match[1], alert.color),
       },
       children: [{ type: "text", value: `${alert.icon} ${alert.title}` }],
     },
@@ -448,27 +456,53 @@ function styleAlertContent(
   externalImages: string[],
   localImages: string[],
   stripLinks: boolean,
+  alertType?: string,
 ): void {
   if (child.type !== "element") return
   switch (child.tagName) {
-    case "p": applyStyle(child, styles.p); break
+    case "p": applyStyle(child, alertParagraphStyle(styles, alertType) ?? styles.blockquoteP ?? styles.p); break
     case "strong": applyStyle(child, styles.strong); break
     case "em": applyStyle(child, styles.em); break
     case "code": applyStyle(child, styles.code); break
     case "a": styleLinkNode(child, styles, stripLinks); break
-    case "img": styleImageNode(child, styles, externalImages, localImages); break
+    case "img":
+      styleImageNode(child, styles, externalImages, localImages)
+      return
     case "ul": applyStyle(child, styles.ul); break
     case "ol": applyStyle(child, styles.ol); break
     case "li": applyStyle(child, styles.li); break
   }
   for (const nested of child.children) {
-    styleAlertContent(nested, styles, externalImages, localImages, stripLinks)
+    styleAlertContent(nested, styles, externalImages, localImages, stripLinks, alertType)
   }
+}
+
+function alertParagraphStyle(styles: NodeStyles, type?: string): string | undefined {
+  if (!type) return undefined
+  const field = `blockquoteP${toPascalCase(type.toLowerCase())}` as keyof NodeStyles
+  return typeof styles[field] === "string" ? styles[field] : undefined
+}
+
+function alertBlockquoteStyle(styles: NodeStyles, type: string, color: string): string {
+  const field = `blockquote${toPascalCase(type.toLowerCase())}` as keyof NodeStyles
+  return typeof styles[field] === "string"
+    ? styles[field]
+    : `margin:1.5em 0 2em;padding:1.2em 1.5em;border-left:4px solid ${color};background:linear-gradient(135deg, ${hexToRgba(color, 0.08)}, rgba(255,255,255,0.95));border:1px solid ${hexToRgba(color, 0.2)};border-radius:8px;color:rgb(60,60,60);`
+}
+
+function alertTitleStyle(styles: NodeStyles, type: string, color: string): string {
+  const field = `blockquoteTitle${toPascalCase(type.toLowerCase())}` as keyof NodeStyles
+  const variant = typeof styles[field] === "string" ? styles[field] : `color:${color};`
+  return `${styles.blockquoteTitle ?? "margin:0 0 8px;font-size:15px;font-weight:800;line-height:1.5;"}${variant}`
+}
+
+function toPascalCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
 function styleFootnotes(node: Element, styles: NodeStyles): void {
   if (!("dataFootnotes" in (node.properties ?? {}))) return
-  applyStyle(node, "margin-top:2em;padding-top:1.5em;border-top:1px solid #e5e5e5;")
+  applyStyle(node, styles.footnotes ?? "margin-top:2em;padding-top:1.5em;border-top:1px solid #e5e5e5;")
   node.properties = {
     ...node.properties,
     role: "doc-footnotes",
@@ -483,6 +517,11 @@ function styleFootnotes(node: Element, styles: NodeStyles): void {
     }
     if (child.type === "element" && child.tagName === "ol") {
       child.properties = { style: "list-style-type:decimal;margin:0;padding-left:1em;padding-right:0;" }
+      for (const item of child.children) {
+        if (item.type === "element" && item.tagName === "li") {
+          applyStyle(item, styles.footnoteItem ?? styles.li)
+        }
+      }
     }
   }
 }
@@ -526,6 +565,28 @@ function applyStyle(node: Element, style: string): void {
   node.properties.style = existing ? `${existing};${style}` : style
 }
 
+function prefixHeadingText(node: Element, prefix: string): void {
+  const first = node.children[0]
+  if (first?.type === "text") {
+    if (!first.value.startsWith(prefix)) first.value = `${prefix}${first.value}`
+    return
+  }
+  node.children.unshift({ type: "text", value: prefix })
+}
+
+function prependBlockquoteMark(node: Element): void {
+  if (node.children.some(child => child.type === "element" && child.properties?.["data-wxp-blockquote-mark"] === "true")) return
+  node.children.unshift({
+    type: "element",
+    tagName: "span",
+    properties: {
+      "data-wxp-blockquote-mark": "true",
+      style: "display:block;font-size:24px;line-height:1;color:#05d4cd;margin:0 0 6px;",
+    },
+    children: [{ type: "text", value: "“" }],
+  })
+}
+
 function hasCssDeclaration(style: string, property: string): boolean {
   const escaped = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   return new RegExp(`(?:^|;)\\s*${escaped}\\s*:`, "i").test(style)
@@ -542,7 +603,7 @@ function styleLinkNode(node: Element, styles: NodeStyles, stripLinks: boolean): 
   }
 
   node.properties = { ...node.properties, href }
-  applyStyle(node, styles.a)
+  applyStyle(node, isWechatLink(href) ? styles.wxLink ?? styles.a : styles.a)
 }
 
 function styleImageNode(
@@ -578,6 +639,42 @@ function styleImageNode(
   } else if (isLocalImagePath(src)) {
     localImages.push(src)
   }
+
+  const alt = typeof node.properties?.alt === "string" ? node.properties.alt.trim() : ""
+  const figure: Element = {
+    type: "element",
+    tagName: "figure",
+    properties: { style: styles.figure ?? "margin:18px 0;text-align:center;" },
+    children: [
+      { ...node },
+      ...(alt
+        ? [{
+            type: "element" as const,
+            tagName: "figcaption",
+            properties: { style: styles.figcaption ?? styles.em },
+            children: [{ type: "text" as const, value: alt }],
+          }]
+        : []),
+    ],
+  }
+
+  if (parent && typeof index === "number") {
+    if (
+      parent.type === "element" &&
+      (parent.tagName === "section" || parent.tagName === "p") &&
+      parent.children.filter(child => child.type !== "text" || child.value.trim() !== "").length === 1
+    ) {
+      parent.tagName = "figure"
+      parent.properties = { style: styles.figure ?? "margin:18px 0;text-align:center;" }
+      parent.children = figure.children
+    } else {
+      parent.children[index] = figure as never
+    }
+  } else {
+    node.tagName = figure.tagName
+    node.properties = figure.properties
+    node.children = figure.children
+  }
 }
 
 function imageAltText(node: Element): string {
@@ -591,6 +688,14 @@ function sanitizeHref(value: string | undefined): string | undefined {
 
 function sanitizeImageUrl(value: string | undefined): string | undefined {
   return sanitizeUrl(value, { allowAnchor: false, allowRelative: true })
+}
+
+function isWechatLink(href: string): boolean {
+  try {
+    return new URL(href).hostname === "mp.weixin.qq.com"
+  } catch {
+    return false
+  }
 }
 
 function sanitizeUrl(
