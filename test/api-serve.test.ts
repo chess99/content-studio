@@ -217,4 +217,92 @@ describe("wxp serve API", () => {
       proc.kill()
     }
   })
+
+  it("returns JSON config errors for newspic draft endpoint", async () => {
+    const port = 25000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/newspic-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "贴图", images: ["cover.jpg"] }),
+      })
+      const payload = await res.json() as { success: boolean; error: string; details: string[] }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toContain("配置不完整")
+      expect(payload.details.join("\n")).toContain("wechat_appid")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("rejects newspic draft requests without images", async () => {
+    const port = 26000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "wx-test",
+        WXP_SECRET: "secret-test",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/newspic-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "贴图", images: [] }),
+      })
+      const payload = await res.json() as { success: boolean; error: string }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toBe("images must be a non-empty array")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("rejects newspic draft titles longer than 20 characters", async () => {
+    const port = 27000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "wx-test",
+        WXP_SECRET: "secret-test",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/newspic-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "这是一段明确超过二十个字符限制的贴图标题示例", images: ["cover.jpg"] }),
+      })
+      const payload = await res.json() as { success: boolean; error: string }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toBe("title cannot exceed 20 characters")
+    } finally {
+      proc.kill()
+    }
+  })
 })

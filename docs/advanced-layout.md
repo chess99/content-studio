@@ -341,9 +341,26 @@ curl -X POST "http://127.0.0.1:8080/api/v1/article-draft" \
 
 不传 `cover` 或 `coverUrl` 时，会使用内置占位封面图，并返回 `used_placeholder_cover: true`。
 
-### 单图文草稿别名
+### 创建贴图草稿
 
-`POST /api/v1/newspic-draft` 是 `article-draft` 的单图文别名。
+`POST /api/v1/newspic-draft` 会创建微信公众号图片消息草稿，对应官方 `article_type: "newspic"`。图片会先上传为永久图片素材，并把返回的 `media_id` 写入 `image_info.image_list`。
+
+```bash
+curl -X POST "http://127.0.0.1:8080/api/v1/newspic-draft" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "贴图标题",
+    "content": "贴图描述",
+    "images": [
+      "/absolute/path/to/local.png",
+      "https://example.com/remote.jpg"
+    ],
+    "needOpenComment": false,
+    "onlyFansCanComment": false
+  }'
+```
+
+成功返回 `data.media_id`、`data.type: "newspic"`、`data.images_uploaded` 和每张图片的上传结果。标题最多 20 个字符。
 
 ### 批量上传图片
 

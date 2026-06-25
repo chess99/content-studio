@@ -21,7 +21,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "http"
 import type { AddressInfo } from "net"
 import { convertMarkdown } from "../converter/index.js"
 import { generatePreviewHtml, shellQuote, type ThemePreviewResult } from "../converter/preview-html.js"
-import { WechatClient } from "../wechat/client.js"
+import { buildNewspicDraftArticle, WechatClient, type UploadResult } from "../wechat/client.js"
 import { loadConfig, saveConfig, getConfigPath, validateConfig } from "../config/index.js"
 import { listThemes, getTheme, listThemeReferences, hasTheme, type Theme } from "../converter/themes.js"
 import { getPlaceholderCoverBase64 } from "../converter/placeholder-cover.js"
@@ -189,6 +189,7 @@ program
     // 创建草稿
     const draft = await client.createDraft([
       {
+        article_type: "news",
         title,
         content: finalHtml,
         thumb_media_id: thumbMediaId,
@@ -211,6 +212,48 @@ program
       message: "草稿已创建，请在微信公众号后台发布",
       used_placeholder_cover: usedPlaceholderCover,
       ...(usedPlaceholderCover && { warning: "未提供封面图，已使用内置占位图。建议用 --cover 或 --cover-url 指定真实封面图后重新发布。" }),
+    })
+  })
+
+// ── publish-newspic：上传图片 + 创建贴图草稿 ───────────────────────────────
+
+program
+  .command("publish-newspic")
+  .description("创建微信公众号贴图草稿")
+  .requiredOption("--title <title>", "贴图标题，最多 20 个字符")
+  .option("--content <text>", "贴图描述")
+  .option("--image <path-or-url>", "贴图图片，可重复传入", collectOption, [] as string[])
+  .option("--open-comment", "开启留言")
+  .option("--only-fans-can-comment", "仅粉丝可留言")
+  .action(async (opts) => {
+    const title = String(opts.title ?? "").trim()
+    validateNewspicTitleOrFail(title)
+    const imageSources = normalizeImageInputs(opts.image)
+    if (imageSources.length === 0) fail("images must be a non-empty array")
+
+    const config = loadConfig()
+    const errors = validateConfig(config)
+    if (errors.length > 0) fail("配置不完整", errors)
+
+    const client = new WechatClient({ appid: config.wechat_appid, secret: config.wechat_secret })
+    const uploads = await uploadNewspicImages(imageSources, client)
+    const draft = await client.createDraft([
+      buildNewspicDraftArticle({
+        title,
+        content: typeof opts.content === "string" ? opts.content : undefined,
+        images: uploads,
+        needOpenComment: Boolean(opts.openComment),
+        onlyFansCanComment: Boolean(opts.onlyFansCanComment),
+      }),
+    ]).catch(e => fail("创建贴图草稿失败", String(e)))
+
+    ok({
+      media_id: draft.media_id,
+      title,
+      type: "newspic",
+      images_uploaded: uploads.length,
+      images: uploads.map((upload, index) => ({ source: imageSources[index], ...upload })),
+      message: "贴图草稿已创建，请在微信公众号后台发布",
     })
   })
 
@@ -465,6 +508,12 @@ program
           required_flags: ["--file"],
           optional_flags: ["--theme", "--theme-file", "--title", "--author", "--digest", "--no-upload-images", "--cover", "--cover-url"],
         },
+        "publish-newspic": {
+          description: "上传图片并创建微信公众号贴图草稿",
+          required_config: ["wechat_appid", "wechat_secret"],
+          required_flags: ["--title", "--image"],
+          optional_flags: ["--content", "--open-comment", "--only-fans-can-comment"],
+        },
         convert: {
           description: "仅转换 Markdown 为微信 HTML，不发布",
           required_flags: ["--file"],
@@ -706,6 +755,38 @@ function extractTitle(markdown: string): string | null {
   return match?.[1]?.trim() ?? null
 }
 
+function collectOption(value: string, previous: string[]): string[] {
+  previous.push(value)
+  return previous
+}
+
+function normalizeImageInputs(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((image): image is string => typeof image === "string" && image.trim().length > 0)
+    .map(image => image.trim())
+}
+
+function validateNewspicTitleOrFail(title: string): void {
+  if (!title) fail("title is required")
+  const length = Array.from(title).length
+  if (length > 20) fail("title cannot exceed 20 characters", { length, max: 20 })
+}
+
+function isHttpUrl(value: string): boolean {
+  return value.startsWith("http://") || value.startsWith("https://")
+}
+
+async function uploadNewspicImages(images: string[], client: WechatClient): Promise<UploadResult[]> {
+  const uploads: UploadResult[] = []
+  for (const image of images) {
+    const upload = isHttpUrl(image)
+      ? await client.uploadImageFromUrl(image)
+      : await client.uploadImage(resolve(image))
+    uploads.push(upload)
+  }
+  return uploads
+}
+
 interface PreviewRenderTarget {
   theme: string
   themeDefinition?: Theme
@@ -809,11 +890,14 @@ interface ConvertApiBody {
   fontSize?: string
   convertVersion?: string
   title?: string
+  content?: string
   author?: string
   digest?: string
   cover?: string
   coverUrl?: string
   images?: string[]
+  needOpenComment?: boolean
+  onlyFansCanComment?: boolean
 }
 
 async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -834,8 +918,12 @@ async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Prom
     await handleConvertApi(body, res)
     return
   }
-  if (path === "/api/v1/article-draft" || path === "/api/v1/newspic-draft") {
+  if (path === "/api/v1/article-draft") {
     await handleDraftApi(body, res)
+    return
+  }
+  if (path === "/api/v1/newspic-draft") {
+    await handleNewspicDraftApi(body, res)
     return
   }
   if (path === "/api/v1/batch-upload") {
@@ -901,6 +989,7 @@ async function handleDraftApi(body: ConvertApiBody, res: ServerResponse): Promis
   const thumbMediaId = await resolveApiCover(body, client)
 
   const draft = await client.createDraft([{
+    article_type: "news",
     title,
     content: finalArticle.html,
     thumb_media_id: thumbMediaId.mediaId,
@@ -923,6 +1012,54 @@ async function handleDraftApi(body: ConvertApiBody, res: ServerResponse): Promis
       local_images: result.localImages,
       used_placeholder_cover: thumbMediaId.usedPlaceholder,
       warnings: apiWarnings(body),
+    },
+  })
+}
+
+async function handleNewspicDraftApi(body: ConvertApiBody, res: ServerResponse): Promise<void> {
+  const config = loadConfig()
+  const errors = validateConfig(config)
+  if (errors.length > 0) {
+    sendJson(res, 400, { success: false, error: "配置不完整", details: errors })
+    return
+  }
+
+  const title = typeof body.title === "string" ? body.title.trim() : ""
+  if (!title) {
+    sendJson(res, 400, { success: false, error: "title is required" })
+    return
+  }
+  if (Array.from(title).length > 20) {
+    sendJson(res, 400, { success: false, error: "title cannot exceed 20 characters" })
+    return
+  }
+
+  const imageSources = normalizeImageInputs(body.images)
+  if (imageSources.length === 0) {
+    sendJson(res, 400, { success: false, error: "images must be a non-empty array" })
+    return
+  }
+
+  const client = new WechatClient({ appid: config.wechat_appid, secret: config.wechat_secret })
+  const uploads = await uploadNewspicImages(imageSources, client)
+  const draft = await client.createDraft([
+    buildNewspicDraftArticle({
+      title,
+      content: typeof body.content === "string" ? body.content : undefined,
+      images: uploads,
+      needOpenComment: Boolean(body.needOpenComment),
+      onlyFansCanComment: Boolean(body.onlyFansCanComment),
+    }),
+  ])
+
+  sendJson(res, 200, {
+    success: true,
+    data: {
+      media_id: draft.media_id,
+      title,
+      type: "newspic",
+      images_uploaded: uploads.length,
+      images: uploads.map((upload, index) => ({ source: imageSources[index], ...upload })),
     },
   })
 }

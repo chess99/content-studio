@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest"
 import { spawn } from "child_process"
+import { dirname, resolve } from "path"
+import { fileURLToPath } from "url"
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 function runCli(args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   return new Promise((resolve) => {
@@ -7,7 +11,7 @@ function runCli(args: string[]): Promise<{ stdout: string; stderr: string; exitC
       "node",
       ["--import", "tsx/esm", "src/cli/index.ts", ...args],
       {
-        cwd: "/Users/zcs/code2/wx-publisher",
+        cwd: REPO_ROOT,
         env: {
           ...process.env,
           WXP_APPID: "",
@@ -68,6 +72,9 @@ describe("CLI surface", () => {
     expect(payload.data.coverage.advanced_modules.public).toBe(43)
     expect(payload.data.coverage.advanced_modules.enhanced).toBe(3)
     expect(payload.data.commands.serve.endpoints).toContain("POST /api/v1/convert")
+    expect(payload.data.commands.serve.endpoints).toContain("POST /api/v1/newspic-draft")
+    expect(payload.data.commands["publish-newspic"].required_flags).toEqual(["--title", "--image"])
+    expect(payload.data.commands["publish-newspic"].optional_flags).toContain("--content")
     expect(payload.data.commands["theme-gallery"].required_flags).toEqual([])
     expect(payload.data.commands["theme-gallery"].optional_flags).toContain("--file")
     expect(payload.data.themes).toHaveLength(48)

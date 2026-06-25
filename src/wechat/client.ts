@@ -33,7 +33,8 @@ export interface UploadResult {
   url: string
 }
 
-export interface DraftArticle {
+export interface DraftNewsArticle {
+  article_type: "news"
   title: string
   /** 微信格式 HTML，所有样式内联 */
   content: string
@@ -44,10 +45,45 @@ export interface DraftArticle {
   /** 是否只显示封面图，不显示正文图片 */
   show_cover_pic?: 0 | 1
   need_open_comment?: 0 | 1
+  only_fans_can_comment?: 0 | 1
 }
+
+export interface DraftNewspicArticle {
+  article_type: "newspic"
+  title: string
+  content?: string
+  need_open_comment?: 0 | 1
+  only_fans_can_comment?: 0 | 1
+  image_info: {
+    image_list: Array<{ image_media_id: string }>
+  }
+}
+
+export type DraftArticle = DraftNewsArticle | DraftNewspicArticle
 
 export interface CreateDraftResult {
   media_id: string
+}
+
+export interface BuildNewspicDraftArticleOptions {
+  title: string
+  content?: string
+  images: UploadResult[]
+  needOpenComment?: boolean
+  onlyFansCanComment?: boolean
+}
+
+export function buildNewspicDraftArticle(options: BuildNewspicDraftArticleOptions): DraftNewspicArticle {
+  return {
+    article_type: "newspic",
+    title: options.title,
+    ...(options.content ? { content: options.content } : {}),
+    need_open_comment: options.needOpenComment ? 1 : 0,
+    only_fans_can_comment: options.onlyFansCanComment ? 1 : 0,
+    image_info: {
+      image_list: options.images.map(image => ({ image_media_id: image.media_id })),
+    },
+  }
 }
 
 export class WechatClient {

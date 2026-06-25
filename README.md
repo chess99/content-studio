@@ -230,7 +230,7 @@ curl -X POST "http://127.0.0.1:8080/api/v1/convert" \
 
 - `POST /api/v1/convert`：返回 `{ success, data: { html, theme, external_images, local_images, warnings } }`
 - `POST /api/v1/article-draft`：转换并创建微信公众号草稿
-- `POST /api/v1/newspic-draft`：单图文草稿别名
+- `POST /api/v1/newspic-draft`：上传图片并创建微信公众号贴图草稿
 - `POST /api/v1/batch-upload`：批量上传本地或远程图片
 
 草稿和上传端点需要先配置 `wechat_appid` 和 `wechat_secret`。

@@ -212,6 +212,7 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
   }
 
   const draft = await client.createDraft([{
+    article_type: "news",
     title,
     content: finalHtml,
     thumb_media_id: thumbMediaId,
