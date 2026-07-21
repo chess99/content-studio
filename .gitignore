@@ -1,0 +1,16 @@
+# 克隆的第三方源码与本地运行环境
+vendor/
+runtime/
+
+# 登录态与浏览器数据绝不进入 Git
+private/
+profiles/
+cookies.json
+**/cookies.json
+**/token_cache.json
+
+# 常见本地文件
+.venv/
+__pycache__/
+*.log
+
