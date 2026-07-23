@@ -7,6 +7,7 @@
 - 不保存具体选题、草稿、图片或发布状态；这些内容属于 `D:\code\content`。
 - 不保存 Hexo 文章副本、站点配置或部署脚本；这些内容属于 `D:\code\blog`。
 - 工作流通过调用方提供的 `TOPIC_DIR` 读写内容资产，不硬编码某个选题目录。
+- 资产组织规范以 `D:\code\content\AGENTS.md` 为唯一来源；执行任务前读取并遵循，不在本仓库复制维护另一套规则。
 - 通用 skill 位于根目录 `skills/`，`.agents/skills` 和 `.claude/skills` 只是兼容入口。
 
 ## 开发要求
