@@ -11,6 +11,7 @@ const requiredPaths = [
   "projects/_template/input/source.md",
   "projects/_template/input/sources.json",
   "projects/_template/input/data.csv",
+  "projects/_template/config.json",
   "projects/_template/brief.json",
   "projects/_template/script.json",
   "projects/_template/storyboard.json",
@@ -21,7 +22,18 @@ const requiredPaths = [
   "src/providers/README.md",
   "src/renderers/README.md",
   "src/qa/README.md",
-  "templates/README.md"
+  "templates/README.md",
+  "scripts/prepare-project.mjs",
+  "scripts/render-project.mjs",
+  "scripts/qa-video.mjs",
+  "scripts/setup-voice.ps1",
+  "requirements-voice.txt",
+  "src/video/index.ts",
+  "src/video/KnowledgeVideo.tsx",
+  "src/video/templates/index.tsx",
+  "projects/a-share-buffett/config.json",
+  "projects/a-share-buffett/script.json",
+  "projects/a-share-buffett/storyboard.json"
 ];
 
 const missing = [];

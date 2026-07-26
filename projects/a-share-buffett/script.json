@@ -1,0 +1,69 @@
+{
+  "status": "approved",
+  "scenes": [
+    {
+      "id": "scene-01",
+      "displayText": "现在的 A 股，到底贵不贵？两种公开口径，给出同一个方向。",
+      "speechText": "现在的诶股，到底贵不贵？两种公开口径，给出同一个方向。",
+      "captionChunks": ["现在的 A 股，到底贵不贵？", "两种公开口径，给出同一个方向。"],
+      "sourceIds": ["source-worldbank", "source-chinaclear", "source-nbs"],
+      "emphasis": ["贵不贵", "公开口径"]
+    },
+    {
+      "id": "scene-02",
+      "displayText": "巴菲特指标，就是境内上市股票总市值，除以当年名义 GDP。它比较股票资产和实体经济的规模。",
+      "speechText": "巴菲特指标，就是境内上市股票总市值，除以当年名义 G D P。它比较股票资产和实体经济的规模。",
+      "captionChunks": ["巴菲特指标很简单：", "上市股票总市值，", "除以当年名义 GDP。", "比较股票资产和实体经济的规模。"],
+      "sourceIds": ["source-worldbank"],
+      "emphasis": ["总市值", "GDP"]
+    },
+    {
+      "id": "scene-03",
+      "displayText": "世界银行序列里，2007 年冲到 124%，2018 年跌到 45%，2020 年又升到 82%。2025 年约为 79.5%。",
+      "speechText": "世界银行序列里，二零零七年冲到百分之一百二十四，二零一八年跌到百分之四十五，二零二零年又升到百分之八十二。二零二五年约为百分之七十九点五。",
+      "captionChunks": ["2007 年：约 124%", "2018 年：约 45%", "2020 年：约 82%", "2025 年：约 79.5%"],
+      "sourceIds": ["source-worldbank"],
+      "emphasis": ["124%", "79.5%"]
+    },
+    {
+      "id": "scene-04",
+      "displayText": "按中国结算和国家统计局数据另行粗算，约为 77.5%。口径不同，但结论一致：它超过了大约八成的历史年份。",
+      "speechText": "按中国结算和国家统计局数据另行粗算，约为百分之七十七点五。口径不同，但结论一致：它超过了大约八成的历史年份。",
+      "captionChunks": ["另一种公开口径：约 77.5%", "统计范围不同，数值会有差异。", "但都指向历史高位区。", "超过大约八成的历史年份。"],
+      "sourceIds": ["source-chinaclear", "source-nbs", "source-worldbank"],
+      "emphasis": ["77.5%", "历史高位区"]
+    },
+    {
+      "id": "scene-05",
+      "displayText": "高位不等于极端。历史中位数约 63%，当前大约 78.5%，而 2007 年的极端峰值超过 124%。",
+      "speechText": "高位不等于极端。历史中位数约百分之六十三，当前大约百分之七十八点五，而二零零七年的极端峰值超过百分之一百二十四。",
+      "captionChunks": ["高位，不等于极端。", "历史中位数：约 63%", "当前区间中点：约 78.5%", "2007 极端峰值：约 124%"],
+      "sourceIds": ["source-worldbank", "source-chinaclear", "source-nbs"],
+      "emphasis": ["高位", "极端"]
+    },
+    {
+      "id": "scene-06",
+      "displayText": "也别把美国市场的刻度直接照搬。GDP 包含大量非上市企业，A 股又不含只在港股和美股上市的中国公司；总市值还会受 IPO 和增发影响。",
+      "speechText": "也别把美国市场的刻度直接照搬。G D P 包含大量非上市企业，诶股又不含只在港股和美股上市的中国公司；总市值还会受 I P O 和增发影响。",
+      "captionChunks": ["别把美国市场的刻度直接照搬。", "GDP 包含大量非上市企业。", "A 股不含只在境外上市的公司。", "IPO 和增发也会推高总市值。"],
+      "sourceIds": ["source-worldbank"],
+      "emphasis": ["不能照搬", "口径错配"]
+    },
+    {
+      "id": "scene-07",
+      "displayText": "所以，它适合看仓位温度，不适合精准择时。现在的 A 股：整体不便宜，但也没有极端。",
+      "speechText": "所以，它适合看仓位温度，不适合精准择时。现在的诶股：整体不便宜，但也没有极端。",
+      "captionChunks": ["适合看仓位温度，", "不适合精准择时。", "整体不便宜，", "但也没有极端。"],
+      "sourceIds": ["source-worldbank", "source-chinaclear", "source-nbs"],
+      "emphasis": ["不便宜", "没有极端"]
+    },
+    {
+      "id": "scene-08",
+      "displayText": "真正决定回报的，仍是盈利、估值和你买了什么。以上不构成投资建议。",
+      "speechText": "真正决定回报的，仍是盈利、估值和你买了什么。以上不构成投资建议。",
+      "captionChunks": ["回报最终取决于盈利、估值和资产选择。", "以上不构成投资建议。"],
+      "sourceIds": ["source-worldbank", "source-chinaclear", "source-nbs"],
+      "emphasis": ["盈利", "估值", "资产选择"]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "title": "待填写",
+  "seriesLabel": "知识图解 01",
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  },
+  "voice": {
+    "provider": "edge-tts",
+    "name": "zh-CN-YunxiNeural",
+    "rate": "+5%",
+    "pitch": "+0Hz",
+    "leadSeconds": 0.3,
+    "tailSeconds": 0.55
+  },
+  "render": {
+    "engine": "remotion",
+    "codec": "h264",
+    "audioCodec": "aac"
+  },
+  "gates": {
+    "scriptApproved": false,
+    "previewApproved": false,
+    "allowAutoPublish": false
+  }
+}

@@ -8,7 +8,24 @@
     "node": ">=22"
   },
   "scripts": {
-    "check:structure": "node scripts/check-structure.mjs"
+    "check:structure": "node scripts/check-structure.mjs",
+    "typecheck": "tsc --noEmit",
+    "video:prepare": "node scripts/prepare-project.mjs",
+    "video:render": "node scripts/render-project.mjs",
+    "video:qa": "node scripts/qa-video.mjs"
   },
-  "packageManager": "pnpm@10.13.1"
+  "packageManager": "pnpm@11.9.0",
+  "dependencies": {
+    "@remotion/cli": "^4.0.499",
+    "@remotion/media": "^4.0.499",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "remotion": "^4.0.499"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
 }
