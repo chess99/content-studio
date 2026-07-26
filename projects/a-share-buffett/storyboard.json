@@ -49,7 +49,7 @@
         "cards": [
           {"value": "79.5%", "title": "世界银行序列", "body": "适合连接历史并计算分位", "tone": "blue"},
           {"value": "77.5%", "title": "公开数据粗算", "body": "中国结算市值 ÷ 国家统计局 GDP", "tone": "gold"},
-          {"value": "≈8成", "title": "共同指向历史高位区", "body": "但不是精准择时信号", "tone": "red"}
+          {"value": "≈9成", "title": "世界银行口径的历史位置", "body": "高于 2006 年以来约九成的既往年份", "tone": "red"}
         ]
       }
     },
@@ -61,7 +61,8 @@
         "template": "conclusion-meter",
         "eyebrow": "04 · 当前温度",
         "title": "高位 ≠ 极端泡沫",
-        "current": 78.5,
+        "current": 79.5,
+        "currentLabel": "世界银行口径 · 2025 年",
         "median": 62.7,
         "peak": 124.3
       }
@@ -73,7 +74,7 @@
       "visual": {
         "template": "three-points",
         "eyebrow": "05 · 三个局限",
-        "title": "别机械照搬阈值",
+        "title": "总量指标的三个局限",
         "cards": [
           {"title": "分子分母并不完全匹配", "body": "GDP 包含非上市企业，A 股不覆盖全部中国公司", "tone": "blue"},
           {"title": "总市值不等于股东回报", "body": "IPO、增发和股份扩张都会改变分子", "tone": "gold"},
@@ -88,8 +89,8 @@
       "visual": {
         "template": "conclusion",
         "eyebrow": "结论",
-        "conclusion": "整体不便宜，但也没有极端。",
-        "bullets": ["用它看仓位温度", "别用它猜明天涨跌", "更关注盈利与资产选择"]
+        "conclusion": "不便宜，但还没到极端。",
+        "bullets": ["只代表市场总量温度", "不能拿来猜明天涨跌", "个股还要看盈利、分红与估值"]
       }
     },
     {

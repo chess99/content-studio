@@ -123,7 +123,7 @@ export const MeterScene: React.FC<{visual: VisualSpec}> = ({visual}) => {
       <SceneTitle visual={visual} />
       <div style={{borderTop: `10px solid ${theme.ink}`, paddingTop: 54}}>
         <div style={{fontFamily: numberFontFamily, fontSize: 118, lineHeight: 1, fontWeight: 900, color: theme.red, letterSpacing: -7}}>{current.toFixed(1)}%</div>
-        <div style={{fontSize: 29, fontWeight: 800, color: theme.inkMuted, marginTop: 13}}>当前区间中点</div>
+        <div style={{fontSize: 29, fontWeight: 800, color: theme.inkMuted, marginTop: 13}}>{String(visual.currentLabel ?? "当前值")}</div>
         <div style={{position: "relative", height: 180, marginTop: 50}}>
           <div style={{position: "absolute", left: 26, width: 840, top: 70, height: 38, background: `linear-gradient(90deg,#D9E3EA 0 48%,#B9C3CC 48% 62%,#E8ABA6 62% 100%)`}} />
           <div style={{position: "absolute", left: x-5, top: 31, width: 10, height: 115, background: theme.red}} />

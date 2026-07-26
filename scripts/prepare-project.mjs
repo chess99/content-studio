@@ -27,6 +27,10 @@ await mkdir(tmpDir, {recursive: true});
 const fps = config.video.fps;
 const leadFrames = Math.round((config.voice.leadSeconds ?? 0.25) * fps);
 const tailFrames = Math.round((config.voice.tailSeconds ?? 0.5) * fps);
+const audioPlaybackRate = Number(config.voice.playbackRate ?? 1);
+if (!Number.isFinite(audioPlaybackRate) || audioPlaybackRate < 0.5 || audioPlaybackRate > 2) {
+  throw new Error(`voice.playbackRate 超出合理范围：${config.voice.playbackRate}`);
+}
 let cursor = 0;
 const preparedScenes = [];
 
@@ -56,7 +60,7 @@ for (const scriptScene of script.scenes) {
   }
 
   const audioSeconds = await probeDuration(audioFile);
-  const audioFrames = Math.ceil(audioSeconds * fps);
+  const audioFrames = Math.ceil((audioSeconds / audioPlaybackRate) * fps);
   const durationInFrames = leadFrames + audioFrames + tailFrames;
   const captions = makeCaptions({
     chunks: scriptScene.captionChunks ?? [scriptScene.displayText],
@@ -76,6 +80,7 @@ for (const scriptScene of script.scenes) {
     durationInFrames,
     audioStartFrame: leadFrames,
     audioPath: `generated/${slug}/audio/${scriptScene.id}.${audioExtension}`,
+    audioPlaybackRate,
     displayText: scriptScene.displayText,
     sourceIds: scriptScene.sourceIds,
     template: visual.template,
@@ -93,6 +98,8 @@ const timeline = {
   width: config.video.width,
   height: config.video.height,
   totalFrames: cursor,
+  brand: config.brand,
+  cover: config.cover,
   scenes: preparedScenes,
 };
 

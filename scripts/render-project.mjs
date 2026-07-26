@@ -66,18 +66,17 @@ if (!coverOnly) {
 
 if (mode === "final") {
   if (!coverOnly) await copyFile(output, join(publishDir, "final.mp4"));
-  const coverFrame = Math.min(props.totalFrames - 1, Math.round(props.fps * 2.2));
   const coverPropsPath = join(root, "tmp", `${slug}-cover-props.json`);
-  await writeFile(coverPropsPath, `${JSON.stringify({...props, coverMode: true}, null, 2)}\n`);
+  await writeFile(coverPropsPath, `${JSON.stringify(props, null, 2)}\n`);
   await run(process.execPath, [
     remotionCli,
     "still",
     "src/video/index.ts",
-    "KnowledgeVideo",
+    "KnowledgeCover",
     join(publishDir, "cover.png"),
     `--props=${coverPropsPath}`,
     `--browser-executable=${chrome}`,
-    `--frame=${coverFrame}`,
+    "--frame=0",
     "--overwrite",
   ]);
 }

@@ -37,6 +37,7 @@ export type PreparedScene = {
   durationInFrames: number;
   audioStartFrame: number;
   audioPath: string;
+  audioPlaybackRate?: number;
   displayText: string;
   sourceIds: string[];
   template: string;
@@ -53,5 +54,7 @@ export type VideoProps = {
   height: number;
   totalFrames: number;
   scenes: PreparedScene[];
+  brand?: {tagline?: string; series?: string; issue?: string};
+  cover?: {titleLines?: string[]; stat?: string; statNote?: string; peakLabel?: string; currentLabel?: string};
   coverMode?: boolean;
 };

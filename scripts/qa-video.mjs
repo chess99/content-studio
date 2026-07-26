@@ -59,6 +59,17 @@ for (const scene of timeline.scenes) {
   await run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-ss", second.toFixed(3), "-i", video, "-frames:v", "1", join(snapshotDir, `${scene.id}.png`)]);
 }
 
+const montageInputs = timeline.scenes.flatMap((scene) => ["-i", join(snapshotDir, `${scene.id}.png`)]);
+const montageScales = timeline.scenes.map((_, index) => `[${index}:v]scale=270:960[s${index}]`).join(";");
+const montageLayout = timeline.scenes.map((_, index) => `${(index % 4) * 270}_${Math.floor(index / 4) * 960}`).join("|");
+const montageStreams = timeline.scenes.map((_, index) => `[s${index}]`).join("");
+await run("ffmpeg", [
+  "-hide_banner", "-loglevel", "error", "-y",
+  ...montageInputs,
+  "-filter_complex", `${montageScales};${montageStreams}xstack=inputs=${timeline.scenes.length}:layout=${montageLayout}[out]`,
+  "-map", "[out]", "-frames:v", "1", join(snapshotDir, "montage.png"),
+]);
+
 const report = {
   status: errors.length ? "failed" : warnings.length ? "passed-with-warnings" : "passed",
   checkedAt: new Date().toISOString(),
@@ -70,6 +81,7 @@ const report = {
   errors,
   warnings,
   snapshots: timeline.scenes.map((scene) => join(snapshotDir, `${scene.id}.png`)),
+  montage: join(snapshotDir, "montage.png"),
 };
 await writeFile(join(projectDir, "renders", `${mode}-review-report.json`), `${JSON.stringify(report, null, 2)}\n`);
 

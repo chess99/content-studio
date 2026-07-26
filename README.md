@@ -86,6 +86,10 @@ pnpm video:qa a-share-buffett --final
 
 正式版会自动做响度标准化。质检会检查尺寸、编码、时长、字幕时间、来源、黑帧与音量，并从每个场景抽取一张截图到 `tmp/qa/`。
 
+项目可在 `projects/<slug>/config.json` 中用 `voice.playbackRate` 控制成片语速。建议先试 `1.04—1.12`；当前试播片使用 `1.08`。封面由独立的 `KnowledgeCover` 画布生成，不再从视频首帧抽取。
+
+正式渲染前按 [独立审核闸门](docs/REVIEW_WORKFLOW.md) 分别做内容审核与视觉/品牌审核；品牌识别规则见 [brand/BRAND.md](brand/BRAND.md)。
+
 ## 下一步
 
 1. 增加 Fish Audio、Azure Dragon HD 等云端正式 TTS 适配器。

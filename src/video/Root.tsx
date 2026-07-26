@@ -1,6 +1,7 @@
 import React from "react";
 import {Composition} from "remotion";
 import {KnowledgeVideo} from "./KnowledgeVideo";
+import {KnowledgeCover} from "./KnowledgeCover";
 import type {VideoProps} from "./types";
 
 const defaultProps: VideoProps = {
@@ -12,9 +13,11 @@ const defaultProps: VideoProps = {
   height: 1920,
   totalFrames: 300,
   scenes: [],
+  brand: {tagline: "用数据校准判断", series: "市场温度计", issue: "001"},
+  cover: {titleLines: ["知识视频"], stat: ""},
 };
 
-export const RemotionRoot: React.FC = () => (
+export const RemotionRoot: React.FC = () => <>
   <Composition
     id="KnowledgeVideo"
     component={KnowledgeVideo}
@@ -23,11 +26,16 @@ export const RemotionRoot: React.FC = () => (
     width={defaultProps.width}
     height={defaultProps.height}
     defaultProps={defaultProps}
-    calculateMetadata={({props}) => ({
-      durationInFrames: props.totalFrames,
-      fps: props.fps,
-      width: props.width,
-      height: props.height,
-    })}
+    calculateMetadata={({props}) => ({durationInFrames: props.totalFrames, fps: props.fps, width: props.width, height: props.height})}
   />
-);
+  <Composition
+    id="KnowledgeCover"
+    component={KnowledgeCover}
+    durationInFrames={1}
+    fps={defaultProps.fps}
+    width={defaultProps.width}
+    height={defaultProps.height}
+    defaultProps={defaultProps}
+    calculateMetadata={({props}) => ({durationInFrames: 1, fps: props.fps, width: props.width, height: props.height})}
+  />
+</>;
