@@ -12,12 +12,16 @@ if (!slug) {
 
 const projectDir = join(root, "projects", slug);
 const publicDir = join(root, "public", "generated", slug);
-const audioDir = join(publicDir, "audio");
 const tmpDir = join(root, "tmp");
+const configFlagIndex = process.argv.indexOf("--config");
+const configFile = configFlagIndex >= 0 ? process.argv[configFlagIndex + 1] : "config.json";
+if (!configFile) throw new Error("--config 后缺少文件名");
 const script = JSON.parse(await readFile(join(projectDir, "script.json"), "utf8"));
 const storyboard = JSON.parse(await readFile(join(projectDir, "storyboard.json"), "utf8"));
 const sources = JSON.parse(await readFile(join(projectDir, "input", "sources.json"), "utf8"));
-const config = JSON.parse(await readFile(join(projectDir, "config.json"), "utf8"));
+const config = JSON.parse(await readFile(join(projectDir, configFile), "utf8"));
+const audioSubdirectory = config.voice.audioSubdirectory ?? "audio";
+const audioDir = join(publicDir, audioSubdirectory);
 const dataRows = parseCsv(await readFile(join(projectDir, "input", "data.csv"), "utf8"));
 
 validateProject({script, storyboard, sources, dataRows});
@@ -36,7 +40,7 @@ const preparedScenes = [];
 
 for (const scriptScene of script.scenes) {
   const boardScene = storyboard.scenes.find((scene) => scene.id === scriptScene.id);
-  const audioExtension = config.voice.provider === "edge-tts" ? "mp3" : "wav";
+  const audioExtension = config.voice.audioExtension ?? (config.voice.provider === "edge-tts" ? "mp3" : "wav");
   const audioFile = join(audioDir, `${scriptScene.id}.${audioExtension}`);
   if (!existsSync(audioFile) || process.argv.includes("--force-voice")) {
     if (config.voice.provider === "edge-tts") {
@@ -79,7 +83,7 @@ for (const scriptScene of script.scenes) {
     from: cursor,
     durationInFrames,
     audioStartFrame: leadFrames,
-    audioPath: `generated/${slug}/audio/${scriptScene.id}.${audioExtension}`,
+    audioPath: `generated/${slug}/${audioSubdirectory}/${scriptScene.id}.${audioExtension}`,
     audioPlaybackRate,
     displayText: scriptScene.displayText,
     sourceIds: scriptScene.sourceIds,

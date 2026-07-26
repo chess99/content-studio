@@ -66,6 +66,25 @@ python -m venv .venv-qwen
 
 CUDA 版本应按本机驱动与 PyTorch 官方安装页调整，不要机械照搬示例版本。
 
+Fish Audio 可先用免费开发模型做同稿样音：
+
+```powershell
+Copy-Item .env.example .env
+# 将 FISH_AUDIO_API_KEY 写入 .env 后：
+python scripts/generate-fish-project.py a-share-buffett --sample --model s2.1-pro-free --reference-id <voice-id> --voice-alias natural-male
+```
+
+密钥不得写入代码、日志或提交；`.env` 已被 Git 忽略。
+
+生成整条 Fish 配音并使用独立配置准备时间线：
+
+```powershell
+python scripts/generate-fish-project.py a-share-buffett --model s2.1-pro-free --reference-id <voice-id> --voice-alias natural-male --speed 1.05
+pnpm video:prepare a-share-buffett --config config.fish.json
+```
+
+Fish 音频写入 `public/generated/<project>/audio-fish/`，不会覆盖本地 Qwen 音频。
+
 ## 制作一条视频
 
 ```powershell
