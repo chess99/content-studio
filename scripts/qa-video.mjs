@@ -76,6 +76,7 @@ const report = {
   mode,
   file: video,
   expected: {duration: expectedDuration, width: timeline.width * expectedScale, height: timeline.height * expectedScale, fps: timeline.fps},
+  voice: timeline.voice,
   actual: {duration: actualDuration, width: videoStream?.width, height: videoStream?.height, videoCodec: videoStream?.codec_name, audioCodec: audioStream?.codec_name, meanVolume, maxVolume},
   blackSegments,
   errors,

@@ -102,6 +102,7 @@ const timeline = {
   width: config.video.width,
   height: config.video.height,
   totalFrames: cursor,
+  voice: config.voice,
   brand: config.brand,
   cover: config.cover,
   scenes: preparedScenes,
