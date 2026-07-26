@@ -7,10 +7,10 @@
     "fps": 30
   },
   "voice": {
-    "provider": "edge-tts",
-    "name": "zh-CN-YunxiNeural",
-    "rate": "+5%",
-    "pitch": "+0Hz",
+    "provider": "qwen-local",
+    "name": "Qwen3-TTS-0.6B / Dylan",
+    "rate": "natural",
+    "pitch": "natural",
     "leadSeconds": 0.3,
     "tailSeconds": 0.55
   },

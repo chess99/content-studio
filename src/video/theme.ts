@@ -1,15 +1,21 @@
 export const theme = {
-  cream: "#F4EFE5",
-  creamStrong: "#E9DFCF",
-  ink: "#17191D",
-  inkMuted: "#5E625F",
-  blue: "#234E70",
-  blueSoft: "#DCE8EF",
-  red: "#9B3434",
-  redSoft: "#F0DDDA",
-  gold: "#B58832",
-  goldSoft: "#EFE4CB",
-  white: "#FFFDF8",
+  paper: "#F2F3F5",
+  surface: "#FFFFFF",
+  ink: "#111418",
+  graphite: "#242A31",
+  inkMuted: "#69717A",
+  divider: "#C8CDD3",
+  blue: "#245C87",
+  blueSoft: "#DCE6EE",
+  red: "#D83B32",
+  redSoft: "#F2D9D7",
+  orange: "#F15A29",
+  gold: "#A26B16",
+  goldSoft: "#EAE0CF",
+  white: "#FFFFFF",
+  cream: "#F2F3F5",
+  creamStrong: "#C8CDD3",
 };
 
-export const fontFamily = '"Noto Sans SC", "Microsoft YaHei", "DengXian", sans-serif';
+export const fontFamily = '"Microsoft YaHei", "Noto Sans SC", "PingFang SC", sans-serif';
+export const numberFontFamily = 'Arial, "Helvetica Neue", sans-serif';

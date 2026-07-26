@@ -8,19 +8,24 @@ import {fontFamily, theme} from "./theme";
 
 export const KnowledgeVideo: React.FC<VideoProps> = (props) => {
   const frame = useCurrentFrame();
+  const sceneIndex = Math.max(0, props.scenes.findIndex((scene) => frame >= scene.from && frame < scene.from + scene.durationInFrames));
+  const progress = Math.min(1, frame / Math.max(1, props.totalFrames - 1));
+
   return (
-    <AbsoluteFill style={{background: theme.cream, color: theme.ink, fontFamily}}>
-      <div style={{position: "absolute", inset: 0, opacity: 0.35, backgroundImage: `linear-gradient(${theme.creamStrong} 1px, transparent 1px), linear-gradient(90deg, ${theme.creamStrong} 1px, transparent 1px)`, backgroundSize: "72px 72px"}} />
-      <div style={{position: "absolute", left: 70, right: 70, top: 70, height: 6, display: "flex", gap: 10}}>
-        {props.scenes.map((scene) => <div key={scene.id} style={{flex: scene.durationInFrames, background: frame >= scene.from ? theme.gold : theme.creamStrong, borderRadius: 3}} />)}
+    <AbsoluteFill style={{background: theme.paper, color: theme.ink, fontFamily}}>
+      <div style={{position: "absolute", left: 0, top: 0, bottom: 0, width: 12, background: theme.red}} />
+      <div style={{position: "absolute", left: 72, right: 72, top: 62, height: 2, background: theme.ink}} />
+      <div style={{position: "absolute", left: 72, right: 72, top: 82, display: "flex", justifyContent: "space-between", alignItems: "baseline", color: theme.ink, fontWeight: 800}}>
+        <span style={{fontSize: 25, letterSpacing: 4}}>{props.seriesLabel}</span>
+        <span style={{fontSize: 24, color: theme.inkMuted, letterSpacing: 2}}>0{sceneIndex + 1} / 0{props.scenes.length}</span>
       </div>
-      <div style={{position: "absolute", left: 76, right: 76, top: 98, display: "flex", justifyContent: "space-between", fontSize: 24, color: theme.inkMuted, fontWeight: 800, letterSpacing: 3}}>
-        <span>{props.seriesLabel}</span><span>{props.title}</span>
+      <div style={{position: "absolute", left: 72, right: 72, bottom: 112, height: 3, background: theme.divider}}>
+        <div style={{height: "100%", width: `${progress * 100}%`, background: theme.red}} />
       </div>
 
       {props.scenes.map((scene) => (
         <Sequence key={scene.id} from={scene.from} durationInFrames={scene.durationInFrames} premountFor={30}>
-          <AbsoluteFill style={{padding: "0 76px 370px"}}>
+          <AbsoluteFill style={{padding: "0 72px 355px 84px"}}>
             <SceneRenderer visual={scene.visual} />
           </AbsoluteFill>
           <Sequence from={scene.audioStartFrame}>

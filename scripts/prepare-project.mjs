@@ -43,13 +43,15 @@ for (const scriptScene of script.scenes) {
         rate: config.voice.rate,
         pitch: config.voice.pitch,
       });
-    } else {
+    } else if (config.voice.provider === "sapi") {
       await generateSapi({
         text: scriptScene.speechText,
         outputPath: audioFile,
         voice: config.voice.name,
         rate: config.voice.rate,
       });
+    } else {
+      throw new Error(`缺少预生成配音：${audioFile}\n当前 provider=${config.voice.provider}，请先运行对应的 voice 命令。`);
     }
   }
 

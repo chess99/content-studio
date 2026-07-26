@@ -1,5 +1,6 @@
 node_modules/
 .venv/
+.venv-*/
 .env
 .env.*
 !.env.example
@@ -19,6 +20,7 @@ projects/*/timeline.json
 projects/*/publish/*.mp4
 projects/*/publish/*.wav
 projects/*/publish/*.mp3
+projects/*/publish/voice-samples/
 
 *.log
 .DS_Store
