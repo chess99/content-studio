@@ -1,0 +1,14 @@
+{
+  "name": "knowledge-video-factory",
+  "version": "0.1.0",
+  "private": true,
+  "description": "可复用的无真人知识视频自动化生产工作流",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check:structure": "node scripts/check-structure.mjs"
+  },
+  "packageManager": "pnpm@10.13.1"
+}
