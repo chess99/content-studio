@@ -1,0 +1,308 @@
+import { describe, expect, it } from "vitest"
+import { spawn, type ChildProcessWithoutNullStreams } from "child_process"
+import { dirname, resolve } from "path"
+import { fileURLToPath } from "url"
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function waitForServer(port: number, proc: ChildProcessWithoutNullStreams): Promise<void> {
+  let lastError = ""
+  for (let i = 0; i < 40; i++) {
+    if (proc.exitCode !== null) throw new Error(`server exited early with ${proc.exitCode}`)
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/health`)
+      if (res.ok) return
+      lastError = `HTTP ${res.status}`
+    } catch (e) {
+      lastError = String(e)
+    }
+    await wait(100)
+  }
+  throw new Error(`server did not start: ${lastError}`)
+}
+
+describe("wxp serve API", () => {
+  it("converts markdown through POST /api/v1/convert", async () => {
+    const port = 19000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          markdown: ":::hero\ntitle: API Title\nsubtitle: API body\n:::",
+          theme: "default",
+          fontSize: "medium",
+          convertVersion: "v1",
+        }),
+      })
+      const payload = await res.json() as {
+        success: boolean
+        data: { html: string; theme: string; warnings: string[] }
+      }
+
+      expect(res.status).toBe(200)
+      expect(payload.success).toBe(true)
+      expect(payload.data.theme).toBe("default")
+      expect(payload.data.html).toContain('data-mpa-action-id="hero"')
+      expect(payload.data.warnings).toEqual([])
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("sanitizes unsafe URLs through POST /api/v1/convert", async () => {
+    const port = 21000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          markdown: "[bad](javascript:alert(1))\n\n![bad](javascript:alert(1))",
+          theme: "default",
+        }),
+      })
+      const payload = await res.json() as { success: boolean; data: { html: string } }
+
+      expect(res.status).toBe(200)
+      expect(payload.success).toBe(true)
+      expect(payload.data.html).not.toContain("javascript:")
+      expect(payload.data.html).toContain("[图片已移除: bad]")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("rejects unknown runtime theme ids through POST /api/v1/convert", async () => {
+    const port = 24000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          markdown: "# Title",
+          theme: "archived-theme",
+        }),
+      })
+      const payload = await res.json() as { success: boolean; error: string }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toContain("未知主题: archived-theme")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("returns 400 for invalid JSON", async () => {
+    const port = 22000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{not-json",
+      })
+      const payload = await res.json() as { success: boolean; error: string }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toBe("invalid JSON body")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("returns 400 for non-object JSON bodies", async () => {
+    const port = 23000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "null",
+      })
+      const payload = await res.json() as { success: boolean; error: string }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toBe("JSON body must be an object")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("returns JSON config errors for draft endpoints", async () => {
+    const port = 20000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/article-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markdown: "# Title", theme: "default" }),
+      })
+      const payload = await res.json() as { success: boolean; error: string; details: string[] }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toContain("配置不完整")
+      expect(payload.details.join("\n")).toContain("wechat_appid")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("returns JSON config errors for newspic draft endpoint", async () => {
+    const port = 25000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "",
+        WXP_SECRET: "",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/newspic-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "贴图", images: ["cover.jpg"] }),
+      })
+      const payload = await res.json() as { success: boolean; error: string; details: string[] }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toContain("配置不完整")
+      expect(payload.details.join("\n")).toContain("wechat_appid")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("rejects newspic draft requests without images", async () => {
+    const port = 26000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "wx-test",
+        WXP_SECRET: "secret-test",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/newspic-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "贴图", images: [] }),
+      })
+      const payload = await res.json() as { success: boolean; error: string }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toBe("images must be a non-empty array")
+    } finally {
+      proc.kill()
+    }
+  })
+
+  it("rejects newspic draft titles longer than 20 characters", async () => {
+    const port = 27000 + Math.floor(Math.random() * 1000)
+    const proc = spawn("node", ["--import", "tsx/esm", "src/cli/index.ts", "serve", "--port", String(port)], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        WXP_APPID: "wx-test",
+        WXP_SECRET: "secret-test",
+        WXP_THEME: "",
+      },
+    })
+
+    try {
+      await waitForServer(port, proc)
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/newspic-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "这是一段明确超过二十个字符限制的贴图标题示例", images: ["cover.jpg"] }),
+      })
+      const payload = await res.json() as { success: boolean; error: string }
+
+      expect(res.status).toBe(400)
+      expect(payload.success).toBe(false)
+      expect(payload.error).toBe("title cannot exceed 20 characters")
+    } finally {
+      proc.kill()
+    }
+  })
+})
