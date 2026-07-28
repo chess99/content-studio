@@ -21,8 +21,10 @@ export interface ThemePreviewResult {
 type FilterGroup = "collection" | "scenario" | "density" | "contrast"
 
 export function shellQuote(value: string): string {
-  if (/^[A-Za-z0-9_@%+=:,./-]+$/.test(value)) return value
-  return `'${value.replace(/'/g, `'"'"'`)}'`
+  // Node 与 PowerShell 都接受正斜杠路径；在嵌入 HTML/JSON 时也不会被转义成双反斜杠。
+  const portableValue = value.replace(/\\/g, "/")
+  if (/^[A-Za-z0-9_@%+=:,./-]+$/.test(portableValue)) return portableValue
+  return `'${portableValue.replace(/'/g, `'"'"'`)}'`
 }
 
 export function generatePreviewHtml(
@@ -31,7 +33,7 @@ export function generatePreviewHtml(
 ): string {
   const successfulThemes = results.filter(r => !r.error)
   const firstTheme = successfulThemes[0]?.theme ?? results[0]?.theme ?? ""
-  const fileName = filePath.split("/").pop() ?? filePath
+  const fileName = filePath.split(/[\\/]/).pop() ?? filePath
   const collections = uniqueValues(results.map(r => r.collection ?? "custom"), COLLECTION_ORDER)
   const scenarios = uniqueValues(results.flatMap(r => scenarioLabels(r.bestFor)), SCENARIO_ORDER)
   const densities = uniqueValues(results.map(r => r.density ?? "medium"), DENSITY_ORDER)

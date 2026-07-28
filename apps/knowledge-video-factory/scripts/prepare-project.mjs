@@ -2,16 +2,11 @@ import {mkdir, readFile, writeFile} from "node:fs/promises";
 import {existsSync} from "node:fs";
 import {spawn} from "node:child_process";
 import {resolve, join, relative} from "node:path";
+import {resolveProjectContext} from "./project-args.mjs";
 
 const root = resolve(import.meta.dirname, "..");
-const slug = process.argv[2];
-
-if (!slug) {
-  throw new Error("用法：pnpm video:prepare <project-slug>");
-}
-
-const projectDir = join(root, "projects", slug);
-const publicDir = join(root, "public", "generated", slug);
+const {projectDir, projectKey} = resolveProjectContext(process.argv, root);
+const publicDir = join(root, "public", "generated", projectKey);
 const tmpDir = join(root, "tmp");
 const configFlagIndex = process.argv.indexOf("--config");
 const configFile = configFlagIndex >= 0 ? process.argv[configFlagIndex + 1] : "config.json";
@@ -83,7 +78,7 @@ for (const scriptScene of script.scenes) {
     from: cursor,
     durationInFrames,
     audioStartFrame: leadFrames,
-    audioPath: `generated/${slug}/${audioSubdirectory}/${scriptScene.id}.${audioExtension}`,
+    audioPath: `generated/${projectKey}/${audioSubdirectory}/${scriptScene.id}.${audioExtension}`,
     audioPlaybackRate,
     displayText: scriptScene.displayText,
     sourceIds: scriptScene.sourceIds,
@@ -95,7 +90,7 @@ for (const scriptScene of script.scenes) {
 }
 
 const timeline = {
-  project: slug,
+  project: projectKey,
   title: config.title,
   seriesLabel: config.seriesLabel,
   fps,
@@ -109,12 +104,12 @@ const timeline = {
 };
 
 await writeFile(join(projectDir, "timeline.json"), `${JSON.stringify(timeline, null, 2)}\n`);
-await writeFile(join(tmpDir, `${slug}-render-props.json`), `${JSON.stringify(timeline, null, 2)}\n`);
+await writeFile(join(tmpDir, `${projectKey}-render-props.json`), `${JSON.stringify(timeline, null, 2)}\n`);
 await writeFile(join(projectDir, "publish", "subtitles.srt"), toSrt(timeline));
 
 console.log(`已准备 ${preparedScenes.length} 个场景。`);
 console.log(`总时长：${(cursor / fps).toFixed(2)} 秒。`);
-console.log(`渲染参数：${relative(root, join(tmpDir, `${slug}-render-props.json`))}`);
+console.log(`渲染参数：${relative(root, join(tmpDir, `${projectKey}-render-props.json`))}`);
 
 function parseCsv(text) {
   const [header, ...lines] = text.trim().split(/\r?\n/);

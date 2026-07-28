@@ -12,20 +12,21 @@ import time
 from pathlib import Path
 
 from gradio_client import Client
+from project_paths import add_project_arguments, resolve_project
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("project")
+    add_project_arguments(parser)
     parser.add_argument("--speaker", default="Uncle_fu")
     parser.add_argument("--model-size", default="1.7B", choices=("0.6B", "1.7B"))
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[1]
-    project_dir = root / "projects" / args.project
+    project_dir, project_key = resolve_project(root, args)
     script = json.loads((project_dir / "script.json").read_text(encoding="utf-8"))
-    output_dir = root / "public" / "generated" / args.project / "audio"
+    output_dir = root / "public" / "generated" / project_key / "audio"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     client = with_retries(lambda: Client("Qwen/Qwen3-TTS"), "连接 Qwen 演示服务")

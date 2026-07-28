@@ -718,7 +718,7 @@ program
 
     ok({
       path: outputPath,
-      source_file: sourcePath,
+      source_file: sourcePath.replace(/\\/g, "/"),
       theme_count: listThemes().length,
       themes: results.map(r => ({ theme: r.theme, ok: !r.error, error: r.error })),
       message: opts.open !== false ? "已在浏览器中打开主题画廊" : "主题画廊文件已生成",

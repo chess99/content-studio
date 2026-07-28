@@ -9,11 +9,12 @@ from pathlib import Path
 import soundfile as sf
 import torch
 from qwen_tts import Qwen3TTSModel
+from project_paths import add_project_arguments, resolve_project
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("project")
+    add_project_arguments(parser)
     parser.add_argument("--speaker", default="Uncle_Fu")
     parser.add_argument("--model", default="Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice")
     parser.add_argument("--force", action="store_true")
@@ -23,9 +24,9 @@ def main() -> None:
         raise RuntimeError("未检测到 CUDA。请安装 PyTorch CUDA 版本后重试。")
 
     root = Path(__file__).resolve().parents[1]
-    project_dir = root / "projects" / args.project
+    project_dir, project_key = resolve_project(root, args)
     script = json.loads((project_dir / "script.json").read_text(encoding="utf-8"))
-    output_dir = root / "public" / "generated" / args.project / "audio"
+    output_dir = root / "public" / "generated" / project_key / "audio"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     pending = [

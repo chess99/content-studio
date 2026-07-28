@@ -2,13 +2,11 @@ import {mkdir, readFile, writeFile} from "node:fs/promises";
 import {existsSync} from "node:fs";
 import {spawn} from "node:child_process";
 import {join, resolve} from "node:path";
+import {resolveProjectContext} from "./project-args.mjs";
 
 const root = resolve(import.meta.dirname, "..");
-const slug = process.argv[2];
+const {projectDir, projectKey} = resolveProjectContext(process.argv, root);
 const mode = process.argv.includes("--final") ? "final" : "draft";
-if (!slug) throw new Error("用法：pnpm video:qa <project-slug> [--final]");
-
-const projectDir = join(root, "projects", slug);
 const video = join(projectDir, "renders", `${mode}.mp4`);
 const timelinePath = join(projectDir, "timeline.json");
 if (!existsSync(video) || !existsSync(timelinePath)) throw new Error("缺少视频或时间线，请先准备并渲染项目。");
@@ -52,7 +50,7 @@ const maxVolume = Number(volumeOutput.match(/max_volume:\s*(-?[\d.]+) dB/)?.[1])
 if (Number.isFinite(maxVolume) && maxVolume > -0.5) warnings.push(`音频峰值接近削波：${maxVolume} dB`);
 if (Number.isFinite(meanVolume) && meanVolume < -26) warnings.push(`平均音量偏低：${meanVolume} dB`);
 
-const snapshotDir = join(root, "tmp", "qa", slug, mode);
+const snapshotDir = join(root, "tmp", "qa", projectKey, mode);
 await mkdir(snapshotDir, {recursive: true});
 for (const scene of timeline.scenes) {
   const second = (scene.from + Math.round(scene.durationInFrames * 0.52)) / timeline.fps;

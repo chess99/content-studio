@@ -1,7 +1,7 @@
 # Cover Image Workflow 实现计划
 
 > 历史实施记录：路径和 skill 名称保留当时状态。当前执行规范以
-> `skills/content-workflow/` 为准。
+> `skills/longform-workflow/` 为准。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

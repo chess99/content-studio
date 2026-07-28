@@ -15,8 +15,15 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs"
 import { join, resolve } from "path"
 import { homedir } from "os"
 
-const CONFIG_DIR = join(homedir(), ".config", "wx-publisher")
-const GLOBAL_CONFIG_PATH = join(CONFIG_DIR, "config.json")
+// Windows 的 os.homedir() 不读取测试或便携环境中覆盖的 HOME。
+// 每次调用时解析，既支持跨平台隔离，也避免模块加载后环境变化失效。
+function getConfigDir(): string {
+  return join(process.env["HOME"] || homedir(), ".config", "wx-publisher")
+}
+
+function getGlobalConfigPath(): string {
+  return join(getConfigDir(), "config.json")
+}
 
 // 每次调用时解析，避免模块加载时 cwd 和运行时 cwd 不一致（测试环境、process.chdir 等）
 function getLocalConfigPath(): string {
@@ -47,7 +54,7 @@ function readConfigFile(path: string): Partial<Config> {
 
 export function loadConfig(): Config {
   // 本地配置覆盖全局配置（浅合并）
-  const globalFile = readConfigFile(GLOBAL_CONFIG_PATH)
+  const globalFile = readConfigFile(getGlobalConfigPath())
   const localFile  = readConfigFile(getLocalConfigPath())
   const file = { ...globalFile, ...localFile }
 
@@ -62,17 +69,19 @@ export function saveConfig(updates: Partial<Config>): void {
   // 写入全局配置（wxp config set 的行为）。
   // 故意用 readConfigFile(GLOBAL) 而不是 loadConfig()，避免把本地 .wxp.json 的值
   // 合并进全局配置——两个文件应该保持独立。
-  if (!existsSync(CONFIG_DIR)) mkdirSync(CONFIG_DIR, { recursive: true })
-  const current = readConfigFile(GLOBAL_CONFIG_PATH)
+  const configDir = getConfigDir()
+  const globalConfigPath = getGlobalConfigPath()
+  if (!existsSync(configDir)) mkdirSync(configDir, { recursive: true })
+  const current = readConfigFile(globalConfigPath)
   const next = { ...current, ...updates }
-  writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(next, null, 2), "utf-8")
+  writeFileSync(globalConfigPath, JSON.stringify(next, null, 2), "utf-8")
 }
 
 export function getConfigPath(): string {
   // 注意：当 .wxp.json 和全局配置同时存在时，两个文件都参与合并。
   // 此函数返回优先级最高的文件路径，仅供显示用途（wxp config get）。
   const local = getLocalConfigPath()
-  return existsSync(local) ? local : GLOBAL_CONFIG_PATH
+  return existsSync(local) ? local : getGlobalConfigPath()
 }
 
 export function validateConfig(config: Config): string[] {

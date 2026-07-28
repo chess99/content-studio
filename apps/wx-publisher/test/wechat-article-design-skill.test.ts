@@ -53,6 +53,36 @@ function runNode(args: string[]): Promise<{ stdout: string; stderr: string; exit
   })
 }
 
+async function runRewriteFunction(
+  exportName: "rewriteImageSources" | "rewriteCssUrlSources",
+  html: string,
+  replacements: Array<[string, string]>
+): Promise<string> {
+  const moduleUrl = pathToFileURL(join(
+    repoRoot,
+    "skills",
+    "wechat-article-design",
+    "scripts",
+    "image-rewrite.mjs"
+  )).href
+  const evalSource = [
+    "const [moduleUrl, exportName, payload] = process.argv.slice(1);",
+    "const {html, replacements} = JSON.parse(payload);",
+    "const module = await import(moduleUrl);",
+    "process.stdout.write(JSON.stringify(module[exportName](html, new Map(replacements))));",
+  ].join("")
+  const result = await runNode([
+    "--input-type=module",
+    "--eval",
+    evalSource,
+    moduleUrl,
+    exportName,
+    JSON.stringify({html, replacements}),
+  ])
+  if (result.exitCode !== 0) throw new Error(result.stderr)
+  return JSON.parse(result.stdout)
+}
+
 async function writeTempHtml(name: string, html: string): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "wxp-wechat-html-"))
   const filePath = join(dir, name)
@@ -460,7 +490,6 @@ describe("wechat article design helper scripts", () => {
   })
 
   it("publish image rewrite handles unquoted src values consistently with detection", async () => {
-    const { rewriteImageSources } = await import(pathToFileURL(publishScript).href)
     const html = [
       '<section>',
       '<img src=cover.png alt="Cover">',
@@ -469,13 +498,14 @@ describe("wechat article design helper scripts", () => {
       "</section>",
     ].join("")
 
-    const rewritten = rewriteImageSources(
+    const rewritten = await runRewriteFunction(
+      "rewriteImageSources",
       html,
-      new Map([
+      [
         ["cover.png", "https://mmbiz.qpic.cn/cover.png"],
         ["quoted.png", "https://mmbiz.qpic.cn/quoted.png"],
         ["double.png", "https://mmbiz.qpic.cn/double.png"],
-      ])
+      ]
     )
 
     expect(rewritten).toContain('src="https://mmbiz.qpic.cn/cover.png"')
@@ -485,18 +515,18 @@ describe("wechat article design helper scripts", () => {
   })
 
   it("publish CSS URL rewrite handles style attributes and style blocks", async () => {
-    const { rewriteCssUrlSources } = await import(pathToFileURL(publishScript).href)
     const html = [
       "<style>.hero{background:url('remote.png')}</style>",
       '<section style="background-image:url(local.png)">Body</section>',
     ].join("")
 
-    const rewritten = rewriteCssUrlSources(
+    const rewritten = await runRewriteFunction(
+      "rewriteCssUrlSources",
       html,
-      new Map([
+      [
         ["remote.png", "https://mmbiz.qpic.cn/remote.png"],
         ["local.png", "https://mmbiz.qpic.cn/local.png"],
-      ])
+      ]
     )
 
     expect(rewritten).toContain("background:url('https://mmbiz.qpic.cn/remote.png')")

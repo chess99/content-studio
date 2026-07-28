@@ -1,4 +1,6 @@
-# 新视频项目
+# 新视频项目模板
+
+把本目录复制到内容资产仓库的 `TOPIC_DIR/video/` 后再填写；不要直接在 app 的 `projects/` 下制作正式视频。
 
 1. 填写 `input/source.md`。
 2. 在 `input/sources.json` 中登记来源。

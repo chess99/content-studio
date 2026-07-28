@@ -3,18 +3,16 @@ import {existsSync} from "node:fs";
 import {spawn} from "node:child_process";
 import {dirname, join, resolve} from "node:path";
 import {createRequire} from "node:module";
+import {resolveProjectContext} from "./project-args.mjs";
 
 const root = resolve(import.meta.dirname, "..");
-const slug = process.argv[2];
+const {projectDir, projectKey} = resolveProjectContext(process.argv, root);
 const mode = process.argv.includes("--final") ? "final" : "draft";
 const coverOnly = process.argv.includes("--cover-only");
 
-if (!slug) throw new Error("用法：pnpm video:render <project-slug> [--final]");
-
-const projectDir = join(root, "projects", slug);
-const propsPath = join(root, "tmp", `${slug}-render-props.json`);
+const propsPath = join(root, "tmp", `${projectKey}-render-props.json`);
 if (!existsSync(propsPath)) {
-  throw new Error(`缺少渲染参数，请先运行：pnpm video:prepare ${slug}`);
+  throw new Error("缺少渲染参数，请先为同一项目运行 video:prepare。");
 }
 
 const props = JSON.parse(await readFile(propsPath, "utf8"));
@@ -66,7 +64,7 @@ if (!coverOnly) {
 
 if (mode === "final") {
   if (!coverOnly) await copyFile(output, join(publishDir, "final.mp4"));
-  const coverPropsPath = join(root, "tmp", `${slug}-cover-props.json`);
+  const coverPropsPath = join(root, "tmp", `${projectKey}-cover-props.json`);
   await writeFile(coverPropsPath, `${JSON.stringify(props, null, 2)}\n`);
   await run(process.execPath, [
     remotionCli,

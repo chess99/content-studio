@@ -1,7 +1,7 @@
 # 封面图工作流重设计
 
 > 历史设计文档：路径保留当时的 `blog/drafts` 约定。当前执行规范以
-> `skills/content-workflow/` 为准。
+> `skills/longform-workflow/` 为准。
 
 **日期**：2026-05-19  
 **状态**：待实现  

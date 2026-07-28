@@ -1,0 +1,4 @@
+interface:
+  display_name: "知识视频工作流"
+  short_description: "编排可追溯知识视频的脚本、分镜、配音、渲染与质量检查"
+  default_prompt: "使用 $knowledge-video-workflow 把这个主题制作成一条知识视频。"

@@ -24,6 +24,8 @@ const requiredPaths = [
   "src/qa/README.md",
   "templates/README.md",
   "scripts/prepare-project.mjs",
+  "scripts/project-args.mjs",
+  "scripts/project_paths.py",
   "scripts/render-project.mjs",
   "scripts/qa-video.mjs",
   "scripts/setup-voice.ps1",
@@ -31,9 +33,7 @@ const requiredPaths = [
   "src/video/index.ts",
   "src/video/KnowledgeVideo.tsx",
   "src/video/templates/index.tsx",
-  "projects/a-share-buffett/config.json",
-  "projects/a-share-buffett/script.json",
-  "projects/a-share-buffett/storyboard.json"
+  "test/project-args.test.mjs"
 ];
 
 const missing = [];

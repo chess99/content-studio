@@ -8,11 +8,12 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from project_paths import add_project_arguments, resolve_project
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("project")
+    add_project_arguments(parser)
     parser.add_argument("--reference-id", required=True)
     parser.add_argument("--voice-alias", default="voice")
     parser.add_argument("--model", default="s2.1-pro-free")
@@ -30,7 +31,7 @@ def main() -> None:
     if not api_key:
         raise RuntimeError(".env 中缺少 FISH_AUDIO_API_KEY")
 
-    project_dir = root / "projects" / args.project
+    project_dir, project_key = resolve_project(root, args)
     script = json.loads((project_dir / "script.json").read_text(encoding="utf-8"))
     if args.sample:
         jobs = [(
@@ -43,7 +44,7 @@ def main() -> None:
             (
                 scene["id"],
                 scene["displayText"],
-                root / "public" / "generated" / args.project / "audio-fish" / f'{scene["id"]}.mp3',
+                root / "public" / "generated" / project_key / "audio-fish" / f'{scene["id"]}.mp3',
             )
             for scene in script["scenes"]
         ]

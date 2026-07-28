@@ -25,7 +25,7 @@
 brand/       品牌视觉、发音词典和公共素材规范
 config/      平台与生产流程配置
 docs/        工作流和接入说明
-projects/    每条视频的输入、过程文件和输出
+projects/    项目模板；正式视频资产保存在外部内容仓库
 schemas/     brief、口播与分镜的数据约束
 scripts/     项目级辅助命令
 src/         配音、渲染、质检等适配层
@@ -50,7 +50,8 @@ pnpm install
 powershell -ExecutionPolicy Bypass -File scripts/setup-voice.ps1
 pnpm check:structure
 pnpm typecheck
-Copy-Item -Recurse projects/_template projects/my-first-video
+$videoDir = "D:\code\content\topics\YYYYMMDD-my-first-video\video"
+Copy-Item -Recurse projects/_template $videoDir
 ```
 
 然后填写新项目中的 `input/source.md`、`input/sources.json` 和 `input/data.csv`。不要直接在 `_template` 里制作视频。
@@ -61,7 +62,7 @@ Copy-Item -Recurse projects/_template projects/my-first-video
 python -m venv .venv-qwen
 .\.venv-qwen\Scripts\python.exe -m pip install qwen-tts
 .\.venv-qwen\Scripts\python.exe -m pip install --upgrade torch==2.11.0+cu128 torchaudio==2.11.0+cu128 --index-url https://download.pytorch.org/whl/cu128
-.\.venv-qwen\Scripts\python.exe scripts/generate-qwen-project-local.py a-share-buffett --speaker Dylan --force
+.\.venv-qwen\Scripts\python.exe scripts/generate-qwen-project-local.py --project-dir $videoDir --speaker Dylan --force
 ```
 
 CUDA 版本应按本机驱动与 PyTorch 官方安装页调整，不要机械照搬示例版本。
@@ -71,7 +72,7 @@ Fish Audio 可先用免费开发模型做同稿样音：
 ```powershell
 Copy-Item .env.example .env
 # 将 FISH_AUDIO_API_KEY 写入 .env 后：
-python scripts/generate-fish-project.py a-share-buffett --sample --model s2.1-pro-free --reference-id <voice-id> --voice-alias natural-male
+python scripts/generate-fish-project.py --project-dir $videoDir --sample --model s2.1-pro-free --reference-id <voice-id> --voice-alias natural-male
 ```
 
 密钥不得写入代码、日志或提交；`.env` 已被 Git 忽略。
@@ -79,8 +80,8 @@ python scripts/generate-fish-project.py a-share-buffett --sample --model s2.1-pr
 生成整条 Fish 配音并使用独立配置准备时间线：
 
 ```powershell
-python scripts/generate-fish-project.py a-share-buffett --model s2.1-pro-free --reference-id <voice-id> --voice-alias natural-male --speed 1.05
-pnpm video:prepare a-share-buffett --config config.fish.json
+python scripts/generate-fish-project.py --project-dir $videoDir --model s2.1-pro-free --reference-id <voice-id> --voice-alias natural-male --speed 1.05
+node scripts/prepare-project.mjs --project-dir $videoDir --config config.fish.json
 ```
 
 Fish 音频写入 `public/generated/<project>/audio-fish/`，不会覆盖本地 Qwen 音频。
@@ -89,23 +90,23 @@ Fish 音频写入 `public/generated/<project>/audio-fish/`，不会覆盖本地 
 
 ```powershell
 # 1. 逐场景配音
-.\.venv-qwen\Scripts\python.exe scripts/generate-qwen-project-local.py a-share-buffett --speaker Dylan
+.\.venv-qwen\Scripts\python.exe scripts/generate-qwen-project-local.py --project-dir $videoDir --speaker Dylan
 
 # 2. 校验项目、按真实音频生成时间线与 SRT
-pnpm video:prepare a-share-buffett
+node scripts/prepare-project.mjs --project-dir $videoDir
 
 # 3. 生成 540×960 低清预览并质检
-pnpm video:render a-share-buffett
-pnpm video:qa a-share-buffett
+node scripts/render-project.mjs --project-dir $videoDir
+node scripts/qa-video.mjs --project-dir $videoDir
 
 # 4. 人工确认后生成 1080×1920 正式版、封面与最终报告
-pnpm video:render a-share-buffett --final
-pnpm video:qa a-share-buffett --final
+node scripts/render-project.mjs --project-dir $videoDir --final
+node scripts/qa-video.mjs --project-dir $videoDir --final
 ```
 
 正式版会自动做响度标准化。质检会检查尺寸、编码、时长、字幕时间、来源、黑帧与音量，并从每个场景抽取一张截图到 `tmp/qa/`。
 
-项目可在 `projects/<slug>/config.json` 中用 `voice.playbackRate` 控制成片语速。建议先试 `1.04—1.12`；当前试播片使用 `1.08`。封面由独立的 `KnowledgeCover` 画布生成，不再从视频首帧抽取。
+项目可在 `<VIDEO_DIR>/config.json` 中用 `voice.playbackRate` 控制成片语速。建议先试 `1.04—1.12`；当前试播片使用 `1.08`。封面由独立的 `KnowledgeCover` 画布生成，不再从视频首帧抽取。
 
 正式渲染前按 [独立审核闸门](docs/REVIEW_WORKFLOW.md) 分别做内容审核与视觉/品牌审核；品牌识别规则见 [brand/BRAND.md](brand/BRAND.md)。
 
