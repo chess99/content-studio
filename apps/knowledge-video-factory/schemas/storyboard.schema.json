@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knowledge-video-factory.local/schemas/storyboard.schema.json",
+  "title": "Storyboard",
+  "type": "object",
+  "required": ["status", "scenes"],
+  "properties": {
+    "status": {
+      "enum": ["draft", "approved"]
+    },
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "sourceIds", "visual", "durationMode"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visual": {
+            "type": "object",
+            "required": ["template"],
+            "properties": {
+              "template": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          },
+          "durationMode": {
+            "enum": ["fromAudio", "fixed"]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

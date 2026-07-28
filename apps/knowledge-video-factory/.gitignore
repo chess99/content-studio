@@ -1,0 +1,27 @@
+node_modules/
+.venv/
+.venv-*/
+.env
+.env.*
+!.env.example
+
+dist/
+coverage/
+.cache/
+tmp/
+public/generated/
+
+# 项目生成物通常体积较大，不进入版本库。
+projects/*/assets/generated/
+projects/*/renders/
+!projects/_template/renders/
+!projects/_template/renders/README.md
+projects/*/timeline.json
+projects/*/publish/*.mp4
+projects/*/publish/*.wav
+projects/*/publish/*.mp3
+projects/*/publish/voice-samples/
+
+*.log
+.DS_Store
+Thumbs.db

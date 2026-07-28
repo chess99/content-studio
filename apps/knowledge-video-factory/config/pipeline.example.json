@@ -1,0 +1,25 @@
+{
+  "platform": "douyin",
+  "locale": "zh-CN",
+  "aspectRatio": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "targetSeconds": 72,
+  "voice": {
+    "provider": "minimax",
+    "model": "speech-2.8-hd",
+    "generatePerScene": true,
+    "wordTimestamps": true
+  },
+  "render": {
+    "engine": "unconfigured",
+    "codec": "h264",
+    "audioCodec": "aac"
+  },
+  "gates": {
+    "requireScriptApproval": true,
+    "requirePreviewApproval": true,
+    "allowAutoPublish": false
+  }
+}

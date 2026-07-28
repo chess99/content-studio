@@ -1,0 +1,24 @@
+{
+  "terms": [
+    {
+      "display": "A股",
+      "speech": "诶股"
+    },
+    {
+      "display": "GDP",
+      "speech": "G D P"
+    },
+    {
+      "display": "GNP",
+      "speech": "G N P"
+    },
+    {
+      "display": "PE",
+      "speech": "P E"
+    },
+    {
+      "display": "PB",
+      "speech": "P B"
+    }
+  ]
+}
