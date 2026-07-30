@@ -23,7 +23,7 @@ import { convertMarkdown } from "../converter/index.js"
 import { generatePreviewHtml, shellQuote, type ThemePreviewResult } from "../converter/preview-html.js"
 import { buildNewspicDraftArticle, WechatClient, type UploadResult } from "../wechat/client.js"
 import { loadConfig, saveConfig, getConfigPath, validateConfig } from "../config/index.js"
-import { listThemes, getTheme, listThemeReferences, hasTheme, type Theme } from "../converter/themes.js"
+import { getTheme, listThemeLayouts, listThemePalettes, listThemeReferences, listThemes, resolveThemeSelection, type Theme } from "../converter/themes.js"
 import { getPlaceholderCoverBase64 } from "../converter/placeholder-cover.js"
 import { formatCliError } from "./errors.js"
 import { resolveThemeOption } from "./theme-options.js"
@@ -85,8 +85,10 @@ program
   .command("publish")
   .description("将 Markdown 文件发布到微信公众号草稿箱")
   .requiredOption("-f, --file <path>", "Markdown 文件路径")
-  .option("-t, --theme <name>", "排版主题（默认读配置，fallback: default）")
-  .option("--theme-file <path>", "外部主题 JSON 文件路径（与 --theme 二选一）")
+  .option("-t, --theme <name>", "完整主题预设（默认读配置，fallback: default）")
+  .option("--layout <name>", "自定义版式（必须与 --palette 同时使用）")
+  .option("--palette <name>", "自定义调色板（必须与 --layout 同时使用）")
+  .option("--theme-file <path>", "外部主题 JSON 文件路径（不能与其他主题参数同时使用）")
   .option("-c, --cover <path>", "封面图本地路径（不提供则使用内置占位图）")
   .option("--cover-url <url>", "封面图 URL（与 --cover 二选一）")
   .option("--title <title>", "文章标题（默认从 Markdown h1 提取）")
@@ -110,7 +112,7 @@ program
 
     let themeOption: ReturnType<typeof resolveThemeOption>
     try {
-      themeOption = resolveThemeOption({ theme: opts.theme, themeFile: opts.themeFile }, config.default_theme)
+      themeOption = resolveThemeOption({ theme: opts.theme, themeFile: opts.themeFile, layout: opts.layout, palette: opts.palette }, config.default_theme)
     } catch (e) {
       fail("主题参数冲突或主题文件无效", String(e))
     }
@@ -263,8 +265,10 @@ program
   .command("convert")
   .description("将 Markdown 转换为微信 HTML（不发布）")
   .requiredOption("-f, --file <path>", "Markdown 文件路径")
-  .option("-t, --theme <name>", "排版主题")
-  .option("--theme-file <path>", "外部主题 JSON 文件路径（与 --theme 二选一）")
+  .option("-t, --theme <name>", "完整主题预设")
+  .option("--layout <name>", "自定义版式（必须与 --palette 同时使用）")
+  .option("--palette <name>", "自定义调色板（必须与 --layout 同时使用）")
+  .option("--theme-file <path>", "外部主题 JSON 文件路径（不能与其他主题参数同时使用）")
   .option("-o, --output <path>", "输出 HTML 文件路径（不指定则输出到 stdout）")
   .action(async (opts) => {
     let markdown: string
@@ -277,7 +281,7 @@ program
     const config = loadConfig()
     let themeOption: ReturnType<typeof resolveThemeOption>
     try {
-      themeOption = resolveThemeOption({ theme: opts.theme, themeFile: opts.themeFile }, config.default_theme)
+      themeOption = resolveThemeOption({ theme: opts.theme, themeFile: opts.themeFile, layout: opts.layout, palette: opts.palette }, config.default_theme)
     } catch (e) {
       fail("主题参数冲突或主题文件无效", String(e))
     }
@@ -341,7 +345,7 @@ configCmd
 
 program
   .command("themes")
-  .description("列出可用排版主题")
+  .description("列出完整预设、自定义版式和调色板")
   .option("--verbose", "显示详细样式信息")
   .action((opts) => {
     const names = listThemes()
@@ -359,7 +363,16 @@ program
       }
       return opts.verbose ? { ...summary, styles: t.styles } : summary
     })
-    ok({ themes, count: themes.length })
+    ok({
+      presets: themes,
+      layouts: listThemeLayouts(),
+      palettes: listThemePalettes(),
+      counts: {
+        presets: themes.length,
+        layouts: listThemeLayouts().length,
+        palettes: listThemePalettes().length,
+      },
+    })
   })
 
 // ── studio：本地网页工作台 ───────────────────────────────────────────────────
@@ -485,13 +498,15 @@ program
         gfm_alerts: true,
         footnotes: true,
         local_rest_api: true,
-        professional_themes: true,
+        curated_theme_presets: true,
+        composable_theme_customization: true,
         theme_gallery: true,
       },
       coverage: {
-        themes: {
-          total: listThemes().length,
-          professional: listThemes().length,
+        theme_system: {
+          presets: listThemes().length,
+          layouts: listThemeLayouts().length,
+          palettes: listThemePalettes().length,
         },
         advanced_modules: {
           public: PUBLIC_ADVANCED_MODULES.length,
@@ -506,7 +521,7 @@ program
           description: "完整流程：Markdown → HTML → 上传图片 → 创建草稿",
           required_config: ["wechat_appid", "wechat_secret"],
           required_flags: ["--file"],
-          optional_flags: ["--theme", "--theme-file", "--title", "--author", "--digest", "--no-upload-images", "--cover", "--cover-url"],
+          optional_flags: ["--theme", "--layout", "--palette", "--theme-file", "--title", "--author", "--digest", "--no-upload-images", "--cover", "--cover-url"],
         },
         "publish-newspic": {
           description: "上传图片并创建微信公众号贴图草稿",
@@ -517,7 +532,7 @@ program
         convert: {
           description: "仅转换 Markdown 为微信 HTML，不发布",
           required_flags: ["--file"],
-          optional_flags: ["--theme", "--theme-file", "--output"],
+          optional_flags: ["--theme", "--layout", "--palette", "--theme-file", "--output"],
         },
         preview: {
           description: "生成浏览器主题画廊预览页",
@@ -559,10 +574,10 @@ program
           keys: ["wechat_appid", "wechat_secret", "default_theme"],
         },
         "config get": { description: "查看当前配置" },
-        themes: { description: "列出可用主题" },
+        themes: { description: "列出完整预设、自定义版式和调色板" },
       },
       external_theme_file: {
-        description: "通过 --theme-file 传入外部主题 JSON，不能与 --theme 同时使用",
+        description: "通过 --theme-file 传入外部主题 JSON，不能与 --theme、--layout 或 --palette 同时使用",
         commands: ["convert", "publish", "preview", "theme-gallery", "theme schema", "theme validate"],
         schema: getThemeFileSchema(),
       },
@@ -571,8 +586,11 @@ program
         WXP_SECRET: "微信公众号 AppSecret",
         WXP_THEME: "默认主题",
       },
-      themes: listThemes(),
-      theme_reference: listThemeReferences(),
+      theme_system: {
+        presets: listThemeReferences(),
+        layouts: listThemeLayouts(),
+        palettes: listThemePalettes(),
+      },
       notes: [
         "封面图可选：--cover 本地路径 或 --cover-url 公网 URL；不提供则自动使用内置占位图，JSON 输出含 warning 字段",
         "文章中的外链图片和本地图片会自动上传到微信素材库",
@@ -886,7 +904,7 @@ function openPreviewIfNeeded(outputPath: string, shouldOpen: boolean): void {
 
 interface ConvertApiBody {
   markdown?: string
-  theme?: string
+  theme?: unknown
   fontSize?: string
   convertVersion?: string
   title?: string
@@ -942,14 +960,18 @@ async function handleConvertApi(body: ConvertApiBody, res: ServerResponse): Prom
 
   const warnings = apiWarnings(body)
   const config = loadConfig()
-  const theme = resolveApiTheme(body.theme, config.default_theme)
-  const result = await convertMarkdown(body.markdown, { theme, stripLinks: false })
+  const resolved = resolveApiTheme(body.theme, config.default_theme)
+  const result = await convertMarkdown(body.markdown, {
+    theme: resolved.theme.name,
+    themeDefinition: resolved.theme,
+    stripLinks: false,
+  })
 
   sendJson(res, 200, {
     success: true,
     data: {
       html: result.html,
-      theme,
+      theme: resolved.selection,
       external_images: result.externalImages,
       local_images: result.localImages,
       warnings,
@@ -969,7 +991,7 @@ async function handleDraftApi(body: ConvertApiBody, res: ServerResponse): Promis
     return
   }
 
-  const theme = resolveApiTheme(body.theme, config.default_theme)
+  const resolved = resolveApiTheme(body.theme, config.default_theme)
   const title = body.title || extractTitle(body.markdown) || "Untitled"
   const digest = typeof body.digest === "string" && body.digest.trim() ? body.digest.trim() : undefined
   if (digest && Array.from(digest).length > 120) {
@@ -977,7 +999,10 @@ async function handleDraftApi(body: ConvertApiBody, res: ServerResponse): Promis
     return
   }
 
-  const result = await convertMarkdown(body.markdown, { theme })
+  const result = await convertMarkdown(body.markdown, {
+    theme: resolved.theme.name,
+    themeDefinition: resolved.theme,
+  })
   const client = new WechatClient({ appid: config.wechat_appid, secret: config.wechat_secret })
   const finalArticle = await uploadAndRewriteArticleImages(
     result.html,
@@ -1005,7 +1030,7 @@ async function handleDraftApi(body: ConvertApiBody, res: ServerResponse): Promis
       media_id: draft.media_id,
       title,
       digest,
-      theme,
+      theme: resolved.selection,
       images_detected: result.externalImages.length + result.localImages.length,
       images_uploaded: finalArticle.uploadedImageCount,
       external_images: result.externalImages,
@@ -1159,12 +1184,12 @@ function apiWarnings(body: ConvertApiBody): string[] {
   return warnings
 }
 
-function resolveApiTheme(rawTheme: unknown, defaultTheme: string): string {
-  const theme = (typeof rawTheme === "string" && rawTheme.trim() ? rawTheme : defaultTheme || "default").trim() || "default"
-  if (!hasTheme(theme)) {
-    throw new ApiRequestError(`未知主题: ${theme}`, 400)
+function resolveApiTheme(rawTheme: unknown, defaultTheme: string): ReturnType<typeof resolveThemeSelection> {
+  try {
+    return resolveThemeSelection(rawTheme, defaultTheme || "default")
+  } catch (error) {
+    throw new ApiRequestError(error instanceof Error ? error.message : String(error), 400)
   }
-  return theme
 }
 
 class ApiRequestError extends Error {

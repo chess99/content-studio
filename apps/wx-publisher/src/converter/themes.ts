@@ -1,8 +1,8 @@
 /**
  * 微信公众号排版主题
  *
- * 运行时主题由中性默认、具名预设和“版式 × 颜色”矩阵组成。
- * 主题选择信息保留在 Theme 元数据中，方便 CLI、Studio 和 AI 调用方按场景挑选。
+ * 运行时只注册少量完整预设；自定义方向通过“版式 + 调色板”按需生成，
+ * 不再把排列组合伪装成几十个独立主题。
  */
 
 export interface Theme {
@@ -42,6 +42,32 @@ export interface ThemeReference {
   density: "low" | "medium" | "high"
   contrast: "low" | "medium" | "high"
   accent: string
+}
+
+export type ThemeLayout = "clean" | "centered" | "editorial" | "poster"
+export type ThemePaletteName = "neutral" | "blue" | "green" | "red" | "warm" | "purple"
+
+export interface ThemeLayoutReference {
+  name: ThemeLayout
+  displayName: string
+  description: string
+  bestFor: string
+}
+
+export interface ThemePaletteReference {
+  name: ThemePaletteName
+  displayName: string
+  description: string
+  accent: string
+}
+
+export type ThemeSelection =
+  | { preset: string }
+  | { layout: ThemeLayout; palette: ThemePaletteName }
+
+export interface ResolvedThemeSelection {
+  theme: Theme
+  selection: ThemeSelection
 }
 
 export interface NodeStyles {
@@ -109,7 +135,7 @@ export interface NodeStyles {
   td: string
 }
 
-export type ThemeCollection = "base" | "built-in" | "classic" | "modern" | "extra" | "minimal" | "focus" | "elegant" | "bold"
+export type ThemeCollection = "essential" | "expressive" | "custom"
 
 interface ThemeSpec {
   name: string
@@ -126,6 +152,7 @@ interface ThemeSpec {
   bestFor: string
   density: "low" | "medium" | "high"
   contrast: "low" | "medium" | "high"
+  layout: ThemeLayout
 }
 
 const SOURCE_UPDATED_AT = "2026-07-30"
@@ -136,145 +163,43 @@ const READING_LIST = "list-style:none;padding-left:0;margin:0 0 16px 0;"
 const READING_LIST_ITEM = "display:block;margin:0.22em 8px;font-size:16px;line-height:1.82;"
 
 const NAMED_THEME_SPECS: ThemeSpec[] = [
-  named("default", "base", "Neutral White", "#111827", "#ffffff", "#f8fafc", "#1f2937", "#667085", "#d0d5dd", "#f3f4f6", "中性白底基础排版，适合绝大多数文章", "general publishing, knowledge writing, clean long-form reading", "low", "medium"),
-  named("warm-editorial", "extra", "Warm Editorial", "#a34e2e", "#faf9f5", "#f7f7f7", "#222222", "#737373", "#e3c6b9", "#f1e6df", "暖色编辑风，适合叙事、随笔和人物内容", "narrative essays, interviews, warm editorial writing", "medium", "medium"),
-  named("bytedance", "built-in", "Product Blue", "#1677ff", "#ffffff", "#f2f3f5", "#4e5969", "#717782", "#b4d2fb", "#e3eefd", "产品蓝，现代清晰", "product updates, efficient business writing, modern operations", "medium", "medium"),
-  named("apple", "built-in", "Polished Blue", "#007aff", "#ffffff", "#fafafa", "#333333", "#767676", "#add2fa", "#e0eefd", "精致系统蓝，留白充足", "brand stories, product writing, polished launches", "low", "medium"),
-  named("sports", "built-in", "Energy Green", "#00a968", "#ffffff", "#f8f8f8", "#2c2c2c", "#767676", "#afd9cc", "#e1f1ec", "活力绿，节奏强", "events, campaigns, launches, time-sensitive updates", "medium", "high"),
-  named("chinese", "built-in", "Classic Red", "#8b1e22", "#f8f4e9", "#f5eee3", "#333333", "#70706f", "#d5b0a9", "#ebdad1", "中式红，书卷气", "culture, seasonal writing, traditional editorial pieces", "medium", "medium"),
-  named("cyber", "built-in", "Cyber Pink", "#f472b6", "#ffffff", "#fef8fb", "#333333", "#767676", "#d8caf9", "#f0ebfd", "赛博粉紫，高对比", "visual technology, experiments, campaigns", "high", "high"),
-  named("wechat-native", "classic", "Classic Green", "#07c160", "#ffffff", "#f6fbfa", "#333333", "#767676", "#afd9c3", "#e1f1e9", "公众号原生绿，熟悉保守", "public-account style posts, conservative knowledge writing", "medium", "medium"),
-  named("nyt-classic", "classic", "Newsprint Blue", "#326891", "#fdfaf6", "#f7f3ee", "#000000", "#757372", "#bccbd6", "#e5e8ea", "新闻纸蓝，严肃长文", "long-form reports, essays, opinion columns", "high", "medium"),
-  named("github-readme", "modern", "Developer Blue", "#0969da", "#ffffff", "#f6f8fa", "#1f2328", "#75767a", "#b0cff3", "#e1edfb", "开发者蓝，README 气质", "technical guides, API notes, developer documentation", "medium", "medium"),
-  named("sspai-red", "modern", "Media Red", "#d71a1b", "#ffffff", "#f6fbfa", "#333333", "#767676", "#f2b6b6", "#fae4e4", "媒体红，利落醒目", "productivity posts, media-style reviews, creator content", "medium", "high"),
-  named("mint-fresh", "modern", "Fresh Mint", "#1a7a5a", "#f0faf5", "#e1f5ec", "#2d4a3e", "#63766f", "#acd1c3", "#d6ebe2", "清新薄荷，轻运营", "lifestyle, health, light operations content", "low", "medium"),
-  named("sunset-amber", "modern", "Sunset Amber", "#c0582a", "#fdf6ee", "#f9ecda", "#3d2c1e", "#7c6f64", "#e7c2af", "#f5e3d6", "落日琥珀，叙事温暖", "travel, narrative essays, story-driven columns", "medium", "medium"),
-  named("ink-minimal", "extra", "Ink Minimal", "#111111", "#ffffff", "#fafafa", "#111111", "#767676", "#b3b3b3", "#e2e2e2", "黑白墨色，低干扰", "text-heavy essays, notes, minimal editorial writing", "low", "medium"),
-  named("lavender-dream", "extra", "Lavender Dream", "#6b4c9a", "#f5f0ff", "#ece4ff", "#3d3155", "#746a87", "#c9bcdf", "#e4dcf3", "柔紫梦境，品牌情绪", "brand mood, inspiration writing, soft visual stories", "low", "medium"),
-  named("coffee-house", "extra", "Coffee House", "#6d4c41", "#f5efe6", "#ece3d5", "#3e2723", "#7b6963", "#c9bbb1", "#e5dbd2", "咖啡暖棕，人物访谈", "interviews, human-centered columns, essays", "medium", "medium"),
-  named("bauhaus-primary", "extra", "Primary Bauhaus", "#004d9f", "#ffffff", "#f6fbfa", "#1a1a1a", "#767676", "#adc6e0", "#e0eaf3", "包豪斯主色，图形感强", "campaigns, launches, visual columns", "high", "high"),
+  named("default", "essential", "基础白", "#111827", "#ffffff", "#f8fafc", "#1f2937", "#667085", "#d0d5dd", "#f3f4f6", "中性白底基础排版，适合绝大多数文章", "知识文章、教程和通用长文", "low", "medium", "clean"),
+  named("wechat-native", "essential", "微信原生", "#07c160", "#ffffff", "#f6fbfa", "#333333", "#767676", "#afd9c3", "#e1f1e9", "公众号原生绿，熟悉稳妥", "公众号运营与常规知识内容", "medium", "medium", "editorial"),
+  named("github-readme", "essential", "GitHub", "#0969da", "#ffffff", "#f6f8fa", "#1f2328", "#75767a", "#b0cff3", "#e1edfb", "开发者蓝，README 气质", "技术教程、API 笔记与开发文档", "medium", "medium", "editorial"),
+  named("nyt-classic", "essential", "报刊经典", "#326891", "#fdfaf6", "#f7f3ee", "#000000", "#757372", "#bccbd6", "#e5e8ea", "新闻纸蓝，严肃长文", "深度报道、评论与观点文章", "high", "medium", "centered"),
+  named("ink-minimal", "essential", "水墨极简", "#111111", "#ffffff", "#fafafa", "#111111", "#767676", "#b3b3b3", "#e2e2e2", "黑白墨色，低干扰", "文字密集的随笔、札记与专栏", "low", "medium", "clean"),
+  named("warm-editorial", "essential", "暖色编辑", "#a34e2e", "#faf9f5", "#f7f7f7", "#222222", "#737373", "#e3c6b9", "#f1e6df", "暖色刊物风，保留明确的人文气质", "叙事、人物、访谈与生活方式内容", "medium", "medium", "poster"),
+  named("chinese", "expressive", "中国风", "#8b1e22", "#f8f4e9", "#f5eee3", "#333333", "#70706f", "#d5b0a9", "#ebdad1", "中式红与书卷气", "文化、节气与传统题材", "medium", "medium", "editorial"),
+  named("bauhaus-primary", "expressive", "Bauhaus", "#004d9f", "#ffffff", "#f6fbfa", "#1a1a1a", "#767676", "#adc6e0", "#e0eaf3", "包豪斯主色，图形感强", "活动、发布与视觉专栏", "high", "high", "poster"),
+  named("cyber", "expressive", "赛博朋克", "#f472b6", "#ffffff", "#fef8fb", "#333333", "#767676", "#d8caf9", "#f0ebfd", "赛博粉紫，高对比", "视觉科技、实验内容与活动专题", "high", "high", "poster"),
 ]
 
-const COLOR_VARIANTS = [
-  { key: "gold", accent: "#C8A062", label: "古铜金" },
-  { key: "green", accent: "#2BAE85", label: "翡翠绿" },
-  { key: "blue", accent: "#4B6EF5", label: "宝石蓝" },
-  { key: "orange", accent: "#F89A3A", label: "暖阳橙" },
-  { key: "red", accent: "#F25C54", label: "中国红" },
-  { key: "navy", accent: "#1F4F8A", label: "深海蓝" },
-  { key: "gray", accent: "#4E5969", label: "石墨灰" },
-  { key: "sky", accent: "#3A7FD5", label: "天空蓝" },
-] as const
-
-const MATRIX_THEME_SPECS: ThemeSpec[] = [
-  ...themeSeries("minimal", "Minimal", "minimal", "低干扰极简，内容优先", "clean repeatable output, low-friction templates", "low", "medium"),
-  ...themeSeries("focus", "Focus", "focus", "居中强调，节奏清晰", "centered rhythm, key-point emphasis, structured reading", "medium", "medium"),
-  ...themeSeries("elegant", "Elegant", "elegant", "层次丰富，编辑感强", "brand-led articles, editorial writing, aesthetic long-form", "medium", "medium"),
-  ...themeSeries("bold", "Bold", "bold", "强视觉标题，强调转化", "launches, campaigns, high-impact announcements", "medium", "high"),
+const THEME_LAYOUTS: ThemeLayoutReference[] = [
+  { name: "clean", displayName: "清爽", description: "无底色标题与细分隔线，内容优先", bestFor: "知识文章、教程和通用长文" },
+  { name: "centered", displayName: "居中", description: "标题居中并用上下线组织节奏", bestFor: "观点文章、章节清晰的长文" },
+  { name: "editorial", displayName: "刊物", description: "左侧竖线与浅色标题块，层次更强", bestFor: "品牌故事、访谈和专题文章" },
+  { name: "poster", displayName: "海报", description: "实色大标题与高对比强调", bestFor: "活动通知、发布与转化内容" },
 ]
 
-const THEME_DISPLAY_METADATA: Record<string, { displayName: string; bestFor: string }> = {
-  "default": { displayName: "基础白", bestFor: "适合绝大多数知识、运营和长文内容，气质中性、干净。" },
-  "warm-editorial": { displayName: "暖色编辑", bestFor: "适合叙事、随笔和人物内容，气质温暖、编辑感。" },
-  "bytedance": { displayName: "字节范", bestFor: "适合产品、品牌内容，气质偏科技、效率。" },
-  "apple": { displayName: "苹果范", bestFor: "适合品牌、产品内容，气质偏精致、未来感。" },
-  "sports": { displayName: "运动风", bestFor: "适合运营、专题内容，气质偏动感、活力。" },
-  "chinese": { displayName: "中国风", bestFor: "适合专题、品牌内容，气质偏古典、文化。" },
-  "cyber": { displayName: "赛博朋克", bestFor: "适合专题、产品内容，气质偏赛博、实验性。" },
-  "wechat-native": { displayName: "微信公众号原生", bestFor: "适合运营、知识内容，气质偏熟悉、稳妥。" },
-  "nyt-classic": { displayName: "NYT", bestFor: "适合知识、专题内容，气质偏报刊、严肃。" },
-  "github-readme": { displayName: "GitHub", bestFor: "适合产品、知识内容，气质偏技术、结构化。" },
-  "sspai-red": { displayName: "少数派", bestFor: "适合产品、品牌内容，气质偏媒体感、中文科技。" },
-  "mint-fresh": { displayName: "薄荷", bestFor: "适合品牌、运营内容，气质偏清新、生活方式。" },
-  "sunset-amber": { displayName: "日落", bestFor: "适合专题、品牌内容，气质偏叙事、温暖。" },
-  "ink-minimal": { displayName: "水墨", bestFor: "适合知识、专题内容，气质偏黑白、克制。" },
-  "lavender-dream": { displayName: "薰衣草", bestFor: "适合品牌、专题内容，气质偏柔和、浪漫。" },
-  "coffee-house": { displayName: "咖啡", bestFor: "适合专题、品牌内容，气质偏温暖、人文。" },
-  "bauhaus-primary": { displayName: "Bauhaus", bestFor: "适合专题、品牌、产品内容，气质偏现代主义、实验。" },
-  "minimal-gold": { displayName: "简约 · 古铜金", bestFor: "适合知识、运营内容，气质偏克制、整洁、温润、沉稳。" },
-  "minimal-green": { displayName: "简约 · 翡翠绿", bestFor: "适合知识、运营内容，气质偏克制、整洁、清新、自然。" },
-  "minimal-blue": { displayName: "简约 · 宝石蓝", bestFor: "适合知识、运营内容，气质偏克制、整洁、专业、科技。" },
-  "minimal-orange": { displayName: "简约 · 暖阳橙", bestFor: "适合知识、运营内容，气质偏克制、整洁、明快、亲和。" },
-  "minimal-red": { displayName: "简约 · 中国红", bestFor: "适合知识、运营内容，气质偏克制、整洁、强调、传播。" },
-  "minimal-navy": { displayName: "简约 · 深海蓝", bestFor: "适合知识、运营内容，气质偏克制、整洁、可信、理性。" },
-  "minimal-gray": { displayName: "简约 · 石墨灰", bestFor: "适合知识、运营内容，气质偏克制、整洁、中性。" },
-  "minimal-sky": { displayName: "简约 · 天空蓝", bestFor: "适合知识、运营内容，气质偏克制、整洁、通透、轻盈。" },
-  "focus-gold": { displayName: "聚焦 · 古铜金", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、温润、沉稳。" },
-  "focus-green": { displayName: "聚焦 · 翡翠绿", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、清新、自然。" },
-  "focus-blue": { displayName: "聚焦 · 宝石蓝", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、专业、科技。" },
-  "focus-orange": { displayName: "聚焦 · 暖阳橙", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、明快、亲和。" },
-  "focus-red": { displayName: "聚焦 · 中国红", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、强调、传播。" },
-  "focus-navy": { displayName: "聚焦 · 深海蓝", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、可信、理性。" },
-  "focus-gray": { displayName: "聚焦 · 石墨灰", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、克制、中性。" },
-  "focus-sky": { displayName: "聚焦 · 天空蓝", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、通透、轻盈。" },
-  "elegant-gold": { displayName: "编辑 · 古铜金", bestFor: "适合品牌、运营内容，气质偏精致、雅致、温润、沉稳。" },
-  "elegant-green": { displayName: "编辑 · 翡翠绿", bestFor: "适合品牌、运营内容，气质偏精致、雅致、清新、自然。" },
-  "elegant-blue": { displayName: "编辑 · 宝石蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、专业、科技。" },
-  "elegant-orange": { displayName: "编辑 · 暖阳橙", bestFor: "适合品牌、运营内容，气质偏精致、雅致、明快、亲和。" },
-  "elegant-red": { displayName: "编辑 · 中国红", bestFor: "适合品牌、运营内容，气质偏精致、雅致、强调、传播。" },
-  "elegant-navy": { displayName: "编辑 · 深海蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、可信、理性。" },
-  "elegant-gray": { displayName: "编辑 · 石墨灰", bestFor: "适合品牌、运营内容，气质偏精致、雅致、克制、中性。" },
-  "elegant-sky": { displayName: "编辑 · 天空蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、通透、轻盈。" },
-  "bold-gold": { displayName: "醒目 · 古铜金", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、温润、沉稳。" },
-  "bold-green": { displayName: "醒目 · 翡翠绿", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、清新、自然。" },
-  "bold-blue": { displayName: "醒目 · 宝石蓝", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、专业、科技。" },
-  "bold-orange": { displayName: "醒目 · 暖阳橙", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、明快、亲和。" },
-  "bold-red": { displayName: "醒目 · 中国红", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、强调、传播。" },
-  "bold-navy": { displayName: "醒目 · 深海蓝", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、可信、理性。" },
-  "bold-gray": { displayName: "醒目 · 石墨灰", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、克制、中性。" },
-  "bold-sky": { displayName: "醒目 · 天空蓝", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、通透、轻盈。" },
-}
+const THEME_PALETTES: ThemePaletteReference[] = [
+  { name: "neutral", displayName: "中性黑", description: "克制、通用", accent: "#344054" },
+  { name: "blue", displayName: "品牌蓝", description: "专业、可信", accent: "#2563EB" },
+  { name: "green", displayName: "自然绿", description: "清新、稳健", accent: "#168A67" },
+  { name: "red", displayName: "强调红", description: "醒目、传播", accent: "#D64545" },
+  { name: "warm", displayName: "暖橙", description: "亲和、叙事", accent: "#C87832" },
+  { name: "purple", displayName: "情绪紫", description: "柔和、创意", accent: "#7C5CC4" },
+]
 
 const GALLERY_ADVANCED_PALETTES: Record<string, ThemeAdvancedPalette> = {
   "default": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f8fafc", accentSoft: "#f3f4f6", accentSofter: "#e5e7eb", accentDark: "#111827", border: "#d0d5dd", muted: "#667085", text: "#344054", textStrong: "#101828", mutedBorder: "rgba(152, 162, 179, 0.18)" },
   "warm-editorial": { background: "#faf9f5", surface: "#faf9f5", surfaceAlt: "#f7f7f7", accentSoft: "#f1e6df", accentSofter: "#ecd9d0", accentDark: "#b3593b", border: "#e3c6b9", muted: "#737373", text: "#555555", textStrong: "#222222", mutedBorder: "rgba(202, 202, 199, 0.18)" },
-  "bytedance": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f2f3f5", accentSoft: "#e3eefd", accentSofter: "#d0e3fc", accentDark: "#1571f1", border: "#b4d2fb", muted: "#717782", text: "#1d2129", textStrong: "#4e5969" },
-  "apple": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fafafa", accentSoft: "#e0eefd", accentSofter: "#cce3fc", accentDark: "#0072ef", border: "#add2fa", muted: "#767676", text: "#595959", textStrong: "#333333" },
-  "sports": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f8f8f8", accentSoft: "#e1f1ec", accentSofter: "#cde7df", accentDark: "#05875f", border: "#afd9cc", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
   "chinese": { background: "#f8f4e9", surface: "#f8f4e9", surfaceAlt: "#f5eee3", accentSoft: "#ebdad1", accentSofter: "#e2c9c1", accentDark: "#8b1e22", border: "#d5b0a9", muted: "#70706f", text: "#8b1e22", textStrong: "#333333" },
   "cyber": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fef8fb", accentSoft: "#f0ebfd", accentSofter: "#e7defb", accentDark: "#8659ed", border: "#d8caf9", muted: "#767676", text: "#595959", textStrong: "#333333" },
   "wechat-native": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6fbfa", accentSoft: "#e1f1e9", accentSofter: "#cde7da", accentDark: "#058844", border: "#afd9c3", muted: "#767676", text: "#163325", textStrong: "#333333" },
   "nyt-classic": { background: "#fdfaf6", surface: "#fdfaf6", surfaceAlt: "#f7f3ee", accentSoft: "#e5e8ea", accentSofter: "#d4dde2", accentDark: "#326891", border: "#bccbd6", muted: "#757372", text: "#111111", textStrong: "#000000" },
   "github-readme": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6f8fa", accentSoft: "#e1edfb", accentSofter: "#cee1f8", accentDark: "#0969da", border: "#b0cff3", muted: "#75767a", text: "#1f2328", textStrong: "#1f2328" },
-  "sspai-red": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6fbfa", accentSoft: "#fae4e4", accentSofter: "#f7d1d1", accentDark: "#d71a1b", border: "#f2b6b6", muted: "#767676", text: "#2d2d2d", textStrong: "#333333" },
-  "mint-fresh": { background: "#f0faf5", surface: "#f0faf5", surfaceAlt: "#e1f5ec", accentSoft: "#d6ebe2", accentSofter: "#c5e0d6", accentDark: "#1a7a5a", border: "#acd1c3", muted: "#63766f", text: "#1d5e49", textStrong: "#2d4a3e" },
-  "sunset-amber": { background: "#fdf6ee", surface: "#fdf6ee", surfaceAlt: "#f9ecda", accentSoft: "#f5e3d6", accentSofter: "#efd6c6", accentDark: "#b85428", border: "#e7c2af", muted: "#7c6f64", text: "#7f452a", textStrong: "#3d2c1e" },
   "ink-minimal": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fafafa", accentSoft: "#e2e2e2", accentSofter: "#cfcfcf", accentDark: "#111111", border: "#b3b3b3", muted: "#767676", text: "#000000", textStrong: "#111111" },
-  "lavender-dream": { background: "#f5f0ff", surface: "#f5f0ff", surfaceAlt: "#ece4ff", accentSoft: "#e4dcf3", accentSofter: "#d9cfeb", accentDark: "#6b4c9a", border: "#c9bcdf", muted: "#746a87", text: "#5e4587", textStrong: "#3d3155" },
-  "coffee-house": { background: "#f5efe6", surface: "#f5efe6", surfaceAlt: "#ece3d5", accentSoft: "#e5dbd2", accentSofter: "#dacec5", accentDark: "#6d4c41", border: "#c9bbb1", muted: "#7b6963", text: "#4a302a", textStrong: "#3e2723" },
   "bauhaus-primary": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6fbfa", accentSoft: "#e0eaf3", accentSofter: "#ccdbec", accentDark: "#004d9f", border: "#adc6e0", muted: "#767676", text: "#595959", textStrong: "#1a1a1a" },
-  "minimal-gold": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#f2eee9", accentSofter: "#e9e3da", accentDark: "#8f7246", border: "#dbd2c4", muted: "#767676", text: "#6b5534", textStrong: "#2c2c2c" },
-  "minimal-green": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#e4f0ed", accentSofter: "#d3e7e0", accentDark: "#218666", border: "#b8d8ce", muted: "#767676", text: "#19644d", textStrong: "#2c2c2c" },
-  "minimal-blue": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#e9edfd", accentSofter: "#dbe1fc", accentDark: "#496bef", border: "#c5d0fa", muted: "#767676", text: "#3751b4", textStrong: "#2c2c2c" },
-  "minimal-orange": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#f4ede5", accentSofter: "#ede1d4", accentDark: "#a76827", border: "#e3cfba", muted: "#767676", text: "#7e4e1e", textStrong: "#2c2c2c" },
-  "minimal-red": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#f9eae9", accentSofter: "#f4dbda", accentDark: "#ca4d46", border: "#eec6c4", muted: "#767676", text: "#983a35", textStrong: "#2c2c2c" },
-  "minimal-navy": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#e4eaf1", accentSofter: "#d2dce8", accentDark: "#1f4f8a", border: "#b7c7da", muted: "#767676", text: "#1f4f8a", textStrong: "#2c2c2c" },
-  "minimal-gray": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#eaebed", accentSofter: "#dcdee1", accentDark: "#4e5969", border: "#c6cacf", muted: "#767676", text: "#4e5969", textStrong: "#2c2c2c" },
-  "minimal-sky": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f9fafb", accentSoft: "#e7eff8", accentSofter: "#d7e4f4", accentDark: "#3777c8", border: "#bfd3ed", muted: "#767676", text: "#295a96", textStrong: "#2c2c2c" },
-  "focus-gold": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fcfaf7", accentSoft: "#f2eee9", accentSofter: "#e9e3da", accentDark: "#8f7246", border: "#dbd2c4", muted: "#767676", text: "#6b5534", textStrong: "#2c2c2c" },
-  "focus-green": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f4fbf9", accentSoft: "#e4f0ed", accentSofter: "#d3e7e0", accentDark: "#218666", border: "#b8d8ce", muted: "#767676", text: "#19644d", textStrong: "#2c2c2c" },
-  "focus-blue": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6f8ff", accentSoft: "#e9edfd", accentSofter: "#dbe1fc", accentDark: "#496bef", border: "#c5d0fa", muted: "#767676", text: "#3751b4", textStrong: "#2c2c2c" },
-  "focus-orange": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fffaf5", accentSoft: "#f4ede5", accentSofter: "#ede1d4", accentDark: "#a76827", border: "#e3cfba", muted: "#767676", text: "#7e4e1e", textStrong: "#2c2c2c" },
-  "focus-red": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fef7f6", accentSoft: "#f9eae9", accentSofter: "#f4dbda", accentDark: "#ca4d46", border: "#eec6c4", muted: "#767676", text: "#983a35", textStrong: "#2c2c2c" },
-  "focus-navy": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f4f6f9", accentSoft: "#e4eaf1", accentSofter: "#d2dce8", accentDark: "#1f4f8a", border: "#b7c7da", muted: "#767676", text: "#1f4f8a", textStrong: "#2c2c2c" },
-  "focus-gray": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6f7f8", accentSoft: "#eaebed", accentSofter: "#dcdee1", accentDark: "#4e5969", border: "#c6cacf", muted: "#767676", text: "#4e5969", textStrong: "#2c2c2c" },
-  "focus-sky": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f5f9fd", accentSoft: "#e7eff8", accentSofter: "#d7e4f4", accentDark: "#3777c8", border: "#bfd3ed", muted: "#767676", text: "#295a96", textStrong: "#2c2c2c" },
-  "elegant-gold": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fcfaf7", accentSoft: "#f2eee9", accentSofter: "#e9e3da", accentDark: "#8f7246", border: "#dbd2c4", muted: "#767676", text: "#6b5534", textStrong: "#2c2c2c" },
-  "elegant-green": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f4fbf9", accentSoft: "#e4f0ed", accentSofter: "#d3e7e0", accentDark: "#218666", border: "#b8d8ce", muted: "#767676", text: "#19644d", textStrong: "#2c2c2c" },
-  "elegant-blue": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6f8ff", accentSoft: "#e9edfd", accentSofter: "#dbe1fc", accentDark: "#496bef", border: "#c5d0fa", muted: "#767676", text: "#3751b4", textStrong: "#2c2c2c" },
-  "elegant-orange": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fffaf5", accentSoft: "#f4ede5", accentSofter: "#ede1d4", accentDark: "#a76827", border: "#e3cfba", muted: "#767676", text: "#7e4e1e", textStrong: "#2c2c2c" },
-  "elegant-red": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fef7f6", accentSoft: "#f9eae9", accentSofter: "#f4dbda", accentDark: "#ca4d46", border: "#eec6c4", muted: "#767676", text: "#983a35", textStrong: "#2c2c2c" },
-  "elegant-navy": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f4f6f9", accentSoft: "#e4eaf1", accentSofter: "#d2dce8", accentDark: "#1f4f8a", border: "#b7c7da", muted: "#767676", text: "#1f4f8a", textStrong: "#2c2c2c" },
-  "elegant-gray": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6f7f8", accentSoft: "#eaebed", accentSofter: "#dcdee1", accentDark: "#4e5969", border: "#c6cacf", muted: "#767676", text: "#4e5969", textStrong: "#2c2c2c" },
-  "elegant-sky": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f5f9fd", accentSoft: "#e7eff8", accentSofter: "#d7e4f4", accentDark: "#3777c8", border: "#bfd3ed", muted: "#767676", text: "#295a96", textStrong: "#2c2c2c" },
-  "bold-gold": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fcfaf7", accentSoft: "#f2eee9", accentSofter: "#e9e3da", accentDark: "#8f7246", border: "#dbd2c4", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
-  "bold-green": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f4fbf9", accentSoft: "#e4f0ed", accentSofter: "#d3e7e0", accentDark: "#218666", border: "#b8d8ce", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
-  "bold-blue": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6f8ff", accentSoft: "#e9edfd", accentSofter: "#dbe1fc", accentDark: "#496bef", border: "#c5d0fa", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
-  "bold-orange": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fffaf5", accentSoft: "#f4ede5", accentSofter: "#ede1d4", accentDark: "#a76827", border: "#e3cfba", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
-  "bold-red": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fef7f6", accentSoft: "#f9eae9", accentSofter: "#f4dbda", accentDark: "#ca4d46", border: "#eec6c4", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
-  "bold-navy": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f4f6f9", accentSoft: "#e4eaf1", accentSofter: "#d2dce8", accentDark: "#1f4f8a", border: "#b7c7da", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
-  "bold-gray": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f6f7f8", accentSoft: "#eaebed", accentSofter: "#dcdee1", accentDark: "#4e5969", border: "#c6cacf", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
-  "bold-sky": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f5f9fd", accentSoft: "#e7eff8", accentSofter: "#d7e4f4", accentDark: "#3777c8", border: "#bfd3ed", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
 }
 
 const MD2_NAMED_RAW_STYLES = {
@@ -339,192 +264,6 @@ const MD2_NAMED_RAW_STYLES = {
     "dialogue_avatar_right": "width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, rgba(100, 100, 100, 0.9), rgba(80, 80, 80, 0.8)); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-left: 0.8em; flex-shrink: 0; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.3);",
     "dialogue_bubble_left": "background: linear-gradient(135deg, rgba(200, 100, 66, 0.08), rgba(200, 100, 66, 0.05)); border: 1px solid rgba(200, 100, 66, 0.15); border-radius: 12px 12px 12px 4px; padding: 0.8em 1em; max-width: 75%; color: rgb(63, 63, 63); line-height: 1.6; font-size: 14px; position: relative; box-shadow: 0 1px 3px rgba(200, 100, 66, 0.1);",
     "dialogue_bubble_right": "background: linear-gradient(135deg, rgba(246, 246, 244, 0.9), rgba(246, 246, 244, 0.7)); border: 1px solid rgba(200, 100, 66, 0.1); border-radius: 12px 12px 4px 12px; padding: 0.8em 1em; max-width: 75%; color: rgb(63, 63, 63); line-height: 1.6; font-size: 14px; margin-left: auto; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);",
-    "dialogue_item_left": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-start;",
-    "dialogue_item_right": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-end; flex-direction: row-reverse;"
-  },
-  "bytedance": {
-    "container": "max-width: 677px; margin: 0 auto; padding: 8px; background-color: #ffffff; font-family: 'PingFang SC', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif; color: #1d2129; line-height: 1.8; font-size: 15px; border-radius: 12px;",
-    "h1": "padding: 0.6em 1.5em; margin: 1.5em 0 1.5em; color: #1d2129; font-size: 22px; font-weight: 600; text-align: center; background: linear-gradient(to right, rgba(22,119,255,0.02), rgba(5,212,205,0.05), rgba(22,119,255,0.02)); border-radius: 4px; border-top: 3px solid #1677ff; border-bottom: 1px solid rgba(5,212,205,0.5);",
-    "h2": "padding: 0.4em 1.4em; margin: 3em 0 1.5em; color: #fff; background: linear-gradient(135deg, #1677ff, #05d4cd); font-size: 20px; font-weight: 600; text-align: center; border-radius: 8px 24px 8px 24px; box-shadow: 0 4px 12px rgba(5,212,205,0.15); letter-spacing: 0.1em;",
-    "h3": "padding: 0.5em 1em 0.5em 12px; font-size: 18px; border-radius: 6px; line-height: 1.6; border-left: 4px solid #1677ff; border-right: 1px solid rgba(22,119,255,0.1); border-bottom: 1px solid rgba(22,119,255,0.1); border-top: 1px solid rgba(22,119,255,0.1); background: linear-gradient(to right, rgba(22,119,255,0.08), rgba(5,212,205,0.03)); color: #1677ff; margin: 2em 0 0.75em; font-weight: 600;",
-    "h4": "margin: 2em 0 0.5em; color: #05d4cd; font-size: 16px; font-weight: 500; border-radius: 6px; padding: 0.3em 0 0.3em 8px; border-left: 3px solid #05d4cd; border-bottom: 1px dashed rgba(5,212,205,0.3); background: linear-gradient(to right, rgba(5,212,205,0.06), rgba(22,119,255,0.02));",
-    "h5": "margin: 1.5em 0 0.5em; color: #1677ff; font-size: 15px; font-weight: 600; padding: 0.2em 0 0.2em 6px; border-left: 2px solid rgba(22,119,255,0.7); background: linear-gradient(to right, rgba(22,119,255,0.04), rgba(5,212,205,0.01));",
-    "h6": "margin: 1.5em 0 0.5em; color: #4e5969; font-size: 14px; font-weight: 600; padding: 0.1em 0 0.1em 4px; border-left: 2px solid rgba(5,212,205,0.5); background: linear-gradient(to right, rgba(5,212,205,0.03), rgba(22,119,255,0.01));",
-    "p": "margin: 1.2em 0; letter-spacing: 0.1em; color: #4e5969; text-align: justify; line-height: 1.8; font-size: 15px;",
-    "image": "max-width: 100%; border-radius: 8px; margin: 1.5em auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid rgba(5,212,205,0.1);",
-    "figure": "margin: 1.5em 0; text-align: left; line-height: 1.8; font-size: 15px; color: #4e5969;",
-    "figcaption": "text-align: center; font-size: 0.9em; color: #8a919f;",
-    "blockquote": "font-style: normal; padding: 1em 1em 1em 2em; border-left: 4px solid #05d4cd; border-radius: 6px; color: #4e5969; background: #f2f3f5; margin: 1.5em 0; border-bottom: 0.2px solid rgba(5,212,205,0.1); border-top: 0.2px solid rgba(5,212,205,0.1); border-right: 0.2px solid rgba(5,212,205,0.1);",
-    "blockquote_p": "margin: 0; color: #4e5969; line-height: 1.8;",
-    "blockquote_note": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; border-left: 4px solid #1677ff; background: linear-gradient(135deg, rgba(22, 119, 255, 0.08), rgba(255, 255, 255, 0.95)); border: 1px solid rgba(22, 119, 255, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_tip": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; border-left: 4px solid #05d4cd; background: linear-gradient(135deg, rgba(5, 212, 205, 0.08), rgba(255, 255, 255, 0.95)); border: 1px solid rgba(5, 212, 205, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_important": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; border-left: 4px solid #8e44ad; background: linear-gradient(135deg, rgba(142, 68, 173, 0.08), rgba(255, 255, 255, 0.95)); border: 1px solid rgba(142, 68, 173, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_warning": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; border-left: 4px solid #ff9800; background: linear-gradient(135deg, rgba(255, 152, 0, 0.08), rgba(255, 255, 255, 0.95)); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_caution": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; border-left: 4px solid #e74c3c; background: linear-gradient(135deg, rgba(231, 76, 60, 0.08), rgba(255, 255, 255, 0.95)); border: 1px solid rgba(231, 76, 60, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_title": "font-weight: 600; margin-bottom: 0.8em; font-size: 1.05em; letter-spacing: 0.5px;",
-    "blockquote_title_note": "color: #1677ff;",
-    "blockquote_title_tip": "color: #05d4cd;",
-    "blockquote_title_important": "color: #8e44ad;",
-    "blockquote_title_warning": "color: #ff9800;",
-    "blockquote_title_caution": "color: #e74c3c;",
-    "blockquote_p_note": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "blockquote_p_tip": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "blockquote_p_important": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "blockquote_p_warning": "margin: 0; color: #4e5969; line-height: 1.8;",
-    "blockquote_p_caution": "margin: 0; color: #4e5969; line-height: 1.8;",
-    "codespan": "display: inline-block; font-size: 90%; color: #1677ff; background: linear-gradient(135deg, rgba(22, 119, 255, 0.12), rgba(5, 212, 205, 0.12)); padding: 2px 7px; border-radius: 999px; border: 1px solid rgba(22, 119, 255, 0.16); font-family: 'SFMono-Regular', Consolas, Menlo, monospace; line-height: 1.4;",
-    "code_pre": "display: block; box-sizing: border-box; font-size: 14px; overflow-x: auto; border-radius: 12px 24px 12px 24px; padding: 1.15em 1.2em 1.2em; line-height: 1.6; margin: 1.5em 0; background: linear-gradient(180deg, rgba(22, 119, 255, 0.14) 0px, rgba(5, 212, 205, 0.12) 14px, #f7f8fa 14px, #f7f8fa 100%); border: 1px solid rgba(22, 119, 255, 0.14); border-bottom: 2px solid rgba(5, 212, 205, 0.24); box-shadow: 0 10px 24px rgba(22, 119, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.85); white-space: pre; word-break: normal; overflow-wrap: normal; -webkit-overflow-scrolling: touch; tab-size: 2;",
-    "code": "background: none; padding: 0; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 14px; color: #1d2129; line-height: 1.6;",
-    "ul": "list-style: none; padding: 0; margin: 1.5em 0; color: #4e5969; font-size: 15px;",
-    "ol": "list-style: none; padding: 0; margin: 1.5em 0; color: #4e5969; font-size: 15px;",
-    "listitem": "margin: 0.5em 0; padding: 0; line-height: 1.6; font-size: 15px;",
-    "strong": "color: #1677ff; font-weight: 600;",
-    "em": "color: #05d4cd; font-style: italic;",
-    "link": "color: #1677ff; text-decoration: none; border-bottom: 1px solid; border-image: linear-gradient(to right, rgba(22, 119, 255, 0), #1677ff, #05d4cd, rgba(5, 212, 205, 0)) 1;",
-    "wx_link": "color: #1677ff; text-decoration: none;",
-    "hr": "height: 2px; border: none; margin: 2.5em 0; background: linear-gradient(to right, rgba(22, 119, 255, 0), #1677ff, #05d4cd, rgba(5, 212, 205, 0));",
-    "table": "width: 100%; border-collapse: collapse; margin: 1.5em 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);",
-    "th": "padding: 12px 16px; text-align: left; font-weight: 600; color: #1677ff; border-bottom: 1px solid rgba(5,212,205,0.1); background: linear-gradient(to right, rgba(22,119,255,0.05), rgba(5,212,205,0.05));",
-    "td": "padding: 10px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); color: #4e5969;",
-    "footnotes": "margin-top: 2em; padding-top: 1.5em; border-top: 1px solid #e5e5e5;",
-    "footnote_item": "font-size: 0.9em; color: #8a919f; line-height: 1.6; margin-bottom: 0.3em;",
-    "gallery_container": "margin: 1.5em 0 2em; padding: 16px; background: linear-gradient(135deg, rgba(22, 119, 255, 0.02), rgba(255, 255, 255, 0.98)); border: 1px solid rgba(22, 119, 255, 0.15); border-radius: 12px; box-shadow: 0 4px 16px rgba(22, 119, 255, 0.12); position: relative; border-bottom: 3px solid rgba(5, 212, 205, 0.3); backdrop-filter: blur(10px);",
-    "gallery_image_container": "background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(22, 119, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9); border: 1px solid rgba(22, 119, 255, 0.08); padding: 8px; margin-bottom: 12px;",
-    "gallery_caption": "text-align: center; font-size: 12px; color: #1677ff; margin: 12px 0 0; padding: 10px 16px; background: linear-gradient(135deg, rgba(22, 119, 255, 0.08), rgba(5, 212, 205, 0.06)); border: 1px solid rgba(22, 119, 255, 0.3); border-radius: 8px; font-family: 'PingFang SC', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif; font-weight: 600; letter-spacing: 0.8px; box-shadow: 0 3px 12px rgba(22, 119, 255, 0.15); border-bottom: 2px solid rgba(5, 212, 205, 0.4); backdrop-filter: blur(8px);",
-    "longimage_container": "margin: 1.5em 0 2em; padding: 16px; background: linear-gradient(135deg, rgba(22, 119, 255, 0.02), rgba(255, 255, 255, 0.98)); border: 1px solid rgba(22, 119, 255, 0.15); border-radius: 12px; box-shadow: 0 4px 16px rgba(22, 119, 255, 0.12); position: relative; border-bottom: 3px solid rgba(5, 212, 205, 0.3); backdrop-filter: blur(10px);",
-    "longimage_image_container": "max-height: 420px; overflow-y: auto; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(22, 119, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9); border: 1px solid rgba(22, 119, 255, 0.08); padding: 4px; scrollbar-width: thin; scrollbar-color: rgba(22, 119, 255, 0.4) rgba(5, 212, 205, 0.1);",
-    "longimage_caption": "text-align: center; font-size: 12px; color: #1677ff; margin: 12px 0 0; padding: 10px 16px; background: linear-gradient(135deg, rgba(22, 119, 255, 0.08), rgba(5, 212, 205, 0.06)); border: 1px solid rgba(22, 119, 255, 0.3); border-radius: 8px; font-family: 'PingFang SC', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif; font-weight: 600; letter-spacing: 0.8px; box-shadow: 0 3px 12px rgba(22, 119, 255, 0.15); border-bottom: 2px solid rgba(5, 212, 205, 0.4); backdrop-filter: blur(8px);",
-    "dialogue_container": "margin: 1.5em 0 2em; padding: 1.2em; background: linear-gradient(135deg, rgba(22, 119, 255, 0.02), rgba(255, 255, 255, 0.9)); border: 1px solid rgba(22, 119, 255, 0.15); border-radius: 12px; box-shadow: 0 4px 16px rgba(22, 119, 255, 0.12); position: relative; border-bottom: 3px solid rgba(5, 212, 205, 0.3);",
-    "dialogue_title": "text-align: center; font-size: 16px; font-weight: 600; color: #1677ff; margin-bottom: 1em; padding-bottom: 0.8em; border-bottom: 1px solid rgba(22, 119, 255, 0.2); letter-spacing: 0.8px; font-family: 'PingFang SC', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;",
-    "dialogue_item": "margin: 0.8em 0; display: flex; align-items: flex-start; font-family: 'PingFang SC', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;",
-    "dialogue_avatar_left": "width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #1677ff, rgba(22, 119, 255, 0.8)); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 0.8em; flex-shrink: 0; box-shadow: 0 3px 8px rgba(22, 119, 255, 0.4);",
-    "dialogue_avatar_right": "width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #05d4cd, rgba(5, 212, 205, 0.8)); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-left: 0.8em; flex-shrink: 0; box-shadow: 0 3px 8px rgba(5, 212, 205, 0.4);",
-    "dialogue_bubble_left": "background: linear-gradient(135deg, rgba(22, 119, 255, 0.08), rgba(22, 119, 255, 0.05)); border: 1px solid rgba(22, 119, 255, 0.15); border-radius: 12px 12px 12px 4px; padding: 0.8em 1em; max-width: 75%; color: #1d2129; line-height: 1.6; font-size: 14px; position: relative; box-shadow: 0 2px 6px rgba(22, 119, 255, 0.1);",
-    "dialogue_bubble_right": "background: linear-gradient(135deg, rgba(5, 212, 205, 0.08), rgba(5, 212, 205, 0.05)); border: 1px solid rgba(5, 212, 205, 0.15); border-radius: 12px 12px 4px 12px; padding: 0.8em 1em; max-width: 75%; color: #1d2129; line-height: 1.6; font-size: 14px; margin-left: auto; box-shadow: 0 2px 6px rgba(5, 212, 205, 0.1);",
-    "dialogue_item_left": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-start;",
-    "dialogue_item_right": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-end; flex-direction: row-reverse;"
-  },
-  "apple": {
-    "container": "max-width: 677px; margin: 0 auto; padding: 16px; background-color: #ffffff; font-family: 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; color: #1d1d1f; line-height: 1.7; font-size: 15px; border-radius: 12px;",
-    "h1": "padding: 0.8em 1.5em; margin: 1.4em 0 1em; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 0.1em; line-height: 1.2; background: linear-gradient(135deg, #007aff 0%, #5856d6 50%, #ff2d55 100%); color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,122,255,0.2);",
-    "h2": "padding: 0.4em 0 0.5em 0.8em; margin: 1.8em 0 1em; color: #1d1d1f; font-size: 20px; font-weight: 600; text-align: left; border-left: 3px solid; border-image: linear-gradient(to bottom, #007aff, #5856d6) 1;",
-    "h3": "padding: 0.3em 0 0.4em 0.7em; margin: 1.6em 0 0.8em; color: #1d1d1f; font-size: 18px; font-weight: 600; text-align: left; border-left: 2px solid; border-image: linear-gradient(to bottom, #34c759, #5856d6) 1;",
-    "h4": "padding: 0.2em 0 0.2em 0.6em; margin: 1.5em 0 0.8em; color: #1d1d1f; font-size: 16px; font-weight: 600; text-align: left; border-left: 2px solid #ffcc00;",
-    "h5": "padding: 0.1em 0 0.1em 0.5em; margin: 1.2em 0 0.6em; color: #333333; font-size: 15px; font-weight: 600; text-align: left; border-left: 2px solid #ff9500;",
-    "h6": "padding: 0.1em 0 0.1em 0.5em; margin: 1em 0 0.5em; color: #666666; font-size: 14px; font-weight: 600; text-align: left; border-left: 2px solid #8e8e93;",
-    "p": "margin: 1.2em 0; letter-spacing: 0.1em; color: #333333; text-align: justify; line-height: 1.8; font-size: 15px;",
-    "image": "max-width: 100%; border-radius: 8px; margin: 1.5em auto; display: block; box-shadow: 0 8px 25px rgba(0,0,0,0.1);",
-    "figure": "margin: 1.5em 0; text-align: center; line-height: 1.6; font-size: 15px; color: #555555;",
-    "figcaption": "text-align: center; font-size: 0.9em; color: #888888; margin-top: 0.8em;",
-    "blockquote": "font-style: normal; padding: 1em 1.2em; border-left: 4px solid; border-image: linear-gradient(to bottom, #007aff, #5856d6, #ff2d55) 1; color: #333333; background: rgba(0,0,0,0.02); border-radius: 8px; margin: 1.5em 0;",
-    "blockquote_p": "margin: 0; color: #333333; line-height: 1.7;",
-    "blockquote_note": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(0, 122, 255, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #007aff; border: 1px solid rgba(0, 122, 255, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_tip": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(52, 199, 89, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #34c759; border: 1px solid rgba(52, 199, 89, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_important": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(88, 86, 214, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #5856d6; border: 1px solid rgba(88, 86, 214, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_warning": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(255, 149, 0, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #ff9500; border: 1px solid rgba(255, 149, 0, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_caution": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(255, 45, 85, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #ff2d55; border: 1px solid rgba(255, 45, 85, 0.2); border-radius: 8px; color: rgb(60, 60, 60);",
-    "blockquote_title": "font-weight: 600; margin-bottom: 0.8em; font-size: 1.05em; letter-spacing: -0.01em;",
-    "blockquote_title_note": "color: #007aff;",
-    "blockquote_title_tip": "color: #34c759;",
-    "blockquote_title_important": "color: #5856d6;",
-    "blockquote_title_warning": "color: #ff9500;",
-    "blockquote_title_caution": "color: #ff2d55;",
-    "blockquote_p_note": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "blockquote_p_tip": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "blockquote_p_important": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "blockquote_p_warning": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "blockquote_p_caution": "margin: 0; color: rgb(60, 60, 60); line-height: 1.7;",
-    "codespan": "display: inline-block; font-size: 90%; color: #4f46cf; background: linear-gradient(180deg, rgba(88, 86, 214, 0.12), rgba(255, 255, 255, 0.9)); padding: 2px 7px; border-radius: 999px; border: 1px solid rgba(88, 86, 214, 0.14); font-family: 'SFMono-Regular', Consolas, Menlo, monospace; line-height: 1.4; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);",
-    "code_pre": "display: block; box-sizing: border-box; font-size: 14px; overflow-x: auto; border-radius: 18px; padding: 1.15em 1.2em 1.2em; line-height: 1.6; margin: 1.5em 0; background: linear-gradient(180deg, rgba(0, 122, 255, 0.1) 0px, rgba(88, 86, 214, 0.08) 12px, rgba(251, 251, 253, 0.94) 12px, rgba(251, 251, 253, 0.98) 100%); border: 1px solid rgba(255, 255, 255, 0.92); box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(88, 86, 214, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92); white-space: pre; word-break: normal; overflow-wrap: normal; -webkit-overflow-scrolling: touch; tab-size: 2; backdrop-filter: blur(18px);",
-    "code": "background: none; padding: 0; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 14px; color: #111827; line-height: 1.6;",
-    "ul": "list-style: none; padding: 0; margin: 1.2em 0; color: #333333; font-size: 15px;",
-    "ol": "list-style: none; padding: 0; margin: 1.2em 0; color: #333333; font-size: 15px;",
-    "listitem": "margin: 0.4em 0; padding: 0; line-height: 1.7; font-size: 15px;",
-    "strong": "font-weight: 600; background-image: linear-gradient(135deg, #007aff, #5856d6); -webkit-background-clip: text; background-clip: text; color: transparent;",
-    "em": "color: #333333; font-style: italic;",
-    "link": "color: #007aff; text-decoration: none; border-bottom: 1px solid; border-image: linear-gradient(to right, rgba(0, 122, 255, 0), #007aff, #5856d6, #ff2d55, rgba(255, 45, 85, 0)) 1; transition: color 0.3s ease;",
-    "wx_link": "color: #007aff; text-decoration: none;",
-    "hr": "height: 2px; border: none; margin: 2.5em 0; background-image: linear-gradient(to right, rgba(0, 122, 255, 0), #007aff, #5856d6, #ff2d55, rgba(255, 45, 85, 0));",
-    "table": "width: 100%; border-collapse: collapse; margin: 1.5em 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08);",
-    "th": "padding: 12px 15px; text-align: left; font-weight: 600; color: #1d1d1f; border-bottom: 1.5px solid rgba(0,0,0,0.1); background: #fbfbfd;",
-    "td": "padding: 10px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); color: #333333;",
-    "footnotes": "margin-top: 2.5em; padding-top: 1.8em; border-top: 1px solid #e5e5e5;",
-    "footnote_item": "font-size: 0.85em; color: #888888; line-height: 1.6; margin-bottom: 0.3em;",
-    "gallery_container": "margin: 1.5em 0 2em; padding: 16px; background: linear-gradient(135deg, rgba(0, 122, 255, 0.02), rgba(255, 255, 255, 0.98)); border: 1px solid rgba(0, 122, 255, 0.1); border-radius: 16px; box-shadow: 0 8px 25px rgba(0, 122, 255, 0.08), 0 3px 8px rgba(88, 86, 214, 0.06); position: relative; backdrop-filter: blur(20px);",
-    "gallery_image_container": "background: #fbfbfd; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 122, 255, 0.06); padding: 8px; margin-bottom: 14px;",
-    "gallery_caption": "text-align: center; font-size: 12px; color: #ffffff; margin: 14px 0 0; padding: 12px 20px; background: linear-gradient(135deg, #007aff 0%, #5856d6 50%, #ff2d55 100%); border: none; border-radius: 16px; font-weight: 700; box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25), 0 2px 6px rgba(88, 86, 214, 0.15); font-family: 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', sans-serif; letter-spacing: 0.6px; backdrop-filter: blur(20px);",
-    "longimage_container": "margin: 1.5em 0 2em; padding: 16px; background: linear-gradient(135deg, rgba(0, 122, 255, 0.02), rgba(255, 255, 255, 0.98)); border: 1px solid rgba(0, 122, 255, 0.1); border-radius: 16px; box-shadow: 0 8px 25px rgba(0, 122, 255, 0.08), 0 3px 8px rgba(88, 86, 214, 0.06); position: relative; backdrop-filter: blur(20px);",
-    "longimage_image_container": "max-height: 420px; overflow-y: auto; border-radius: 12px; background: #fbfbfd; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 122, 255, 0.06); padding: 6px; scrollbar-width: thin; scrollbar-color: rgba(0, 122, 255, 0.3) rgba(251, 251, 253, 0.5);",
-    "longimage_caption": "text-align: center; font-size: 12px; color: #ffffff; margin: 14px 0 0; padding: 12px 20px; background: linear-gradient(135deg, #007aff 0%, #5856d6 50%, #ff2d55 100%); border: none; border-radius: 16px; font-weight: 700; box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25), 0 2px 6px rgba(88, 86, 214, 0.15); font-family: 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', sans-serif; letter-spacing: 0.6px; backdrop-filter: blur(20px);",
-    "dialogue_container": "margin: 1.5em 0 2em; padding: 1.2em; background: linear-gradient(135deg, rgba(0, 122, 255, 0.02), rgba(255, 255, 255, 0.95)); border: 1px solid rgba(0, 122, 255, 0.1); border-radius: 16px; box-shadow: 0 8px 25px rgba(0, 122, 255, 0.08), 0 3px 8px rgba(88, 86, 214, 0.06); position: relative; backdrop-filter: blur(20px);",
-    "dialogue_title": "text-align: center; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, #007aff, #5856d6); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 1em; padding-bottom: 0.8em; border-bottom: 1px solid rgba(0, 122, 255, 0.15); letter-spacing: -0.01em; font-family: 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', sans-serif;",
-    "dialogue_item": "margin: 0.8em 0; display: flex; align-items: flex-start; font-family: 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;",
-    "dialogue_avatar_left": "width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #007aff, #5856d6); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 0.8em; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);",
-    "dialogue_avatar_right": "width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #5856d6, #ff2d55); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-left: 0.8em; flex-shrink: 0; box-shadow: 0 4px 12px rgba(88, 86, 214, 0.4);",
-    "dialogue_bubble_left": "background: linear-gradient(135deg, rgba(0, 122, 255, 0.06), rgba(0, 122, 255, 0.03)); border: 1px solid rgba(0, 122, 255, 0.12); border-radius: 16px 16px 16px 4px; padding: 0.8em 1em; max-width: 75%; color: #1d1d1f; line-height: 1.7; font-size: 14px; position: relative; box-shadow: 0 2px 8px rgba(0, 122, 255, 0.08); backdrop-filter: blur(10px);",
-    "dialogue_bubble_right": "background: linear-gradient(135deg, rgba(251, 251, 253, 0.9), rgba(251, 251, 253, 0.7)); border: 1px solid rgba(0, 122, 255, 0.08); border-radius: 16px 16px 4px 16px; padding: 0.8em 1em; max-width: 75%; color: #1d1d1f; line-height: 1.7; font-size: 14px; margin-left: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); backdrop-filter: blur(10px);",
-    "dialogue_item_left": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-start;",
-    "dialogue_item_right": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-end; flex-direction: row-reverse;"
-  },
-  "sports": {
-    "container": "max-width: 677px; margin: 0 auto; padding: 12px; background-color: #ffffff; font-family: 'Titillium Web', 'SF Pro Display', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; color: #2c2c2c; line-height: 1.7; font-size: 15px; border-radius: 16px;",
-    "h1": "padding: 0.6em 1.5em; margin: 2.2em 0 1.2em; color: #ffffff; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 0.12em; line-height: 1.4; background: linear-gradient(120deg, #00A968, #008A56, #00A968, #00A968); border-radius: 50px; box-shadow: 0 8px 20px rgba(0, 169, 104, 0.3); text-transform: uppercase; font-family: 'Titillium Web', sans-serif;",
-    "h2": "padding: 0.4em 1em 0.5em 1em; margin: 1.6em 0 0.8em; font-size: 20px; font-weight: 600; text-align: left; letter-spacing: 0.06em; line-height: 1.4; color: #00A968; background: linear-gradient(to right, rgba(0, 169, 104, 0.05), rgba(56, 198, 244, 0.05)); border-left: 4px solid; border-image: linear-gradient(to bottom, #FF6600, #00A968, #38C6F4) 1; border-radius: 0 12px 12px 0; box-shadow: 0 3px 8px rgba(0, 169, 104, 0.12); text-transform: uppercase; font-family: 'Titillium Web', sans-serif;",
-    "h3": "padding: 0.4em 1.2em; margin: 1.8em 0 1em; color: #00A968; font-size: 18px; font-weight: 600; text-align: left; letter-spacing: 0.08em; border-left: 4px solid; border-image: linear-gradient(to bottom, #FF6600, #00A968, #38C6F4) 1; background: linear-gradient(to right, rgba(255, 102, 0, 0.05), rgba(0, 169, 104, 0.05)); border-radius: 0 25px 25px 0; font-family: 'Titillium Web', sans-serif;",
-    "h4": "padding: 0.3em 1em; margin: 1.6em 0 0.8em; color: #00A968; font-size: 16px; font-weight: 600; text-align: left; letter-spacing: 0.06em; border-left: 3px solid; border-image: linear-gradient(to bottom, #FF6600, #00A968, #38C6F4) 1; background: rgba(56, 198, 244, 0.08); border-radius: 0 20px 20px 0; font-family: 'Titillium Web', sans-serif;",
-    "h5": "padding: 0.2em 0.8em; margin: 1.4em 0 0.6em; color: #00A968; font-size: 15px; font-weight: 600; text-align: left; letter-spacing: 0.04em; border-left: 2px solid; border-image: linear-gradient(to bottom, #FF6600, #00A968, #38C6F4) 1; font-family: 'Titillium Web', sans-serif;",
-    "h6": "padding: 0.1em 0.6em; margin: 1.2em 0 0.5em; color: #00A968; font-size: 14px; font-weight: 600; text-align: left; border-left: 2px solid; border-image: linear-gradient(to bottom, #FF6600, #00A968, #38C6F4) 1; font-family: 'Titillium Web', sans-serif;",
-    "p": "margin: 1.3em 0; letter-spacing: 0.02em; color: #2c2c2c; text-align: justify; line-height: 1.8; font-size: 15px;",
-    "image": "max-width: 100%; border-radius: 16px; margin: 1.8em auto; display: block; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(255, 102, 0, 0.1); border: 2px solid transparent; background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6600, #00A968, #38C6F4) border-box;",
-    "figure": "margin: 1.8em 0; text-align: center; line-height: 1.6; font-size: 15px; color: #555555;",
-    "figcaption": "text-align: center; font-size: 0.9em; color: #777777; margin-top: 1em; font-style: italic;",
-    "blockquote": "font-style: normal; padding: 1.2em 1.5em; border-left: 5px solid; border-image: linear-gradient(to bottom, #FF6600, #00A968, #38C6F4) 1; color: #3c3c3e; background: #f8f8f8; border-radius: 0 8px 8px 0; margin: 1.8em 0;",
-    "blockquote_p": "margin: 0; color: #3c3c3e; line-height: 1.8;",
-    "blockquote_note": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(56, 198, 244, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #38C6F4; border: 1px solid rgba(56, 198, 244, 0.3); border-radius: 0 12px 12px 0; color: rgb(60, 60, 60);",
-    "blockquote_tip": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(0, 169, 104, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #00A968; border: 1px solid rgba(0, 169, 104, 0.3); border-radius: 0 12px 12px 0; color: rgb(60, 60, 60);",
-    "blockquote_important": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(255, 102, 0, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid; border-image: linear-gradient(to bottom, #FF6600, #00A968) 1; border-radius: 0 12px 12px 0; color: rgb(60, 60, 60);",
-    "blockquote_warning": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(255, 102, 0, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #FF6600; border: 1px solid rgba(255, 102, 0, 0.3); border-radius: 0 12px 12px 0; color: rgb(60, 60, 60);",
-    "blockquote_caution": "margin: 1.5em 0 2em; padding: 1.2em 1.5em; background: linear-gradient(135deg, rgba(255, 102, 0, 0.08), rgba(255, 255, 255, 0.95)); border-left: 4px solid #FF6600; border: 1px solid rgba(255, 102, 0, 0.3); border-radius: 0 12px 12px 0; color: rgb(60, 60, 60);",
-    "blockquote_title": "font-weight: 700; margin-bottom: 0.8em; font-size: 1.08em; letter-spacing: 0.06em; text-transform: uppercase; font-family: 'Titillium Web', sans-serif;",
-    "blockquote_title_note": "color: #38C6F4;",
-    "blockquote_title_tip": "color: #00A968;",
-    "blockquote_title_important": "color: #00A968;",
-    "blockquote_title_warning": "color: #FF6600;",
-    "blockquote_title_caution": "color: #FF6600;",
-    "blockquote_p_note": "margin: 0; color: rgb(60, 60, 60); line-height: 1.8;",
-    "blockquote_p_tip": "margin: 0; color: rgb(60, 60, 60); line-height: 1.8;",
-    "blockquote_p_important": "margin: 0; color: rgb(60, 60, 60); line-height: 1.8;",
-    "blockquote_p_warning": "margin: 0; color: rgb(60, 60, 60); line-height: 1.8;",
-    "blockquote_p_caution": "margin: 0; color: rgb(60, 60, 60); line-height: 1.8;",
-    "codespan": "display: inline-block; font-size: 90%; color: #008a56; background: linear-gradient(135deg, rgba(255, 102, 0, 0.12), rgba(0, 169, 104, 0.12), rgba(56, 198, 244, 0.12)); padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(0, 169, 104, 0.16); font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, Menlo, monospace; line-height: 1.4; font-weight: 600;",
-    "code_pre": "display: block; box-sizing: border-box; font-size: 14px; overflow-x: auto; border-radius: 18px 28px 18px 28px; padding: 1.15em 1.2em 1.2em; line-height: 1.65; margin: 1.5em 0; background: linear-gradient(135deg, rgba(255, 102, 0, 0.16) 0px, rgba(0, 169, 104, 0.14) 16px, rgba(56, 198, 244, 0.12) 32px, #ffffff 32px, #ffffff 100%); border: 1px solid rgba(0, 169, 104, 0.16); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.9); white-space: pre; word-break: normal; overflow-wrap: normal; -webkit-overflow-scrolling: touch; tab-size: 2;",
-    "code": "background: none; padding: 0; font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 14px; color: #1f2937; line-height: 1.65;",
-    "ul": "list-style: none; padding: 0; margin: 1.5em 0; color: #2c2c2c; font-size: 15px;",
-    "ol": "list-style: none; padding: 0; margin: 1.5em 0; color: #2c2c2c; font-size: 15px;",
-    "listitem": "margin: 0.6em 0; padding: 0; line-height: 1.8; font-size: 15px;",
-    "strong": "font-weight: 700; background: linear-gradient(135deg, #00A968, #008A56, #00A968, #00A968); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none;",
-    "em": "color: #00A968; font-style: italic; font-weight: 500;",
-    "link": "background: linear-gradient(135deg, #00A968, #008A56, #00A968, #00A968); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; border-bottom: 1px solid; border-image: linear-gradient(to right, rgba(255, 102, 0, 0), #FF6600, #00A968, #38C6F4, rgba(56, 198, 244, 0)) 1; transition: all 0.3s ease;",
-    "wx_link": "color: #00A968; text-decoration: none;",
-    "hr": "height: 3px; border: none; margin: 3em 0; background-image: linear-gradient(to right, rgba(255, 102, 0, 0), #FF6600, #00A968, #38C6F4, rgba(56, 198, 244, 0));",
-    "table": "width: 100%; border-collapse: collapse; margin: 1.8em 0; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); border: 2px solid transparent; background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6600, #00A968, #38C6F4) border-box;",
-    "th": "padding: 12px 16px; text-align: left; font-weight: 700; background: linear-gradient(135deg, rgba(255, 102, 0, 0.1), rgba(0, 169, 104, 0.1)); color: #00A968; border-bottom: 2px solid rgba(255, 102, 0, 0.2); font-family: 'Titillium Web', sans-serif; text-transform: uppercase; letter-spacing: 0.04em;",
-    "td": "padding: 10px 16px; border-bottom: 1px solid rgba(0, 0, 0, 0.08); color: #2c2c2c;",
-    "footnotes": "margin-top: 2.5em; padding-top: 1.8em; border-top: 2px solid transparent; border-image: linear-gradient(to right, #FF6600, #00A968, #38C6F4) 1;",
-    "footnote_item": "font-size: 0.9em; color: #00A968; line-height: 1.6; margin-bottom: 0.4em;",
-    "gallery_container": "margin: 1.5em 0 2em; padding: 16px; background: linear-gradient(135deg, rgba(255, 102, 0, 0.02), rgba(255, 255, 255, 0.98)); border: 2px solid transparent; border-radius: 16px; box-shadow: 0 8px 25px rgba(255, 102, 0, 0.12), 0 4px 12px rgba(0, 169, 104, 0.08); position: relative; background-clip: padding-box; background-image: linear-gradient(white, white), linear-gradient(135deg, #FF6600, #00A968, #38C6F4); background-origin: border-box;",
-    "gallery_image_container": "background: #ffffff; border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9); border: 2px solid transparent; padding: 8px; margin-bottom: 14px; background-clip: padding-box; background-image: linear-gradient(white, white), linear-gradient(135deg, #FF6600, #00A968, #38C6F4); background-origin: border-box;",
-    "gallery_caption": "text-align: center; font-size: 12px; color: #ffffff; margin: 14px 0 0; padding: 14px 20px; background: linear-gradient(135deg, #FF6600 0%, #00A968 50%, #38C6F4 100%); border: none; border-radius: 50px; font-weight: 700; box-shadow: 0 8px 25px rgba(255, 102, 0, 0.3), 0 4px 12px rgba(0, 169, 104, 0.2); font-family: 'Titillium Web', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; backdrop-filter: blur(10px);",
-    "longimage_container": "margin: 1.5em 0 2em; padding: 16px; background: linear-gradient(135deg, rgba(255, 102, 0, 0.02), rgba(255, 255, 255, 0.98)); border: 2px solid transparent; border-radius: 16px; box-shadow: 0 8px 25px rgba(255, 102, 0, 0.12), 0 4px 12px rgba(0, 169, 104, 0.08); position: relative; background-clip: padding-box; background-image: linear-gradient(white, white), linear-gradient(135deg, #FF6600, #00A968, #38C6F4); background-origin: border-box;",
-    "longimage_image_container": "max-height: 420px; overflow-y: auto; border-radius: 12px; background: #ffffff; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9); border: 2px solid transparent; padding: 6px; background-clip: padding-box; background-image: linear-gradient(white, white), linear-gradient(135deg, #FF6600, #00A968, #38C6F4); background-origin: border-box; scrollbar-width: thin; scrollbar-color: rgba(255, 102, 0, 0.4) rgba(0, 169, 104, 0.1);",
-    "longimage_caption": "text-align: center; font-size: 12px; color: #ffffff; margin: 14px 0 0; padding: 14px 20px; background: linear-gradient(135deg, #FF6600 0%, #00A968 50%, #38C6F4 100%); border: none; border-radius: 50px; font-weight: 700; box-shadow: 0 8px 25px rgba(255, 102, 0, 0.3), 0 4px 12px rgba(0, 169, 104, 0.2); font-family: 'Titillium Web', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; backdrop-filter: blur(10px);",
-    "dialogue_container": "margin: 1.5em 0 2em; padding: 16px; background: linear-gradient(135deg, rgba(255, 102, 0, 0.02), rgba(255, 255, 255, 0.98)); border: 2px solid transparent; border-radius: 16px; box-shadow: 0 8px 25px rgba(255, 102, 0, 0.12), 0 4px 12px rgba(0, 169, 104, 0.08); position: relative; background-clip: padding-box; background-image: linear-gradient(white, white), linear-gradient(135deg, #FF6600, #00A968, #38C6F4); background-origin: border-box;",
-    "dialogue_title": "text-align: center; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, #FF6600, #00A968, #38C6F4); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 1em; padding-bottom: 0.8em; border-bottom: 2px solid transparent; border-image: linear-gradient(to right, #FF6600, #00A968, #38C6F4) 1; letter-spacing: 0.06em; text-transform: uppercase; font-family: 'Titillium Web', sans-serif;",
-    "dialogue_item": "margin: 0.8em 0; display: flex; align-items: flex-start; font-family: 'Titillium Web', 'SF Pro Display', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;",
-    "dialogue_avatar_left": "width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #FF6600, #00A968); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-right: 0.8em; flex-shrink: 0; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); border: 2px solid rgba(255, 255, 255, 0.3);",
-    "dialogue_avatar_right": "width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #00A968, #38C6F4); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-left: 0.8em; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0, 169, 104, 0.4); border: 2px solid rgba(255, 255, 255, 0.3);",
-    "dialogue_bubble_left": "background: linear-gradient(135deg, rgba(255, 102, 0, 0.08), rgba(255, 102, 0, 0.04)); border: 1px solid rgba(255, 102, 0, 0.2); border-radius: 16px 16px 16px 4px; padding: 0.8em 1em; max-width: 75%; color: #1a1a1a; line-height: 1.8; font-size: 14px; position: relative; box-shadow: 0 3px 10px rgba(255, 102, 0, 0.15);",
-    "dialogue_bubble_right": "background: linear-gradient(135deg, rgba(0, 169, 104, 0.08), rgba(56, 198, 244, 0.04)); border: 1px solid rgba(0, 169, 104, 0.2); border-radius: 16px 16px 4px 16px; padding: 0.8em 1em; max-width: 75%; color: #1a1a1a; line-height: 1.8; font-size: 14px; margin-left: auto; box-shadow: 0 3px 10px rgba(0, 169, 104, 0.15);",
     "dialogue_item_left": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-start;",
     "dialogue_item_right": "margin: 0.8em 0; display: flex; align-items: flex-start; justify-content: flex-end; flex-direction: row-reverse;"
   },
@@ -721,75 +460,6 @@ const MD2_NAMED_RAW_STYLES = {
     "td": "padding: 8px 16px; border: 1px solid #d1d9e0; color: #1f2328 !important;",
     "tr": "border: none;"
   },
-  "sspai-red": {
-    "container": "max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; font-size: 16px; line-height: 1.8 !important; color: #333333 !important; background-color: #ffffff !important; word-wrap: break-word;",
-    "h1": "display: block; font-size: 29px; font-weight: 700; color: #2d2d2d !important; line-height: 1.32 !important; margin: 36px 0 18px; letter-spacing: -0.015em; padding: 11px 16px 10px; border-top: 3px solid #d71a1b; border-bottom: 1px solid #e8dede; background: linear-gradient(180deg, rgba(215,26,27,0.05) 0%, rgba(255,255,255,1) 100%) !important;",
-    "h2": "display: block; font-size: 21px; font-weight: 700; color: #2d2d2d !important; line-height: 1.45 !important; margin: 34px 0 18px; padding: 8px 0 8px 14px; border-left: 4px solid #d71a1b; letter-spacing: 0.01em;",
-    "h3": "display: block; font-size: 17px; font-weight: 700; color: #444 !important; line-height: 1.45 !important; margin: 28px 0 14px; padding-bottom: 6px; border-bottom: 1px solid rgba(215,26,27,0.18);",
-    "h4": "display: block; width: fit-content; font-size: 13px; font-weight: 700; color: #d71a1b !important; line-height: 1.45 !important; margin: 22px 0 12px; padding: 3px 0; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid rgba(215,26,27,0.28);",
-    "p": "margin: 20px 0 !important; line-height: 1.8 !important; color: #333333 !important;",
-    "strong": "font-weight: 700; color: #c51718 !important; background: linear-gradient(180deg, rgba(215,26,27,0) 0%, rgba(215,26,27,0) 60%, rgba(215,26,27,0.14) 60%, rgba(215,26,27,0.14) 100%); padding: 0 2px;",
-    "em": "font-style: italic; color: #666 !important;",
-    "a": "color: #d71a1b !important; text-decoration: none; border-bottom: 1px solid rgba(215,26,27,0.3); padding-bottom: 1px;",
-    "ul": "margin: 16px 0; padding-left: 28px;",
-    "ol": "margin: 16px 0; padding-left: 28px;",
-    "li": "margin: 8px 0; line-height: 1.8 !important; color: #333333 !important;",
-    "blockquote": "margin: 24px 0; padding: 16px 20px; background: linear-gradient(180deg, #fff8f8 0%, #fffdfd 100%) !important; border-left: 4px solid #d71a1b; border-right: 1px solid #f0e0e0; color: #5b5555 !important; border-radius: 10px;",
-    "code": "font-family: \"SF Mono\", Consolas, monospace; padding: 3px 6px; background-color: #fff5f5 !important; color: #d71a1b !important; border-radius: 4px; font-size: 13px !important; line-height: 1.5 !important;",
-    "pre": "margin: 24px 0; padding: 20px; background-color: #fafafa !important; border-radius: 8px; overflow-x: auto; font-size: 13px !important; line-height: 1.5 !important; border: 1px solid #f0f0f0;",
-    "hr": "margin: 38px auto; border: none; height: 1px; background: linear-gradient(90deg, rgba(238,238,238,0) 0%, rgba(215,26,27,0.22) 18%, rgba(215,26,27,0.78) 50%, rgba(215,26,27,0.22) 82%, rgba(238,238,238,0) 100%) !important; width: 62%;",
-    "img": "max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 8px;",
-    "table": "width: 100%; margin: 24px 0; border-collapse: collapse; font-size: 15px;",
-    "th": "background-color: #fef7f7 !important; padding: 12px 16px; text-align: left; font-weight: 600; color: #333 !important; border: 1px solid #f0e0e0;",
-    "td": "padding: 12px 16px; border: 1px solid #f0e0e0; color: #333333 !important;",
-    "tr": "border: none;"
-  },
-  "mint-fresh": {
-    "container": "max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; font-size: 16px; line-height: 1.7 !important; color: #2d4a3e !important; background-color: #f0faf5 !important; word-wrap: break-word;",
-    "h1": "display: block; font-size: 29px; font-weight: 700; color: #1d5e49 !important; line-height: 1.32 !important; margin: 36px 0 18px; letter-spacing: -0.015em; padding: 12px 16px 11px; background: linear-gradient(180deg, rgba(224,245,236,0.95) 0%, rgba(240,250,245,0.95) 100%) !important; border: 1px solid rgba(26,122,90,0.18); border-left: 5px solid #1a7a5a; border-radius: 13px;",
-    "h2": "display: block; width: fit-content; font-size: 21px; font-weight: 700; color: #1a7a5a !important; line-height: 1.4 !important; margin: 34px 0 18px; padding: 6px 14px; background-color: rgba(224,245,236,0.95) !important; border: 1px solid rgba(26,122,90,0.16); border-radius: 999px;",
-    "h3": "display: block; font-size: 18px; font-weight: 600; color: #2d4a3e !important; line-height: 1.45 !important; margin: 28px 0 14px; padding-left: 12px; border-left: 3px solid rgba(26,122,90,0.75);",
-    "h4": "display: block; width: fit-content; font-size: 13px; font-weight: 700; color: #3f6756 !important; line-height: 1.45 !important; margin: 22px 0 12px; padding: 4px 10px; background-color: rgba(255,255,255,0.7) !important; border: 1px solid rgba(26,122,90,0.18); border-radius: 999px; letter-spacing: 0.04em;",
-    "p": "margin: 18px 0 !important; line-height: 1.7 !important; color: #2d4a3e !important;",
-    "strong": "font-weight: 700; color: #1a7a5a !important; background: linear-gradient(180deg, rgba(26,122,90,0) 0%, rgba(26,122,90,0) 58%, rgba(26,122,90,0.14) 58%, rgba(26,122,90,0.14) 100%); padding: 0 2px;",
-    "em": "font-style: italic; color: #5a8a72 !important;",
-    "a": "color: #1a7a5a !important; text-decoration: none; border-bottom: 1px solid rgba(26,122,90,0.3); padding-bottom: 1px;",
-    "ul": "margin: 16px 0; padding-left: 28px;",
-    "ol": "margin: 16px 0; padding-left: 28px;",
-    "li": "margin: 8px 0; line-height: 1.7 !important; color: #2d4a3e !important;",
-    "blockquote": "margin: 24px 0; padding: 16px 20px; background: linear-gradient(180deg, rgba(224,245,236,0.96) 0%, rgba(240,250,245,0.96) 100%) !important; border-left: 4px solid #1a7a5a; color: #3d5a4e !important; border-radius: 12px;",
-    "code": "font-family: \"SF Mono\", Consolas, monospace; padding: 3px 6px; background-color: #e0f5ec !important; color: #1a7a5a !important; border-radius: 4px; font-size: 12px !important; line-height: 1.5 !important;",
-    "pre": "margin: 24px 0; padding: 20px; background-color: #e0f5ec !important; border-radius: 8px; overflow-x: auto; font-size: 12px !important; line-height: 1.5 !important;",
-    "hr": "margin: 36px auto; border: none; height: 2px; width: 58%; background: linear-gradient(90deg, rgba(200,230,216,0) 0%, rgba(26,122,90,0.18) 18%, rgba(26,122,90,0.62) 50%, rgba(26,122,90,0.18) 82%, rgba(200,230,216,0) 100%) !important;",
-    "img": "max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 8px;",
-    "table": "width: 100%; margin: 24px 0; border-collapse: collapse; font-size: 15px;",
-    "th": "background-color: #e0f5ec !important; padding: 12px 16px; text-align: left; font-weight: 600; color: #2d4a3e !important; border: 1px solid #c8e6d8;",
-    "td": "padding: 12px 16px; border: 1px solid #c8e6d8; color: #2d4a3e !important;",
-    "tr": "border: none;"
-  },
-  "sunset-amber": {
-    "container": "max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: Georgia, \"Times New Roman\", Times, serif; font-size: 16px; line-height: 1.8 !important; color: #3d2c1e !important; background-color: #fdf6ee !important; word-wrap: break-word;",
-    "h1": "display: block; font-size: 29px; font-weight: 700; color: #8d4d2e !important; line-height: 1.32 !important; margin: 36px 0 18px; letter-spacing: -0.015em; padding: 12px 16px 11px; background: linear-gradient(180deg, rgba(255,243,227,0.94) 0%, rgba(248,228,201,0.8) 100%) !important; border: 1px solid rgba(224,174,112,0.4); border-left: 5px solid #d37a45; border-radius: 13px; box-shadow: 0 6px 16px rgba(166,102,56,0.06);",
-    "h2": "display: block; font-size: 23px; font-weight: 700; color: #a45a33 !important; line-height: 1.4 !important; margin: 34px 0 18px; padding: 10px 14px; background: linear-gradient(90deg, rgba(236,191,132,0.24) 0%, rgba(236,191,132,0.08) 72%, rgba(236,191,132,0) 100%) !important; border-left: 3px solid #d78a54; border-radius: 12px;",
-    "h3": "display: block; font-size: 18px; font-weight: 600; color: #5c402b !important; line-height: 1.5 !important; margin: 28px 0 14px; padding: 0 0 6px 12px; border-left: 3px solid rgba(215,138,84,0.9); border-bottom: 1px solid rgba(215,138,84,0.24);",
-    "h4": "display: block; width: fit-content; font-size: 14px; font-weight: 700; color: #7a5035 !important; line-height: 1.5 !important; margin: 22px 0 12px; padding: 3px 10px; background-color: rgba(245,230,208,0.92) !important; border: 1px solid rgba(215,138,84,0.3); border-radius: 999px; letter-spacing: 0.06em;",
-    "p": "margin: 20px 0 !important; line-height: 1.8 !important; color: #3d2c1e !important;",
-    "strong": "font-weight: 700; color: #a45a33 !important; background: linear-gradient(180deg, rgba(212,122,69,0) 0%, rgba(212,122,69,0) 60%, rgba(236,191,132,0.35) 60%, rgba(236,191,132,0.35) 100%); padding: 0 2px;",
-    "em": "font-style: italic; color: #8a6d4b !important;",
-    "a": "color: #c0582a !important; text-decoration: none; border-bottom: 1px solid rgba(192,88,42,0.3); padding-bottom: 1px;",
-    "ul": "margin: 16px 0; padding-left: 28px;",
-    "ol": "margin: 16px 0; padding-left: 28px;",
-    "li": "margin: 8px 0; line-height: 1.8 !important; color: #3d2c1e !important;",
-    "blockquote": "margin: 24px 0; padding: 18px 20px; background: linear-gradient(180deg, rgba(249,236,217,0.96) 0%, rgba(247,228,204,0.88) 100%) !important; border-left: 4px solid #d78a54; color: #6a4c38 !important; border-radius: 12px; font-style: italic; box-shadow: inset 0 0 12px rgba(215,138,84,0.06);",
-    "code": "font-family: \"SF Mono\", Consolas, monospace; padding: 3px 6px; background-color: #f5e6d0 !important; color: #c0582a !important; border-radius: 4px; font-size: 12px !important; line-height: 1.5 !important;",
-    "pre": "margin: 24px 0; padding: 20px; background-color: #f5e6d0 !important; border-radius: 8px; overflow-x: auto; font-size: 12px !important; line-height: 1.5 !important;",
-    "hr": "margin: 38px auto; border: none; height: 2px; width: 58%; background: linear-gradient(90deg, rgba(232,212,184,0) 0%, rgba(215,138,84,0.22) 20%, rgba(215,138,84,0.75) 50%, rgba(215,138,84,0.22) 80%, rgba(232,212,184,0) 100%) !important;",
-    "img": "max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 4px;",
-    "table": "width: 100%; margin: 24px 0; border-collapse: collapse; font-size: 15px;",
-    "th": "background-color: #f5e6d0 !important; padding: 12px 16px; text-align: left; font-weight: 600; color: #3d2c1e !important; border: 1px solid #e8d4b8;",
-    "td": "padding: 12px 16px; border: 1px solid #e8d4b8; color: #3d2c1e !important;",
-    "tr": "border: none;"
-  },
   "ink-minimal": {
     "container": "max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: Georgia, \"Times New Roman\", Times, serif; font-size: 16px; line-height: 1.8 !important; color: #111111 !important; background-color: #ffffff !important; word-wrap: break-word;",
     "h1": "display: block; font-size: 29px; font-weight: 700; color: #000000 !important; line-height: 1.3 !important; margin: 36px 0 18px; letter-spacing: -0.02em; padding: 0 0 10px; border-bottom: 2px solid #000000;",
@@ -811,52 +481,6 @@ const MD2_NAMED_RAW_STYLES = {
     "table": "width: 100%; margin: 24px 0; border-collapse: collapse; font-size: 15px;",
     "th": "background-color: #f5f5f5 !important; padding: 12px 16px; text-align: left; font-weight: 700; color: #000000 !important; border: 1px solid #cccccc;",
     "td": "padding: 12px 16px; border: 1px solid #cccccc; color: #111111 !important;",
-    "tr": "border: none;"
-  },
-  "lavender-dream": {
-    "container": "max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; font-size: 16px; line-height: 1.75 !important; color: #3d3155 !important; background-color: #f5f0ff !important; word-wrap: break-word;",
-    "h1": "display: block; font-size: 29px; font-weight: 700; color: #5f4688 !important; line-height: 1.32 !important; margin: 36px 0 18px; letter-spacing: -0.015em; padding: 12px 16px 11px; background: linear-gradient(180deg, rgba(236,228,255,0.98) 0%, rgba(245,240,255,0.98) 100%) !important; border: 1px solid rgba(155,127,212,0.22); border-left: 5px solid #9b7fd4; border-radius: 13px;",
-    "h2": "display: block; font-size: 22px; font-weight: 700; color: #6b4c9a !important; line-height: 1.4 !important; margin: 34px 0 18px; padding: 9px 14px; background: linear-gradient(90deg, rgba(236,228,255,0.94) 0%, rgba(236,228,255,0.2) 74%, rgba(236,228,255,0) 100%) !important; border-left: 3px solid #9b7fd4; border-radius: 12px;",
-    "h3": "display: block; font-size: 18px; font-weight: 600; color: #4a3c67 !important; line-height: 1.45 !important; margin: 28px 0 14px; padding-left: 12px; border-left: 2px solid rgba(155,127,212,0.6);",
-    "h4": "display: block; width: fit-content; font-size: 13px; font-weight: 700; color: #7a5aa9 !important; line-height: 1.45 !important; margin: 22px 0 12px; padding: 4px 10px; background-color: rgba(236,228,255,0.9) !important; border: 1px solid rgba(155,127,212,0.22); border-radius: 999px; letter-spacing: 0.05em;",
-    "p": "margin: 18px 0 !important; line-height: 1.75 !important; color: #3d3155 !important;",
-    "strong": "font-weight: 700; color: #6b4c9a !important; background: linear-gradient(180deg, rgba(107,76,154,0) 0%, rgba(107,76,154,0) 58%, rgba(155,127,212,0.2) 58%, rgba(155,127,212,0.2) 100%); padding: 0 2px;",
-    "em": "font-style: italic; color: #8a6dba !important;",
-    "a": "color: #6b4c9a !important; text-decoration: none; border-bottom: 1px solid rgba(107,76,154,0.3); padding-bottom: 1px;",
-    "ul": "margin: 16px 0; padding-left: 28px;",
-    "ol": "margin: 16px 0; padding-left: 28px;",
-    "li": "margin: 8px 0; line-height: 1.75 !important; color: #3d3155 !important;",
-    "blockquote": "margin: 24px 0; padding: 16px 20px; background: linear-gradient(180deg, rgba(236,228,255,0.98) 0%, rgba(245,240,255,0.9) 100%) !important; border-left: 4px solid #9b7fd4; color: #5a4570 !important; border-radius: 12px;",
-    "code": "font-family: \"SF Mono\", Consolas, monospace; padding: 3px 6px; background-color: #ece4ff !important; color: #6b4c9a !important; border-radius: 4px; font-size: 12px !important; line-height: 1.5 !important;",
-    "pre": "margin: 24px 0; padding: 20px; background-color: #ece4ff !important; border-radius: 12px; overflow-x: auto; font-size: 12px !important; line-height: 1.5 !important;",
-    "hr": "margin: 36px auto; border: none; height: 2px; width: 56%; background: linear-gradient(90deg, rgba(221,208,240,0) 0%, rgba(155,127,212,0.2) 20%, rgba(155,127,212,0.65) 50%, rgba(155,127,212,0.2) 80%, rgba(221,208,240,0) 100%) !important;",
-    "img": "max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 12px;",
-    "table": "width: 100%; margin: 24px 0; border-collapse: collapse; font-size: 15px;",
-    "th": "background-color: #ece4ff !important; padding: 12px 16px; text-align: left; font-weight: 600; color: #3d3155 !important; border: 1px solid #ddd0f0;",
-    "td": "padding: 12px 16px; border: 1px solid #ddd0f0; color: #3d3155 !important;",
-    "tr": "border: none;"
-  },
-  "coffee-house": {
-    "container": "max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: Georgia, \"Times New Roman\", Times, serif; font-size: 16px; line-height: 1.75 !important; color: #3e2723 !important; background-color: #f5efe6 !important; background-image: radial-gradient(circle at center, #f5efe6 0%, #ebe2d3 100%); word-wrap: break-word;",
-    "h1": "display: block; font-size: 29px; font-weight: 700; color: #4a302a !important; line-height: 1.32 !important; margin: 36px 0 18px; letter-spacing: -0.015em; padding: 12px 16px 11px; background: linear-gradient(180deg, rgba(236,226,212,0.92) 0%, rgba(245,239,230,0.94) 100%) !important; border: 1px solid rgba(161,136,127,0.3); border-left: 5px solid #8d6e63; border-radius: 12px;",
-    "h2": "display: block; font-size: 22px; font-weight: 700; color: #5d4037 !important; line-height: 1.45 !important; margin: 34px 0 18px; padding: 0 0 8px; border-bottom: 1px solid rgba(161,136,127,0.36);",
-    "h3": "display: block; font-size: 18px; font-weight: 600; color: #4e342e !important; line-height: 1.45 !important; margin: 28px 0 14px; padding-left: 12px; border-left: 3px solid rgba(141,110,99,0.7);",
-    "h4": "display: block; width: fit-content; font-size: 13px; font-weight: 700; color: #795548 !important; line-height: 1.45 !important; margin: 22px 0 12px; padding: 3px 10px; background-color: rgba(236,226,212,0.92) !important; border-radius: 999px; letter-spacing: 0.05em;",
-    "p": "margin: 18px 0 !important; line-height: 1.75 !important; color: #3e2723 !important;",
-    "strong": "font-weight: 700; color: #5d4037 !important; background: linear-gradient(180deg, rgba(93,64,55,0) 0%, rgba(93,64,55,0) 58%, rgba(161,136,127,0.22) 58%, rgba(161,136,127,0.22) 100%); padding: 0 2px;",
-    "em": "font-style: italic; color: #795548 !important;",
-    "a": "color: #6d4c41 !important; text-decoration: none; border-bottom: 1px solid rgba(109,76,65,0.3); padding-bottom: 1px;",
-    "ul": "margin: 16px 0; padding-left: 28px;",
-    "ol": "margin: 16px 0; padding-left: 28px;",
-    "li": "margin: 8px 0; line-height: 1.75 !important; color: #3e2723 !important;",
-    "blockquote": "margin: 24px 0; padding: 18px 20px; background: linear-gradient(180deg, rgba(236,226,212,0.96) 0%, rgba(245,239,230,0.96) 100%) !important; border-left: 4px solid #8d6e63; color: #5d4037 !important; border-radius: 12px;",
-    "code": "font-family: \"SF Mono\", Consolas, monospace; padding: 3px 6px; background-color: #ece2d4 !important; color: #6d4c41 !important; border-radius: 4px; font-size: 12px !important; line-height: 1.5 !important;",
-    "pre": "margin: 24px 0; padding: 20px; background-color: #ece2d4 !important; border-radius: 8px; overflow-x: auto; font-size: 12px !important; line-height: 1.5 !important;",
-    "hr": "margin: 38px auto; border: none; height: 2px; width: 54%; background: linear-gradient(90deg, rgba(215,204,200,0) 0%, rgba(141,110,99,0.2) 18%, rgba(141,110,99,0.64) 50%, rgba(141,110,99,0.2) 82%, rgba(215,204,200,0) 100%) !important;",
-    "img": "max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 4px;",
-    "table": "width: 100%; margin: 24px 0; border-collapse: collapse; font-size: 15px;",
-    "th": "background-color: #ece2d4 !important; padding: 12px 16px; text-align: left; font-weight: 600; color: #3e2723 !important; border: 1px solid #d7ccc8;",
-    "td": "padding: 12px 16px; border: 1px solid #d7ccc8; color: #3e2723 !important;",
     "tr": "border: none;"
   },
   "bauhaus-primary": {
@@ -884,10 +508,7 @@ const MD2_NAMED_RAW_STYLES = {
   }
 } as const
 
-const THEME_SPECS: ThemeSpec[] = [
-  ...NAMED_THEME_SPECS,
-  ...MATRIX_THEME_SPECS,
-]
+const THEME_SPECS: ThemeSpec[] = NAMED_THEME_SPECS
 
 export const themes: Record<string, Theme> = Object.fromEntries(
   THEME_SPECS.map(spec => [spec.name, createTheme(spec)]),
@@ -908,46 +529,19 @@ function named(
   bestFor: string,
   density: "low" | "medium" | "high",
   contrast: "low" | "medium" | "high",
+  layout: ThemeLayout = "clean",
 ): ThemeSpec {
-  return { name, collection, displayName, accent, background, surface, text, muted, border, codeBackground, description, bestFor, density, contrast }
-}
-
-function themeSeries(
-  prefix: "minimal" | "focus" | "elegant" | "bold",
-  label: string,
-  collection: ThemeCollection,
-  description: string,
-  bestFor: string,
-  density: "low" | "medium" | "high",
-  contrast: "low" | "medium" | "high",
-): ThemeSpec[] {
-  return COLOR_VARIANTS.map(color => named(
-    `${prefix}-${color.key}`,
-    collection,
-    `${label} ${color.label}`,
-    color.accent,
-    "#ffffff",
-    colorMix(color.accent, 0.08),
-    "#2c2c2c",
-    "#767676",
-    colorMix(color.accent, 0.28),
-    colorMix(color.accent, 0.10),
-    `${color.label} ${description}`,
-    bestFor,
-    density,
-    contrast,
-  ))
+  return { name, collection, displayName, accent, background, surface, text, muted, border, codeBackground, description, bestFor, density, contrast, layout }
 }
 
 function createTheme(spec: ThemeSpec): Theme {
-  const metadata = THEME_DISPLAY_METADATA[spec.name]
   return {
     name: spec.name,
     description: spec.description,
     styles: createStyles(spec),
     collection: spec.collection,
-    displayName: metadata?.displayName ?? spec.displayName,
-    bestFor: metadata?.bestFor ?? spec.bestFor,
+    displayName: spec.displayName,
+    bestFor: spec.bestFor,
     density: spec.density,
     contrast: spec.contrast,
     accent: spec.accent,
@@ -1068,15 +662,14 @@ function withReadingBaseline(spec: ThemeSpec, styles: NodeStyles): NodeStyles {
 function templateH1(spec: ThemeSpec): string {
   const primary = spec.accent
   const rgb = rgbTriplet(primary)
-  switch (spec.collection) {
-    case "base":
-    case "minimal":
+  switch (spec.layout) {
+    case "clean":
       return `font-size: 28px; font-weight: 800; color: ${primary}; margin-top: 0; margin-bottom: 28px; line-height: 1.4em; word-break: break-all; letter-spacing: -0.03em; font-family: ${READING_FONT_FAMILY};`
-    case "focus":
+    case "centered":
       return `font-size: 26px; font-weight: 700; color: ${primary}; line-height: 1.4; margin-top: 0; margin-bottom: 28px; word-break: break-all; padding: 16px 0; text-align: center; background-image: linear-gradient(to right, transparent, ${primary}, transparent), linear-gradient(to right, transparent, ${primary}, transparent); background-size: 100% 1px, 100% 1px; background-position: center top, center bottom; background-repeat: no-repeat; font-family: ${READING_FONT_FAMILY};`
-    case "elegant":
+    case "editorial":
       return `font-size: 26px; font-weight: 700; color: ${primary}; margin-top: 0; margin-bottom: 28px; line-height: 1.4em; word-break: break-all; padding-left: 8px; padding-bottom: 4px; letter-spacing: 0.5px; border-left: 5px solid ${primary}; border-bottom: 1px solid ${primary}; font-family: ${READING_FONT_FAMILY};`
-    case "bold":
+    case "poster":
       return `font-size: 26px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 28px; line-height: 1.4em; word-break: break-all; background-color: ${primary}; padding: 16px 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(${rgb}, 0.25); font-family: ${READING_FONT_FAMILY};`
     default:
       return `margin: 1.5em 8px 0.75em 0px; padding: 0.8em 1.5em; background: ${primary}; font-size: 22px; font-weight: bold; line-height: 1.2; color: #ffffff; text-align: center; border-radius: 8px; box-shadow: 0 2px 8px ${colorMix(primary, 0.2)};`
@@ -1085,15 +678,14 @@ function templateH1(spec: ThemeSpec): string {
 
 function templateH2(spec: ThemeSpec): string {
   const primary = spec.accent
-  switch (spec.collection) {
-    case "base":
-    case "minimal":
+  switch (spec.layout) {
+    case "clean":
       return `font-size: 22px; font-weight: 700; color: ${primary}; margin-top: 0; margin-bottom: 22px; line-height: 1.45; word-break: break-all; border-bottom: 1px solid ${colorMix(primary, 0.28)}; padding-bottom: 6px;`
-    case "focus":
+    case "centered":
       return `font-size: 22px; font-weight: 700; color: ${primary}; margin-top: 0; margin-bottom: 22px; line-height: 1.45; text-align: center; word-break: break-all;`
-    case "elegant":
+    case "editorial":
       return `font-size: 22px; font-weight: 700; color: ${spec.text}; margin-top: 0; margin-bottom: 22px; line-height: 1.45; padding: 8px 12px; border-left: 4px solid ${primary}; background: ${colorMix(primary, 0.08)};`
-    case "bold":
+    case "poster":
       return `font-size: 22px; font-weight: 700; color: ${primary}; margin-top: 0; margin-bottom: 22px; line-height: 1.45; word-break: break-all; border-bottom: 3px solid ${primary}; padding-bottom: 4px;`
     default:
       return `margin:2em 8px 0.75em 0;padding:0 0 0.5em 12px;border-left:4px solid ${primary};border-bottom:1px dashed ${primary};font-size:20px;font-weight:800;line-height:1.25;color:${spec.text};`
@@ -1117,8 +709,8 @@ function defaultBlockquote(spec: ThemeSpec, soft: string): string {
 }
 
 function defaultImage(spec: ThemeSpec): string {
-  const radius = spec.collection === "base" || spec.collection === "minimal" || spec.name === "ink-minimal" ? "2px" : "8px"
-  const shadow = spec.collection === "bold" || spec.collection === "elegant" ? `box-shadow:0 6px 18px ${colorMix(spec.accent, 0.10)};` : ""
+  const radius = spec.layout === "clean" || spec.name === "ink-minimal" ? "2px" : "8px"
+  const shadow = spec.layout === "poster" || spec.layout === "editorial" ? `box-shadow:0 6px 18px ${colorMix(spec.accent, 0.10)};` : ""
   return `max-width:100%;border-radius:${radius};display:block;margin:0 auto;${shadow}`
 }
 
@@ -1220,6 +812,69 @@ function colorMix(color: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`
 }
 
+export function createCustomTheme(layoutName: string, paletteName: string): Theme {
+  const layout = THEME_LAYOUTS.find(item => item.name === layoutName)
+  if (!layout) throw new Error(`未知版式: ${layoutName}`)
+  const palette = THEME_PALETTES.find(item => item.name === paletteName)
+  if (!palette) throw new Error(`未知调色板: ${paletteName}`)
+
+  const spec = named(
+    `custom:${layout.name}:${palette.name}`,
+    "custom",
+    `${layout.displayName} · ${palette.displayName}`,
+    palette.accent,
+    "#ffffff",
+    "#ffffff",
+    "#2c2c2c",
+    "#667085",
+    colorMix(palette.accent, 0.28),
+    colorMix(palette.accent, 0.10),
+    `${layout.description}；${palette.description}`,
+    layout.bestFor,
+    layout.name === "clean" ? "low" : "medium",
+    layout.name === "poster" ? "high" : "medium",
+    layout.name,
+  )
+  return createTheme(spec)
+}
+
+export function hasThemeLayout(name: string): name is ThemeLayout {
+  return THEME_LAYOUTS.some(item => item.name === name)
+}
+
+export function hasThemePalette(name: string): name is ThemePaletteName {
+  return THEME_PALETTES.some(item => item.name === name)
+}
+
+export function resolveThemeSelection(value: unknown, defaultPreset = "default"): ResolvedThemeSelection {
+  if (value === undefined || value === null) {
+    if (!hasTheme(defaultPreset)) throw new Error(`未知主题预设: ${defaultPreset}`)
+    return { theme: getTheme(defaultPreset), selection: { preset: defaultPreset } }
+  }
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("theme 必须是 { preset } 或 { layout, palette }")
+  }
+
+  const input = value as Record<string, unknown>
+  const preset = typeof input.preset === "string" ? input.preset.trim() : ""
+  const layout = typeof input.layout === "string" ? input.layout.trim() : ""
+  const palette = typeof input.palette === "string" ? input.palette.trim() : ""
+
+  if (preset && !layout && !palette) {
+    if (!hasTheme(preset)) throw new Error(`未知主题预设: ${preset}`)
+    return { theme: getTheme(preset), selection: { preset } }
+  }
+  if (!preset && layout && palette) {
+    if (!hasThemeLayout(layout)) throw new Error(`未知版式: ${layout}`)
+    if (!hasThemePalette(palette)) throw new Error(`未知调色板: ${palette}`)
+    return {
+      theme: createCustomTheme(layout, palette),
+      selection: { layout, palette },
+    }
+  }
+  throw new Error("theme 必须只提供 preset，或同时提供 layout 和 palette")
+}
+
 export function getTheme(name: string): Theme {
   return themes[name] ?? themes.default
 }
@@ -1237,10 +892,18 @@ export function listThemeReferences(): ThemeReference[] {
     name: spec.name,
     description: spec.description,
     collection: spec.collection,
-    displayName: THEME_DISPLAY_METADATA[spec.name]?.displayName ?? spec.displayName,
-    bestFor: THEME_DISPLAY_METADATA[spec.name]?.bestFor ?? spec.bestFor,
+    displayName: spec.displayName,
+    bestFor: spec.bestFor,
     density: spec.density,
     contrast: spec.contrast,
     accent: spec.accent,
   }))
+}
+
+export function listThemeLayouts(): ThemeLayoutReference[] {
+  return THEME_LAYOUTS.map(item => ({ ...item }))
+}
+
+export function listThemePalettes(): ThemePaletteReference[] {
+  return THEME_PALETTES.map(item => ({ ...item }))
 }

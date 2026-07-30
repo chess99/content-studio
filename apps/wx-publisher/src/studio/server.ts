@@ -6,7 +6,7 @@ import { randomUUID } from "crypto"
 import { spawn } from "child_process"
 import { fileURLToPath } from "url"
 import { convertMarkdown } from "../converter/index.js"
-import { getTheme, hasTheme, listThemeReferences, type Theme } from "../converter/themes.js"
+import { listThemeLayouts, listThemePalettes, listThemeReferences, resolveThemeSelection, type ResolvedThemeSelection } from "../converter/themes.js"
 import { getPlaceholderCoverBase64 } from "../converter/placeholder-cover.js"
 import { loadConfig, validateConfig } from "../config/index.js"
 import { WechatClient } from "../wechat/client.js"
@@ -116,6 +116,8 @@ function buildState(articlePath: string): { success: true; data: unknown } {
         markdown: readFileSync(articlePath, "utf-8"),
       },
       themes: listThemeReferences(),
+      layouts: listThemeLayouts(),
+      palettes: listThemePalettes(),
       advancedModules: {
         public: PUBLIC_ADVANCED_MODULES,
         enhanced: ENHANCED_ADVANCED_MODULES,
@@ -133,16 +135,17 @@ function buildState(articlePath: string): { success: true; data: unknown } {
 async function handleConvert(payload: unknown): Promise<{ success: true; data: unknown }> {
   const request = asPayload(payload)
   const markdown = stringField(request.markdown, "")
-  const theme = resolveStudioTheme(request.theme, request.themeSettings)
+  const resolved = resolveStudioTheme(request.theme, request.themeSettings)
   const result = await convertMarkdown(markdown, {
-    theme: theme.name,
-    themeDefinition: theme,
+    theme: resolved.theme.name,
+    themeDefinition: resolved.theme,
   })
 
   return {
     success: true,
     data: {
       html: result.html,
+      theme: resolved.selection,
       externalImages: result.externalImages,
       localImages: result.localImages,
     },
@@ -160,7 +163,7 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
     return formatCliError("摘要不能超过 120 个字符", { length: Array.from(digest).length, max: 120 }) as unknown as StudioEnvelope
   }
 
-  const theme = resolveStudioTheme(request.theme, request.themeSettings)
+  const resolved = resolveStudioTheme(request.theme, request.themeSettings)
   const config = loadConfig()
   const errors = validateConfig(config)
   if (errors.length > 0) {
@@ -168,8 +171,8 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
   }
   const client = new WechatClient({ appid: config.wechat_appid, secret: config.wechat_secret })
   const converted = await convertMarkdown(markdown, {
-    theme: theme.name,
-    themeDefinition: theme,
+    theme: resolved.theme.name,
+    themeDefinition: resolved.theme,
   })
 
   let thumbMediaId: string
@@ -225,7 +228,7 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
       media_id: draft.media_id,
       title,
       digest,
-      theme: theme.name,
+      theme: resolved.selection,
       images_detected: converted.externalImages.length + converted.localImages.length,
       images_uploaded: imageMap.size,
       external_images: converted.externalImages,
@@ -237,13 +240,16 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
   }
 }
 
-function resolveStudioTheme(themeName: unknown, rawSettings: unknown): Theme {
-  const name = (typeof themeName === "string" && themeName.trim() ? themeName : loadConfig().default_theme || "default").trim() || "default"
-  if (!hasTheme(name)) {
-    throw new StudioRequestError(`未知主题: ${name}`, 400)
+function resolveStudioTheme(selection: unknown, rawSettings: unknown): ResolvedThemeSelection {
+  try {
+    const resolved = resolveThemeSelection(selection, loadConfig().default_theme || "default")
+    return {
+      selection: resolved.selection,
+      theme: deriveStudioTheme(resolved.theme, asThemeSettings(rawSettings)),
+    }
+  } catch (error) {
+    throw new StudioRequestError(error instanceof Error ? error.message : String(error), 400)
   }
-  const theme = getTheme(name)
-  return deriveStudioTheme(theme, asThemeSettings(rawSettings))
 }
 
 class StudioRequestError extends Error {

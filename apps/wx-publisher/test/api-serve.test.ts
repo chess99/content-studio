@@ -45,19 +45,19 @@ describe("wxp serve API", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           markdown: ":::hero\ntitle: API Title\nsubtitle: API body\n:::",
-          theme: "default",
+          theme: { preset: "default" },
           fontSize: "medium",
           convertVersion: "v1",
         }),
       })
       const payload = await res.json() as {
         success: boolean
-        data: { html: string; theme: string; warnings: string[] }
+        data: { html: string; theme: { preset: string }; warnings: string[] }
       }
 
       expect(res.status).toBe(200)
       expect(payload.success).toBe(true)
-      expect(payload.data.theme).toBe("default")
+      expect(payload.data.theme).toEqual({ preset: "default" })
       expect(payload.data.html).toContain('data-mpa-action-id="hero"')
       expect(payload.data.warnings).toEqual([])
     } finally {
@@ -84,7 +84,7 @@ describe("wxp serve API", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           markdown: "[bad](javascript:alert(1))\n\n![bad](javascript:alert(1))",
-          theme: "default",
+          theme: { preset: "default" },
         }),
       })
       const payload = await res.json() as { success: boolean; data: { html: string } }
@@ -117,14 +117,14 @@ describe("wxp serve API", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           markdown: "# Title",
-          theme: "archived-theme",
+          theme: { preset: "archived-theme" },
         }),
       })
       const payload = await res.json() as { success: boolean; error: string }
 
       expect(res.status).toBe(400)
       expect(payload.success).toBe(false)
-      expect(payload.error).toContain("未知主题: archived-theme")
+      expect(payload.error).toContain("未知主题预设: archived-theme")
     } finally {
       proc.kill()
     }
@@ -205,7 +205,7 @@ describe("wxp serve API", () => {
       const res = await fetch(`http://127.0.0.1:${port}/api/v1/article-draft`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ markdown: "# Title", theme: "default" }),
+        body: JSON.stringify({ markdown: "# Title", theme: { layout: "editorial", palette: "blue" } }),
       })
       const payload = await res.json() as { success: boolean; error: string; details: string[] }
 

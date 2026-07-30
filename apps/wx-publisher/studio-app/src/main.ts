@@ -11,6 +11,24 @@ type ThemeOption = {
   accent: string
 }
 
+type ThemeLayoutOption = {
+  name: "clean" | "centered" | "editorial" | "poster"
+  displayName: string
+  description: string
+  bestFor: string
+}
+
+type ThemePaletteOption = {
+  name: "neutral" | "blue" | "green" | "red" | "warm" | "purple"
+  displayName: string
+  description: string
+  accent: string
+}
+
+type ThemeSelection =
+  | { preset: string }
+  | { layout: ThemeLayoutOption["name"]; palette: ThemePaletteOption["name"] }
+
 type StudioState = {
   article: {
     path: string
@@ -18,6 +36,8 @@ type StudioState = {
     markdown: string
   }
   themes: ThemeOption[]
+  layouts: ThemeLayoutOption[]
+  palettes: ThemePaletteOption[]
   advancedModules: {
     public: string[]
     enhanced: string[]
@@ -58,34 +78,8 @@ const RECOMMENDED_THEME_IDS = [
   "github-readme",
   "nyt-classic",
   "ink-minimal",
-  "bold-red",
+  "warm-editorial",
 ]
-
-const MATRIX_FAMILIES = [
-  { key: "minimal", label: "简约", description: "最低干扰，内容优先" },
-  { key: "focus", label: "聚焦", description: "居中强调，节奏清楚" },
-  { key: "elegant", label: "编辑", description: "层次丰富，适合品牌长文" },
-  { key: "bold", label: "醒目", description: "强标题，适合活动与转化" },
-] as const
-
-const MATRIX_COLORS = [
-  { key: "gold", label: "古铜金", color: "#C8A062" },
-  { key: "green", label: "翡翠绿", color: "#2BAE85" },
-  { key: "blue", label: "宝石蓝", color: "#4B6EF5" },
-  { key: "orange", label: "暖阳橙", color: "#F89A3A" },
-  { key: "red", label: "中国红", color: "#F25C54" },
-  { key: "navy", label: "深海蓝", color: "#1F4F8A" },
-  { key: "gray", label: "石墨灰", color: "#4E5969" },
-  { key: "sky", label: "天空蓝", color: "#3A7FD5" },
-] as const
-
-const COLLECTION_LABELS: Record<string, string> = {
-  base: "基础主题",
-  "built-in": "风格预设",
-  classic: "经典排版",
-  modern: "现代内容",
-  extra: "特色风格",
-}
 
 const app = document.querySelector<HTMLDivElement>("#app")
 if (!app) throw new Error("missing #app")
@@ -93,7 +87,7 @@ if (!app) throw new Error("missing #app")
 const state = {
   markdown: "",
   html: "",
-  activeTheme: "default",
+  themeSelection: { preset: "default" } as ThemeSelection,
   themeSettings: {
     fontSize: 16,
     fontFamily: "system",
@@ -101,9 +95,9 @@ const state = {
   } as StudioThemeSettings,
   settingsOpen: false,
   settingsView: "appearance" as SettingsView,
-  matrixFamily: "minimal",
-  matrixColor: "gray",
   themes: [] as ThemeOption[],
+  layouts: [] as ThemeLayoutOption[],
+  palettes: [] as ThemePaletteOption[],
   advancedModules: {
     public: [] as string[],
     enhanced: [] as string[],
@@ -202,21 +196,33 @@ root.innerHTML = `
           <div class="theme-grid" data-theme-list="recommended"></div>
         </section>
 
-        <section class="setting-group">
-          <div class="group-heading">
-            <div>
-              <h3>组合主题</h3>
-              <p>先选版式，再选强调色；正文始终保持白底。</p>
+        <details class="custom-theme-builder setting-group">
+          <summary>
+            <span>自定义主题</span>
+            <small>4 种版式 · 6 套调色板</small>
+          </summary>
+          <div class="custom-builder-content">
+            <div class="group-heading">
+              <div>
+                <h3>选择版式</h3>
+                <p>版式决定标题结构，正文始终保持纯白背景。</p>
+              </div>
             </div>
+            <div class="family-grid" data-theme-layouts></div>
+            <div class="group-heading palette-heading">
+              <div>
+                <h3>选择调色板</h3>
+                <p>一套颜色会同步应用到强调、引用、代码和高级模块。</p>
+              </div>
+            </div>
+            <div class="color-grid" data-theme-palettes></div>
           </div>
-          <div class="family-grid" data-theme-families></div>
-          <div class="color-grid" data-theme-colors></div>
-        </section>
+        </details>
 
         <details class="preset-library setting-group">
           <summary>
-            <span>更多风格预设</span>
-            <small>按内容气质选择</small>
+            <span>实验风格</span>
+            <small>中国风 · Bauhaus · 赛博朋克</small>
           </summary>
           <div data-theme-list="presets"></div>
         </details>
@@ -315,10 +321,13 @@ async function boot(): Promise<void> {
     state.articleName = payload.data.article.name
     state.articlePath = payload.data.article.path
     state.themes = payload.data.themes
+    state.layouts = payload.data.layouts
+    state.palettes = payload.data.palettes
     state.advancedModules = payload.data.advancedModules
     state.config = payload.data.config
-    state.activeTheme = findTheme(payload.data.config.default_theme)?.name ?? payload.data.themes[0]?.name ?? "default"
-    syncMatrixSelection(state.activeTheme)
+    state.themeSelection = {
+      preset: findTheme(payload.data.config.default_theme)?.name ?? payload.data.themes[0]?.name ?? "default",
+    }
 
     markdownEditor.value = state.markdown
     root.querySelector(".file-name")!.textContent = payload.data.article.name
@@ -352,14 +361,14 @@ function bindEvents(): void {
     if (action === "export-html") exportHtml()
     if (action === "publish") void publishDraft()
     if (action === "show-settings-view") showSettingsView(actionTarget.dataset.view === "publish" ? "publish" : "appearance")
-    if (action === "select-theme" && actionTarget.dataset.theme) selectTheme(actionTarget.dataset.theme)
-    if (action === "select-family" && actionTarget.dataset.family) {
-      state.matrixFamily = actionTarget.dataset.family
-      selectTheme(`${state.matrixFamily}-${state.matrixColor}`)
+    if (action === "select-theme" && actionTarget.dataset.theme) selectPreset(actionTarget.dataset.theme)
+    if (action === "select-layout" && actionTarget.dataset.layout) {
+      const current = customSelection()
+      selectCustom(actionTarget.dataset.layout as ThemeLayoutOption["name"], current.palette)
     }
-    if (action === "select-color" && actionTarget.dataset.color) {
-      state.matrixColor = actionTarget.dataset.color
-      selectTheme(`${state.matrixFamily}-${state.matrixColor}`)
+    if (action === "select-palette" && actionTarget.dataset.palette) {
+      const current = customSelection()
+      selectCustom(current.layout, actionTarget.dataset.palette as ThemePaletteOption["name"])
     }
   })
 
@@ -383,49 +392,43 @@ function renderThemePicker(): void {
   const recommendedContainer = root.querySelector<HTMLElement>('[data-theme-list="recommended"]')!
   recommendedContainer.innerHTML = recommended.map(themeCard).join("")
 
-  const familyContainer = root.querySelector<HTMLElement>("[data-theme-families]")!
-  familyContainer.innerHTML = MATRIX_FAMILIES.map(family => `
-    <button class="family-card ${family.key === state.matrixFamily ? "active" : ""}" data-action="select-family" data-family="${family.key}" aria-pressed="${family.key === state.matrixFamily}">
-      <strong>${family.label}</strong>
-      <small>${family.description}</small>
+  const custom = customSelection()
+  const layoutContainer = root.querySelector<HTMLElement>("[data-theme-layouts]")!
+  layoutContainer.innerHTML = state.layouts.map(layout => `
+    <button class="family-card ${layout.name === custom.layout && isCustomSelection() ? "active" : ""}" data-action="select-layout" data-layout="${layout.name}" aria-pressed="${layout.name === custom.layout && isCustomSelection()}">
+      ${layoutPreview(layout.name, currentAccent())}
+      <span class="family-copy">
+        <strong>${escapeHtml(layout.displayName)}</strong>
+        <small>${escapeHtml(layout.description)}</small>
+      </span>
     </button>
   `).join("")
 
-  const colorContainer = root.querySelector<HTMLElement>("[data-theme-colors]")!
-  colorContainer.innerHTML = MATRIX_COLORS.map(color => `
-    <button class="color-choice ${color.key === state.matrixColor ? "active" : ""}" data-action="select-color" data-color="${color.key}" title="${color.label}" aria-label="${color.label}" aria-pressed="${color.key === state.matrixColor}">
-      <span style="--choice-color:${color.color}"></span>
-      <small>${color.label}</small>
+  const paletteContainer = root.querySelector<HTMLElement>("[data-theme-palettes]")!
+  paletteContainer.innerHTML = state.palettes.map(palette => `
+    <button class="color-choice ${palette.name === custom.palette && isCustomSelection() ? "active" : ""}" data-action="select-palette" data-palette="${palette.name}" title="${escapeHtml(palette.displayName)}" aria-label="${escapeHtml(palette.displayName)}" aria-pressed="${palette.name === custom.palette && isCustomSelection()}">
+      <span style="--choice-color:${safeColor(palette.accent)}"></span>
+      <small>${escapeHtml(palette.displayName)}</small>
     </button>
   `).join("")
 
   renderPresetLibrary()
   renderActiveThemeSummary()
+  root.querySelector<HTMLDetailsElement>(".custom-theme-builder")!.open = isCustomSelection()
 }
 
 function renderPresetLibrary(): void {
   const container = root.querySelector<HTMLElement>('[data-theme-list="presets"]')!
-  const matrixCollections = new Set(["minimal", "focus", "elegant", "bold"])
-  const themes = state.themes.filter(theme => !matrixCollections.has(theme.collection) && !RECOMMENDED_THEME_IDS.includes(theme.name))
-  const grouped = new Map<string, ThemeOption[]>()
-  for (const theme of themes) {
-    const list = grouped.get(theme.collection) ?? []
-    list.push(theme)
-    grouped.set(theme.collection, list)
-  }
-  container.innerHTML = Array.from(grouped.entries()).map(([collection, items]) => `
-    <section class="preset-group">
-      <h4>${escapeHtml(COLLECTION_LABELS[collection] ?? "更多主题")}</h4>
-      <div class="theme-grid compact-theme-grid">${items.map(themeCard).join("")}</div>
-    </section>
-  `).join("")
+  const themes = state.themes.filter(theme => theme.collection === "expressive")
+  container.innerHTML = `<div class="theme-grid compact-theme-grid">${themes.map(themeCard).join("")}</div>`
 }
 
 function themeCard(theme: ThemeOption): string {
-  const active = theme.name === state.activeTheme
+  const active = "preset" in state.themeSelection && theme.name === state.themeSelection.preset
+  const layout = presetLayout(theme.name)
   return `
     <button class="theme-card ${active ? "active" : ""}" data-action="select-theme" data-theme="${escapeHtml(theme.name)}" style="--theme-accent:${safeColor(theme.accent)}" aria-pressed="${active}">
-      <span class="theme-preview" aria-hidden="true"><i></i><i></i><i></i></span>
+      ${layoutPreview(layout, theme.accent, `theme-preview ${theme.name === "bauhaus-primary" ? "theme-preview-bauhaus" : ""}`)}
       <span class="theme-copy">
         <strong>${escapeHtml(theme.displayName)}</strong>
         <small>${escapeHtml(theme.bestFor)}</small>
@@ -436,11 +439,25 @@ function themeCard(theme: ThemeOption): string {
 }
 
 function renderActiveThemeSummary(): void {
-  const theme = findTheme(state.activeTheme)
-  if (!theme) return
-  root.querySelector<HTMLElement>('[data-bind="active-theme-name"]')!.textContent = theme.displayName
-  root.querySelector<HTMLElement>('[data-bind="active-theme-description"]')!.textContent = theme.bestFor
-  root.querySelector<HTMLElement>(".active-theme-swatch")!.style.backgroundColor = safeColor(theme.accent)
+  const name = root.querySelector<HTMLElement>('[data-bind="active-theme-name"]')!
+  const description = root.querySelector<HTMLElement>('[data-bind="active-theme-description"]')!
+  const swatch = root.querySelector<HTMLElement>(".active-theme-swatch")!
+
+  if ("preset" in state.themeSelection) {
+    const theme = findTheme(state.themeSelection.preset)
+    if (!theme) return
+    name.textContent = theme.displayName
+    description.textContent = theme.bestFor
+    swatch.style.backgroundColor = safeColor(theme.accent)
+    return
+  }
+
+  const layout = state.layouts.find(item => item.name === state.themeSelection.layout)
+  const palette = state.palettes.find(item => item.name === state.themeSelection.palette)
+  if (!layout || !palette) return
+  name.textContent = `${layout.displayName} · ${palette.displayName}`
+  description.textContent = `${layout.bestFor}；${palette.description}`
+  swatch.style.backgroundColor = safeColor(palette.accent)
 }
 
 function renderAdvancedModules(): void {
@@ -451,20 +468,54 @@ function renderAdvancedModules(): void {
   tags.innerHTML = featured.map(name => `<span>${escapeHtml(name)}</span>`).join("")
 }
 
-function selectTheme(themeName: string): void {
+function selectPreset(themeName: string): void {
   const theme = findTheme(themeName)
   if (!theme) return
-  state.activeTheme = theme.name
-  syncMatrixSelection(theme.name)
+  state.themeSelection = { preset: theme.name }
   renderThemePicker()
   void convertNow()
 }
 
-function syncMatrixSelection(themeName: string): void {
-  const match = /^(minimal|focus|elegant|bold)-(gold|green|blue|orange|red|navy|gray|sky)$/.exec(themeName)
-  if (!match) return
-  state.matrixFamily = match[1]
-  state.matrixColor = match[2]
+function selectCustom(layout: ThemeLayoutOption["name"], palette: ThemePaletteOption["name"]): void {
+  if (!state.layouts.some(item => item.name === layout) || !state.palettes.some(item => item.name === palette)) return
+  state.themeSelection = { layout, palette }
+  renderThemePicker()
+  void convertNow()
+}
+
+function isCustomSelection(): boolean {
+  return "layout" in state.themeSelection
+}
+
+function customSelection(): { layout: ThemeLayoutOption["name"]; palette: ThemePaletteOption["name"] } {
+  return "layout" in state.themeSelection
+    ? state.themeSelection
+    : { layout: "clean", palette: "neutral" }
+}
+
+function currentAccent(): string {
+  if ("layout" in state.themeSelection) {
+    return state.palettes.find(item => item.name === state.themeSelection.palette)?.accent ?? "#344054"
+  }
+  return "#344054"
+}
+
+function presetLayout(themeName: string): ThemeLayoutOption["name"] {
+  if (["wechat-native", "github-readme", "chinese"].includes(themeName)) return "editorial"
+  if (themeName === "nyt-classic") return "centered"
+  if (["warm-editorial", "bauhaus-primary", "cyber"].includes(themeName)) return "poster"
+  return "clean"
+}
+
+function layoutPreview(layout: ThemeLayoutOption["name"], accent: string, className = "layout-preview"): string {
+  return `
+    <span class="${className} layout-preview-${layout}" style="--preview-accent:${safeColor(accent)}" aria-hidden="true">
+      <i class="preview-heading"></i>
+      <i class="preview-line preview-line-long"></i>
+      <i class="preview-line preview-line-medium"></i>
+      <i class="preview-line preview-line-short"></i>
+    </span>
+  `
 }
 
 function findTheme(name: string): ThemeOption | undefined {
@@ -498,7 +549,7 @@ async function convertNow(): Promise<void> {
   try {
     const payload = await request<ConvertResult>("/api/convert", {
       markdown: state.markdown,
-      theme: state.activeTheme,
+      theme: state.themeSelection,
       themeSettings: state.themeSettings,
     })
     if (version !== conversionVersion) return
@@ -520,7 +571,7 @@ async function publishDraft(): Promise<void> {
   setResult({ success: true, data: { message: "正在创建草稿..." } })
   const payload = await request<unknown>("/api/publish", {
     markdown: state.markdown,
-    theme: state.activeTheme,
+    theme: state.themeSelection,
     themeSettings: state.themeSettings,
     title: root.querySelector<HTMLInputElement>('[data-publish="title"]')!.value.trim(),
     author: root.querySelector<HTMLInputElement>('[data-publish="author"]')!.value.trim(),

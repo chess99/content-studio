@@ -66,7 +66,7 @@ wxp serve --port 8080
 
 curl -X POST "http://127.0.0.1:8080/api/v1/convert" \
   -H "Content-Type: application/json" \
-  -d '{"markdown":"# 标题\n\n正文","theme":"default","fontSize":"medium","convertVersion":"v1"}'
+  -d '{"markdown":"# 标题\n\n正文","theme":{"preset":"default"},"fontSize":"medium","convertVersion":"v1"}'
 ```
 
 本地 API 端点：
@@ -154,7 +154,7 @@ wxp preview --file article.md
   "data": {
     "media_id": "xxxxx",
     "title": "文章标题",
-    "theme": "github-readme",
+    "theme": { "preset": "github-readme" },
     "images_uploaded": 3,
     "message": "草稿已创建，请在微信公众号后台发布",
     "used_placeholder_cover": false
@@ -201,19 +201,14 @@ API IP 白名单路径：微信开发者平台 → 我的业务与服务 → 公
 
 ## 主题
 
-运行时主题以产品选型为准，不为外部目录数量或旧主题名维持兼容。默认主题必须是中性白底；Studio 用推荐主题和“版式 × 颜色”组合降低选择成本。
+运行时主题以产品选型为准，不为旧主题名维持兼容。默认主题必须是中性白底；完整预设只保留真正独特的视觉方向，自定义使用“版式 + 调色板”降低选择成本。
 
 | 系列 | 主题 |
 |------|------|
-| Default | `default` |
-| Built-in | `bytedance`, `apple`, `sports`, `chinese`, `cyber` |
-| Classic | `wechat-native`, `nyt-classic` |
-| Modern | `github-readme`, `sspai-red`, `mint-fresh`, `sunset-amber` |
-| Extra | `warm-editorial`, `ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary` |
-| Minimal | `minimal-gold`, `minimal-green`, `minimal-blue`, `minimal-orange`, `minimal-red`, `minimal-navy`, `minimal-gray`, `minimal-sky` |
-| Focus | `focus-gold`, `focus-green`, `focus-blue`, `focus-orange`, `focus-red`, `focus-navy`, `focus-gray`, `focus-sky` |
-| Elegant | `elegant-gold`, `elegant-green`, `elegant-blue`, `elegant-orange`, `elegant-red`, `elegant-navy`, `elegant-gray`, `elegant-sky` |
-| Bold | `bold-gold`, `bold-green`, `bold-blue`, `bold-orange`, `bold-red`, `bold-navy`, `bold-gray`, `bold-sky` |
+| 核心预设 | `default`, `wechat-native`, `github-readme`, `nyt-classic`, `ink-minimal`, `warm-editorial` |
+| 实验风格 | `chinese`, `bauhaus-primary`, `cyber` |
+| 自定义版式 | `clean`, `centered`, `editorial`, `poster` |
+| 自定义调色板 | `neutral`, `blue`, `green`, `red`, `warm`, `purple` |
 
 `wxp themes` 会返回每个主题的系列、适用场景、密度、对比度和强调色，AI 调用方应优先使用这些字段选型。
 

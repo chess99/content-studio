@@ -44,6 +44,8 @@ describe("Studio server", () => {
       data: {
         article: { markdown: string }
         themes: Array<{ name: string; displayName: string; collection: string; bestFor: string; accent: string }>
+        layouts: Array<{ name: string }>
+        palettes: Array<{ name: string }>
         advancedModules: { public: string[]; enhanced: string[]; total: number }
         config: { wechat_appid: string; wechat_secret_configured: boolean }
       }
@@ -57,10 +59,13 @@ describe("Studio server", () => {
     expect(payload.data.themes[0]).toMatchObject({
       name: "default",
       displayName: "基础白",
-      collection: "base",
+      collection: "essential",
       accent: "#111827",
     })
-    expect(payload.data.themes[0]?.bestFor).toContain("气质中性、干净")
+    expect(payload.data.themes[0]?.bestFor).toContain("知识文章")
+    expect(payload.data.themes).toHaveLength(9)
+    expect(payload.data.layouts.map(item => item.name)).toEqual(["clean", "centered", "editorial", "poster"])
+    expect(payload.data.palettes.map(item => item.name)).toEqual(["neutral", "blue", "green", "red", "warm", "purple"])
     expect(payload.data.advancedModules.public).toContain("hero")
     expect(payload.data.advancedModules.enhanced).toContain("dialogue")
     expect(payload.data.advancedModules.total).toBe(
@@ -77,7 +82,7 @@ describe("Studio server", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         markdown: "![remote](https://example.com/a.png)\n\n![local](./local.png)",
-        theme: "github-readme",
+        theme: { preset: "github-readme" },
       }),
     })
     const payload = await response.json() as {
@@ -100,14 +105,14 @@ describe("Studio server", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         markdown: "# Hello",
-        theme: "legacy-theme",
+        theme: { preset: "legacy-theme" },
       }),
     })
     const payload = await response.json() as { success: boolean; error: string }
 
     expect(response.status).toBe(400)
     expect(payload.success).toBe(false)
-    expect(payload.error).toContain("未知主题: legacy-theme")
+    expect(payload.error).toContain("未知主题预设: legacy-theme")
   })
 
   it("returns a normalized JSON error when publishing without WeChat credentials", async () => {
@@ -120,7 +125,7 @@ describe("Studio server", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         markdown: "# Draft",
-        theme: "default",
+        theme: { preset: "default" },
         title: "Draft",
       }),
     })
@@ -142,7 +147,7 @@ describe("Studio server", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         markdown: "# Draft",
-        theme: "default",
+        theme: { preset: "default" },
         title: "Draft",
         digest: "长".repeat(121),
       }),

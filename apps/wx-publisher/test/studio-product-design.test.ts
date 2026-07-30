@@ -5,14 +5,15 @@ const mainSource = readFileSync(new URL("../studio-app/src/main.ts", import.meta
 const styleSource = readFileSync(new URL("../studio-app/src/styles.css", import.meta.url), "utf8")
 
 describe("Studio product structure", () => {
-  it("separates theme discovery into recommendations, combinations, and presets", () => {
+  it("separates theme discovery into recommendations, custom parameters, and expressive presets", () => {
     expect(mainSource).toContain("RECOMMENDED_THEME_IDS")
-    expect(mainSource).toContain("MATRIX_FAMILIES")
-    expect(mainSource).toContain("MATRIX_COLORS")
     expect(mainSource).toContain('data-theme-list="recommended"')
-    expect(mainSource).toContain("data-theme-families")
-    expect(mainSource).toContain("data-theme-colors")
+    expect(mainSource).toContain("data-theme-layouts")
+    expect(mainSource).toContain("data-theme-palettes")
     expect(mainSource).toContain('data-theme-list="presets"')
+    expect(mainSource).toContain("layoutPreview")
+    expect(mainSource).not.toContain("MATRIX_FAMILIES")
+    expect(mainSource).not.toContain("MATRIX_COLORS")
   })
 
   it("keeps appearance and publishing as separate settings views", () => {
@@ -26,6 +27,8 @@ describe("Studio product structure", () => {
     expect(mainSource).not.toContain("primaryColor")
     expect(mainSource).not.toContain("SWATCHES")
     expect(styleSource).not.toMatch(/#faf9f5|#f1e6df/i)
+    expect(styleSource).toContain(".layout-preview-editorial")
+    expect(styleSource).toContain(".layout-preview-poster")
   })
 
   it("ignores stale conversion responses during rapid theme changes", () => {

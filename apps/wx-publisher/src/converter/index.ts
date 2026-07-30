@@ -270,7 +270,6 @@ function inlineStyles(
       case "h2": applyStyle(node, styles.h2); break
       case "h3": applyStyle(node, styles.h3); break
       case "h4": {
-        if (theme.name === "bytedance") prefixHeadingText(node, "◆ ")
         applyStyle(node, styles.h4)
         break
       }
@@ -315,7 +314,6 @@ function inlineStyles(
       case "blockquote": {
         if (styleGfmAlert(node, styles, externalImages, localImages, stripLinks)) return SKIP
         applyStyle(node, styles.blockquote)
-        if (theme.name === "bytedance") prependBlockquoteMark(node)
         break
       }
       case "section": {
@@ -563,28 +561,6 @@ function applyStyle(node: Element, style: string): void {
   const existing = (node.properties?.style as string) ?? ""
   node.properties = node.properties ?? {}
   node.properties.style = existing ? `${existing};${style}` : style
-}
-
-function prefixHeadingText(node: Element, prefix: string): void {
-  const first = node.children[0]
-  if (first?.type === "text") {
-    if (!first.value.startsWith(prefix)) first.value = `${prefix}${first.value}`
-    return
-  }
-  node.children.unshift({ type: "text", value: prefix })
-}
-
-function prependBlockquoteMark(node: Element): void {
-  if (node.children.some(child => child.type === "element" && child.properties?.["data-wxp-blockquote-mark"] === "true")) return
-  node.children.unshift({
-    type: "element",
-    tagName: "span",
-    properties: {
-      "data-wxp-blockquote-mark": "true",
-      style: "display:block;font-size:24px;line-height:1;color:#05d4cd;margin:0 0 6px;",
-    },
-    children: [{ type: "text", value: "“" }],
-  })
 }
 
 function hasCssDeclaration(style: string, property: string): boolean {

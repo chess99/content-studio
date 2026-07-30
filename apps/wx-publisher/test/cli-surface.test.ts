@@ -66,9 +66,10 @@ describe("CLI surface", () => {
     expect(payload.data.features.advanced_layout).toBe(true)
     expect(payload.data.features.gfm_alerts).toBe(true)
     expect(payload.data.features.footnotes).toBe(true)
-    expect(payload.data.features.professional_themes).toBe(true)
+    expect(payload.data.features.curated_theme_presets).toBe(true)
+    expect(payload.data.features.composable_theme_customization).toBe(true)
     expect(payload.data.features.theme_gallery).toBe(true)
-    expect(payload.data.coverage.themes.professional).toBe(49)
+    expect(payload.data.coverage.theme_system).toEqual({ presets: 9, layouts: 4, palettes: 6 })
     expect(payload.data.coverage.advanced_modules.public).toBe(43)
     expect(payload.data.coverage.advanced_modules.enhanced).toBe(3)
     expect(payload.data.commands.serve.endpoints).toContain("POST /api/v1/convert")
@@ -77,14 +78,14 @@ describe("CLI surface", () => {
     expect(payload.data.commands["publish-newspic"].optional_flags).toContain("--content")
     expect(payload.data.commands["theme-gallery"].required_flags).toEqual([])
     expect(payload.data.commands["theme-gallery"].optional_flags).toContain("--file")
-    expect(payload.data.themes).toHaveLength(49)
-    expect(payload.data.themes).toContain("github-readme")
-    expect(payload.data.themes).not.toContain("studio")
-    expect(payload.data.theme_reference).toContainEqual(expect.objectContaining({
+    expect(payload.data.theme_system.presets).toHaveLength(9)
+    expect(payload.data.theme_system.layouts).toHaveLength(4)
+    expect(payload.data.theme_system.palettes).toHaveLength(6)
+    expect(payload.data.theme_system.presets).toContainEqual(expect.objectContaining({
       name: "github-readme",
       displayName: "GitHub",
-      bestFor: expect.stringContaining("适合产品、知识内容"),
-      collection: "modern",
+      bestFor: expect.stringContaining("技术教程"),
+      collection: "essential",
       density: "medium",
       contrast: "medium",
     }))
@@ -95,12 +96,12 @@ describe("CLI surface", () => {
     const payload = JSON.parse(stdout)
 
     expect(exitCode).toBe(0)
-    expect(payload.data.count).toBe(49)
-    expect(payload.data.themes).toContainEqual(expect.objectContaining({
+    expect(payload.data.counts).toEqual({ presets: 9, layouts: 4, palettes: 6 })
+    expect(payload.data.presets).toContainEqual(expect.objectContaining({
       name: "github-readme",
       displayName: "GitHub",
-      bestFor: expect.stringContaining("适合产品、知识内容"),
-      collection: "modern",
+      bestFor: expect.stringContaining("技术教程"),
+      collection: "essential",
       density: "medium",
       contrast: "medium",
       accent: "#0969da",

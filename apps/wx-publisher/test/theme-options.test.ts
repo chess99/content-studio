@@ -22,6 +22,13 @@ describe("resolveThemeOption", () => {
     })
   })
 
+  it("creates a custom theme from layout and palette", () => {
+    const result = resolveThemeOption({ layout: "editorial", palette: "blue" }, "default")
+
+    expect(result.themeName).toBe("custom:editorial:blue")
+    expect(result.themeDefinition?.styles.h1).toContain("border-left: 5px")
+  })
+
   it("rejects unknown built-in theme names", () => {
     expect(() => resolveThemeOption({ theme: "legacy-theme" }, "default")).toThrow("未知主题: legacy-theme")
   })
@@ -45,7 +52,16 @@ describe("resolveThemeOption", () => {
     expect(() => resolveThemeOption(
       { theme: "github-readme", themeFile: fixture("external-theme-valid.json") },
       "default",
-    )).toThrow("--theme and --theme-file cannot be used together")
+    )).toThrow("--theme-file cannot be combined with --theme, --layout, or --palette")
+  })
+
+  it("requires layout and palette together", () => {
+    expect(() => resolveThemeOption({ layout: "editorial" }, "default")).toThrow("--layout and --palette must be provided together")
+  })
+
+  it("rejects preset and custom parameters together", () => {
+    expect(() => resolveThemeOption({ theme: "default", layout: "clean", palette: "neutral" }, "default"))
+      .toThrow("--theme cannot be combined with --layout or --palette")
   })
 
   it("rejects invalid external theme files", () => {

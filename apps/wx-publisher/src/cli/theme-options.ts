@@ -1,11 +1,13 @@
 import { resolve } from "path"
 import type { Theme } from "../converter/themes.js"
-import { hasTheme } from "../converter/themes.js"
+import { createCustomTheme, hasTheme } from "../converter/themes.js"
 import { loadThemeFile } from "../converter/theme-file.js"
 
 export interface ThemeCliOptions {
   theme?: string
   themeFile?: string
+  layout?: string
+  palette?: string
 }
 
 export interface ResolvedThemeOption {
@@ -18,8 +20,23 @@ export function resolveThemeOption(
   opts: ThemeCliOptions,
   defaultTheme: string,
 ): ResolvedThemeOption {
-  if (opts.theme && opts.themeFile) {
-    throw new Error("--theme and --theme-file cannot be used together")
+  const hasCustomSelection = Boolean(opts.layout || opts.palette)
+  if (opts.themeFile && (opts.theme || hasCustomSelection)) {
+    throw new Error("--theme-file cannot be combined with --theme, --layout, or --palette")
+  }
+  if (opts.theme && hasCustomSelection) {
+    throw new Error("--theme cannot be combined with --layout or --palette")
+  }
+  if (Boolean(opts.layout) !== Boolean(opts.palette)) {
+    throw new Error("--layout and --palette must be provided together")
+  }
+
+  if (opts.layout && opts.palette) {
+    const themeDefinition = createCustomTheme(opts.layout, opts.palette)
+    return {
+      themeName: themeDefinition.name,
+      themeDefinition,
+    }
   }
 
   if (!opts.themeFile) {

@@ -6,7 +6,7 @@ const MOCK_RESULTS: ThemePreviewResult[] = [
   {
     theme: "default",
     displayName: "基础白",
-    collection: "base",
+    collection: "essential",
     density: "low",
     contrast: "medium",
     accent: "#111827",
@@ -16,7 +16,7 @@ const MOCK_RESULTS: ThemePreviewResult[] = [
   {
     theme: "github-readme",
     displayName: "GitHub",
-    collection: "modern",
+    collection: "essential",
     density: "medium",
     contrast: "medium",
     accent: "#0969da",
@@ -57,7 +57,7 @@ describe("generatePreviewHtml", () => {
     expect(html).toContain('data-filter-group="scenario"')
     expect(html).toContain('data-filter-group="density"')
     expect(html).toContain('data-filter-group="contrast"')
-    expect(html).toContain('data-filter-value="modern"')
+    expect(html).toContain('data-filter-value="essential"')
     expect(html).toContain('data-filter-value="custom"')
     expect(html).toContain('data-filter-value="知识"')
   })
@@ -68,8 +68,7 @@ describe("generatePreviewHtml", () => {
     expect(html).toContain("基础白")
     expect(html).toContain("GitHub")
     expect(html).toContain("适合绝大多数知识、运营和长文内容")
-    expect(html).toContain("基础")
-    expect(html).toContain("精选")
+    expect(html).toContain("核心预设")
     expect(html).toContain("中密度")
     expect(html).toContain("高对比")
     expect(html).toContain('class="accent-swatch" style="background:#111827"')

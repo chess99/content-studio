@@ -235,19 +235,16 @@ AI：不复杂，一行一个角色和内容即可。
 :::
 ```
 
-## 主题矩阵
+## 主题系统
 
-内置主题由中性默认、具名预设和“版式 × 颜色”矩阵组成。`wxp themes` 会返回每个主题的系列、适用场景、密度、对比度和强调色。
+内置目录包含 9 个完整预设；自定义主题由 4 种版式和 6 套调色板按需生成，不计作 24 个独立主题。
 
-- Default：`default`
-- Basic：`bytedance`, `apple`, `sports`, `chinese`, `cyber`
-- Classic：`wechat-native`, `nyt-classic`
-- Modern：`github-readme`, `sspai-red`, `mint-fresh`, `sunset-amber`
-- Extra：`warm-editorial`, `ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary`
-- Minimal：`minimal-gold`, `minimal-green`, `minimal-blue`, `minimal-orange`, `minimal-red`, `minimal-navy`, `minimal-gray`, `minimal-sky`
-- Focus：`focus-gold`, `focus-green`, `focus-blue`, `focus-orange`, `focus-red`, `focus-navy`, `focus-gray`, `focus-sky`
-- Elegant：`elegant-gold`, `elegant-green`, `elegant-blue`, `elegant-orange`, `elegant-red`, `elegant-navy`, `elegant-gray`, `elegant-sky`
-- Bold：`bold-gold`, `bold-green`, `bold-blue`, `bold-orange`, `bold-red`, `bold-navy`, `bold-gray`, `bold-sky`
+- 核心预设：`default`、`wechat-native`、`github-readme`、`nyt-classic`、`ink-minimal`、`warm-editorial`
+- 实验风格：`chinese`、`bauhaus-primary`、`cyber`
+- 版式：`clean`、`centered`、`editorial`、`poster`
+- 调色板：`neutral`、`blue`、`green`、`red`、`warm`、`purple`
+
+CLI 示例：`wxp convert --file article.md --layout editorial --palette blue`。REST API 使用 `{"theme":{"layout":"editorial","palette":"blue"}}`。
 
 ## GFM 提示框与脚注
 
@@ -300,7 +297,7 @@ curl -X POST "http://127.0.0.1:8080/api/v1/convert" \
   -H "Content-Type: application/json" \
   -d '{
     "markdown": "# Hello\n\nBody",
-    "theme": "default",
+    "theme": { "preset": "default" },
     "fontSize": "medium",
     "convertVersion": "v1"
   }'
@@ -313,7 +310,7 @@ curl -X POST "http://127.0.0.1:8080/api/v1/convert" \
   "success": true,
   "data": {
     "html": "<section style=\"...\">...</section>",
-    "theme": "default",
+    "theme": { "preset": "default" },
     "external_images": [],
     "local_images": [],
     "warnings": []
@@ -330,7 +327,7 @@ curl -X POST "http://127.0.0.1:8080/api/v1/article-draft" \
   -H "Content-Type: application/json" \
   -d '{
     "markdown": "# 标题\n\n正文",
-    "theme": "default",
+    "theme": { "preset": "default" },
     "title": "文章标题",
     "author": "作者",
     "digest": "摘要",
@@ -395,7 +392,7 @@ curl -X POST "http://127.0.0.1:8080/api/v1/batch-upload" \
 - 所有样式以内联 `style` 输出，面向微信公众号草稿。
 - 高级模块生成的 HTML 使用 `section`、`p`、`span`、`img`、`a`、`ul`、`li` 等普通标签。
 - 不支持外部 CSS、脚本、事件处理器、iframe 或用户手写的任意原始 HTML。
-- 需要高级模块视觉风格时，使用 `focus-*`、`elegant-*` 或 `bold-*` 系列主题。
+- 需要高级模块视觉风格时，选择 `editorial` 或 `poster` 版式，再配合内容语气选择调色板。
 
 ## 故障排查
 
@@ -414,6 +411,6 @@ curl -X POST "http://127.0.0.1:8080/api/v1/batch-upload" \
 2. 选一个开场模块。
 3. 选一到两个证据模块。
 4. 选一个收尾模块。
-5. 使用 `wxp themes` 返回的明确主题 ID 转换，例如 `theme: "default"` 或 `theme: "github-readme"`。
+5. 使用 `wxp themes` 返回的明确主题选择转换，例如 `theme: { preset: "default" }` 或 `theme: { layout: "editorial", palette: "blue" }`。
 6. 检查 `external_images`、`local_images` 和 `warnings`。
 7. 预览确认后再创建草稿。

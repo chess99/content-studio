@@ -140,7 +140,7 @@ describe("CLI external theme files", () => {
     expect(exitCode).toBe(0)
     expect(payload.data.path).toBe(outputPath)
     expect(payload.data.source_file).toContain("examples/advanced-layout-showcase.md")
-    expect(payload.data.theme_count).toBe(49)
+    expect(payload.data.theme_count).toBe(9)
     expect(html).toContain("theme-gallery")
     expect(html).toContain("advanced-layout-showcase.md")
     expect(html).toContain('class="theme-card" data-theme="default"')
