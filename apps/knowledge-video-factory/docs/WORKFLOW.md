@@ -14,11 +14,13 @@
 
 ## 阶段 4：配音与字幕
 
-逐场景生成配音，保存原始返回信息和词级时间戳。读取真实音频时长后再确定时间线。某场景返工时只重做该场景。
+逐场景生成配音，读取真实音频时长后再确定时间线。某场景返工时只重做该场景。服务提供可靠时间戳时保存原始边界信息；否则按人工拆分的 `captionChunks` 在真实音频时长内加权对齐。
 
-当前正式适配器是本地 Qwen3-TTS 0.6B，已在 RTX 4060 Ti 8GB 上验证；Edge Neural TTS 降级为快速工程预览。Qwen 当前不直接提供本流程所需的词级时间戳，因此字幕按人工拆分的 `captionChunks` 在真实音频时长内加权对齐。接入 Fish Audio、Azure Dragon HD 等云服务后，若服务能稳定返回边界事件，应优先使用真实词级时间戳。
+当前正式默认适配器是 Fish Audio。项目模板默认使用 `s2.1-pro-free`、1.05 倍 API 语速和已验证的“自然流男”公开声线；开发和小规模生成可继续使用免费模型，大规模生产可切换为 `s2.1-pro`。公开声线正式商用前必须核实授权，长期应替换为权属明确的品牌声线。API key 只从 app 根目录 `.env` 读取。
 
-Qwen 配音独立于 `video:prepare` 执行：模型只加载一次，再连续生成所有待处理场景。已有且大于 1KB 的音频会跳过，使用 `--force` 才统一重做。公开 Hugging Face 演示脚本只用于同稿试听，不能作为生产依赖。
+脚本审核通过并将 `gates.scriptApproved` 设为 `true` 后，运行 `python scripts/generate-fish-project.py --project-dir <VIDEO_DIR>`。生成器直接读取项目 `config.json`，已有且大于 1KB 的音频会跳过，使用 `--force` 才统一重做。Fish 当前不提供本流程使用的词级时间戳，因此字幕使用 `captionChunks` 加权对齐。
+
+本地 Qwen3-TTS 0.6B 是离线、零调用费兜底，已在 RTX 4060 Ti 8GB 上验证；Qwen 音频与 Fish 音频使用不同子目录，不互相覆盖。Edge Neural TTS 仅用于快速工程预览。公开 Hugging Face 演示脚本只用于同稿试听，不能作为生产依赖。
 
 ## 阶段 5：渲染
 

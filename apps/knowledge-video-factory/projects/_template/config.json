@@ -7,12 +7,16 @@
     "fps": 30
   },
   "voice": {
-    "provider": "edge-tts",
-    "name": "zh-CN-YunxiNeural",
-    "rate": "+5%",
-    "pitch": "+0Hz",
-    "leadSeconds": 0.3,
-    "tailSeconds": 0.55
+    "provider": "fish-audio",
+    "name": "Fish S2.1 Pro Free / 自然流男",
+    "model": "s2.1-pro-free",
+    "referenceId": "29a7eea9ed484ef6b175da9bcfb49979",
+    "rate": 1.05,
+    "playbackRate": 1,
+    "audioSubdirectory": "audio-fish",
+    "audioExtension": "mp3",
+    "leadSeconds": 0.25,
+    "tailSeconds": 0.45
   },
   "render": {
     "engine": "remotion",

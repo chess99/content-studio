@@ -7,10 +7,12 @@
   "fps": 30,
   "targetSeconds": 72,
   "voice": {
-    "provider": "minimax",
-    "model": "speech-2.8-hd",
+    "provider": "fish-audio",
+    "model": "s2.1-pro-free",
+    "referenceId": "29a7eea9ed484ef6b175da9bcfb49979",
+    "rate": 1.05,
     "generatePerScene": true,
-    "wordTimestamps": true
+    "wordTimestamps": false
   },
   "render": {
     "engine": "unconfigured",

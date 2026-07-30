@@ -43,12 +43,15 @@ VIDEO_DIR = TOPIC_DIR/video/
 在 `content-studio` 根目录运行：
 
 ```powershell
+python apps/knowledge-video-factory/scripts/generate-fish-project.py --project-dir "<VIDEO_DIR>"
 node apps/knowledge-video-factory/scripts/prepare-project.mjs --project-dir "<VIDEO_DIR>"
 node apps/knowledge-video-factory/scripts/render-project.mjs --project-dir "<VIDEO_DIR>"
 node apps/knowledge-video-factory/scripts/qa-video.mjs --project-dir "<VIDEO_DIR>"
 ```
 
-正式渲染在用户确认低清预览后增加 `--final`。配音脚本同样传入 `--project-dir`；如果某个 provider 尚不支持外部目录，先修复适配器，不要把项目复制回 app。
+脚本经人工确认并将 `config.json` 的 `gates.scriptApproved` 设为 `true` 后，才运行第一条 Fish 命令；它会把完整逐场景文案发送到 Fish Audio。Fish 是正式默认配音，模型、声线和语速从项目 `config.json` 读取；`s2.1-pro-free` 用于开发和小规模生成，大规模生产可切 `s2.1-pro`。公开声线商用前核实授权。
+
+无网络、需要零调用费或 Fish 不可用时，改用 `generate-qwen-project-local.py` 生成独立的 Qwen 音频目录；Edge 只用于工程预览。正式渲染在用户确认低清预览后增加 `--final`。所有配音脚本都传入 `--project-dir`；如果某个 provider 尚不支持外部目录，先修复适配器，不要把项目复制回 app。
 
 ## 门禁
 

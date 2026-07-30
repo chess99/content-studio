@@ -9,7 +9,7 @@
   },
   "scripts": {
     "check:structure": "node scripts/check-structure.mjs",
-    "test": "node --test",
+    "test": "node --test && python -m unittest discover -s test -p \"test_*.py\"",
     "typecheck": "tsc --noEmit",
     "video:prepare": "node scripts/prepare-project.mjs",
     "video:render": "node scripts/render-project.mjs",

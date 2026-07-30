@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import process from "node:process";
 
 const requiredPaths = [
@@ -26,6 +26,7 @@ const requiredPaths = [
   "scripts/prepare-project.mjs",
   "scripts/project-args.mjs",
   "scripts/project_paths.py",
+  "scripts/generate-fish-project.py",
   "scripts/render-project.mjs",
   "scripts/qa-video.mjs",
   "scripts/setup-voice.ps1",
@@ -51,5 +52,11 @@ if (missing.length > 0) {
   for (const path of missing) console.error(`- ${path}`);
   process.exitCode = 1;
 } else {
-  console.log(`结构检查通过，共核对 ${requiredPaths.length} 个必要文件。`);
+  const templateConfig = JSON.parse(await readFile(new URL("../projects/_template/config.json", import.meta.url), "utf8"));
+  if (templateConfig.voice?.provider !== "fish-audio") {
+    console.error("项目模板的默认 voice.provider 必须是 fish-audio。");
+    process.exitCode = 1;
+  } else {
+    console.log(`结构检查通过，共核对 ${requiredPaths.length} 个必要文件；默认配音为 Fish Audio。`);
+  }
 }
