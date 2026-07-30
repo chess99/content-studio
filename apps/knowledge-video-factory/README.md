@@ -1,6 +1,6 @@
 # Knowledge Video Factory
 
-面向抖音、小红书、B 站等平台的可复用知识视频生产骨架。目标形式是无真人出镜的财经编辑式知识图解：动态排版、真实数据图表、硬朗分栏和大字幕。
+面向抖音、小红书、B 站等平台的可复用知识视频生产骨架。引擎负责可追溯脚本、结构化分镜、配音、字幕、渲染与质检；账号品牌来自外部内容资产仓库，具体项目可选择财经编辑式等视觉预设。
 
 当前版本已经跑通第一条 1080×1920 样片，包含可追溯资料、脚本、分镜、本地 Qwen3-TTS 中文配音、Remotion 动画、字幕、响度标准化、自动质检、封面和发布文案。流程不会自动发布内容。
 
@@ -22,7 +22,6 @@
 ## 目录说明
 
 ```text
-brand/       品牌视觉、发音词典和公共素材规范
 config/      平台与生产流程配置
 docs/        工作流和接入说明
 projects/    项目模板；正式视频资产保存在外部内容仓库
@@ -30,6 +29,7 @@ schemas/     brief、口播与分镜的数据约束
 scripts/     项目级辅助命令
 src/         配音、渲染、质检等适配层
 templates/   可复用场景模板
+themes/      版式、图表和动效预设；不保存账号母品牌
 ```
 
 ## 已验证技术栈
@@ -108,7 +108,7 @@ node scripts/qa-video.mjs --project-dir $videoDir --final
 
 项目可在 `<VIDEO_DIR>/config.json` 中用 `voice.playbackRate` 控制成片语速。建议先试 `1.04—1.12`；当前试播片使用 `1.08`。封面由独立的 `KnowledgeCover` 画布生成，不再从视频首帧抽取。
 
-正式渲染前按 [独立审核闸门](docs/REVIEW_WORKFLOW.md) 分别做内容审核与视觉/品牌审核；品牌识别规则见 [brand/BRAND.md](brand/BRAND.md)。
+正式渲染前按 [独立审核闸门](docs/REVIEW_WORKFLOW.md) 分别做内容审核与视觉/品牌审核。账号品牌识别规则读取外部内容仓库的 `brand/BRAND.md`；内置的 [财经编辑部预设](themes/finance-editorial/README.md) 只约束版式、图表和动效。
 
 ## 下一步
 

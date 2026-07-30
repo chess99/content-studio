@@ -15,6 +15,15 @@ IMAGE_POST_DIR = TOPIC_DIR/image-post/
 
 按内容风险裁剪流程。不要为了“流程完整”制造无用文档，也不要把同一正文和图片按平台复制多份。
 
+## 品牌上下文
+
+从 `TOPIC_DIR` 向上定位内容资产仓库根目录 `CONTENT_ROOT`。开始写公开文案、规划图片或制作封面前，必须读取：
+
+- `CONTENT_ROOT/brand/BRAND.md`
+- `CONTENT_ROOT/brand/cover-system.md`（仅在制作或修改首图、封面时）
+
+`BRAND.md` 是唯一默认生效入口。命名研究、Logo 探索和封面样例只有被它明确列为正式资产时才能直接使用；不得把探索稿、临时账号名或临时 Logo 自动套进发布图。具体主题的最终图片仍写入 `IMAGE_POST_DIR/images/`，不得复制整套品牌文件。
+
 ## 风险分级
 
 | 类型 | 例子 | 必需步骤 |
@@ -28,7 +37,7 @@ IMAGE_POST_DIR = TOPIC_DIR/image-post/
 
 ## 流程
 
-1. 在 `topic.md` 记录主题、目标读者、发布目的和渠道状态。
+1. 读取品牌上下文，在 `topic.md` 记录主题、目标读者、发布目的、主栏目和渠道状态。
 2. 按风险决定是否创建或补充根目录 `research.md`；原始证据放 `shared/`。
 3. 写 `image-post/post.md`。标题、正文和标签可以放在同一文件中。
 4. 多图时写 `image-post/image-plan.md`，明确每张图的作用、信息、证据和顺序；单图可以省略。

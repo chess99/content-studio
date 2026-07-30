@@ -4,8 +4,7 @@ import process from "node:process";
 const requiredPaths = [
   "README.md",
   "AGENTS.md",
-  "brand/DESIGN.md",
-  "brand/pronunciation.json",
+  "config/pronunciation.json",
   "config/pipeline.example.json",
   "docs/WORKFLOW.md",
   "projects/_template/input/source.md",
@@ -23,6 +22,7 @@ const requiredPaths = [
   "src/renderers/README.md",
   "src/qa/README.md",
   "templates/README.md",
+  "themes/finance-editorial/README.md",
   "scripts/prepare-project.mjs",
   "scripts/project-args.mjs",
   "scripts/project_paths.py",

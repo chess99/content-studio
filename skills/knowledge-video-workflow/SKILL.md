@@ -12,6 +12,9 @@ description: 可追溯知识视频生产工作流。用于把文章、数据或�
 - `apps/knowledge-video-factory/AGENTS.md`
 - `apps/knowledge-video-factory/docs/WORKFLOW.md`
 - 内容资产仓库根目录 `AGENTS.md`
+- 内容资产仓库根目录 `brand/BRAND.md`
+
+账号级 `brand/BRAND.md` 约束作者识别、栏目、语气、封面和发布包，是唯一默认生效的母品牌入口。`apps/knowledge-video-factory/themes/` 只提供版式、图表和动效预设，不得覆盖账号名、作者字标、Logo 状态、栏目或签名。制作封面时再读取内容资产仓库的 `brand/cover-system.md`。
 
 ## 目录
 
@@ -28,7 +31,7 @@ VIDEO_DIR = TOPIC_DIR/video/
 1. 填写 `video/input/source.md`、`sources.json` 和必要的数据文件。
 2. 生成并核对 `brief.json`。
 3. 生成带 `sourceIds` 的 `script.json`，等待脚本人工确认。
-4. 生成 `storyboard.json`；优先选择工厂注册模板。
+4. 选择与主题匹配、且不违反母品牌规则的视觉预设，生成 `storyboard.json`；优先选择工厂注册模板。
 5. 脚本确认后再生成配音、字幕和时间线。
 6. 生成低清预览并运行技术质检。
 7. 完成独立内容审核和视觉审核，关闭 P0 问题。

@@ -29,6 +29,12 @@ LONGFORM_DIR = TOPIC_DIR/longform/
 
 读取内容仓库根目录的 `AGENTS.md`。不要把具体主题写入 `content-studio`，不要为平台复制整套内容，也不要保存 ZIP 传输包。
 
+## 品牌上下文
+
+从 `TOPIC_DIR` 向上定位内容资产仓库根目录 `CONTENT_ROOT`。开始选题表达、写作、渠道适配或制作封面前，必须读取 `CONTENT_ROOT/brand/BRAND.md`，用其中的定位、栏目、语气和事实边界约束成稿。
+
+只有在制作或修改封面时再读取 `CONTENT_ROOT/brand/cover-system.md`。命名研究、Logo 探索和封面样例不自动生效；只有 `BRAND.md` 明确列为正式资产的文件才能直接复用。
+
 ## 阶段检测
 
 | 已有文件 | 下一步 |
