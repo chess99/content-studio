@@ -1,13 +1,31 @@
 {
-  "version": 2,
+  "version": 3,
   "usage": "runtime-theme-catalog",
-  "sourceUpdatedAt": "2026-06-03",
-  "extractionNotes": "The 48-theme runtime catalog is aligned with md2wechat's public theme surface: 6 built-in themes, 10 imported themes, and 4 template families across 8 color variants. Palette values are maintained as the local machine-readable reference; accent is the public theme color, while renderAccent/accentSoft/accentSofter/border/text fields describe rendered output samples. Optional md2wechat-style renderer fields such as h5/h6, codespan, figure/figcaption, wxLink, footnotes, alerts, gallery, longimage, and dialogue styles are accepted by external theme files but are not required here.",
+  "sourceUpdatedAt": "2026-07-30",
+  "extractionNotes": "The product catalog contains a neutral default, a curated set of named presets, and four layout families across eight color variants. Palette values are the local machine-readable source for Studio, CLI, and AI callers; compatibility with an external theme count is not a product constraint.",
   "palettes": [
     {
       "id": "default",
-      "group": "native",
-      "displayName": "默认主题",
+      "group": "base",
+      "displayName": "基础白",
+      "accent": "#111827",
+      "renderAccent": "#111827",
+      "background": "#ffffff",
+      "surface": "#ffffff",
+      "surfaceAlt": "#f8fafc",
+      "accentSoft": "#f3f4f6",
+      "accentSofter": "#e5e7eb",
+      "text": "#101828",
+      "headingText": "#344054",
+      "muted": "#667085",
+      "border": "#d0d5dd",
+      "codeBackground": "#f3f4f6",
+      "notes": "基础白适合绝大多数知识、运营和长文内容，气质中性、干净。"
+    },
+    {
+      "id": "warm-editorial",
+      "group": "extra",
+      "displayName": "暖色编辑",
       "accent": "#a34e2e",
       "renderAccent": "#b3593b",
       "background": "#faf9f5",
@@ -20,7 +38,7 @@
       "muted": "#737373",
       "border": "#e3c6b9",
       "codeBackground": "#f1e6df",
-      "notes": "默认主题 适合运营、知识内容，气质偏熟悉、微信原生。"
+      "notes": "暖色编辑适合叙事、随笔和人物内容，气质温暖、编辑感。"
     },
     {
       "id": "bytedance",
@@ -583,7 +601,7 @@
     {
       "id": "elegant-gold",
       "group": "elegant",
-      "displayName": "精致 · 古铜金",
+      "displayName": "编辑 · 古铜金",
       "accent": "#c8a062",
       "renderAccent": "#8f7246",
       "background": "#ffffff",
@@ -596,12 +614,12 @@
       "muted": "#767676",
       "border": "#dbd2c4",
       "codeBackground": "#f2eee9",
-      "notes": "精致 · 古铜金 适合品牌、运营内容，气质偏精致、雅致、温润、沉稳。"
+      "notes": "编辑 · 古铜金 适合品牌、运营内容，气质偏精致、雅致、温润、沉稳。"
     },
     {
       "id": "elegant-green",
       "group": "elegant",
-      "displayName": "精致 · 翡翠绿",
+      "displayName": "编辑 · 翡翠绿",
       "accent": "#2bae85",
       "renderAccent": "#218666",
       "background": "#ffffff",
@@ -614,12 +632,12 @@
       "muted": "#767676",
       "border": "#b8d8ce",
       "codeBackground": "#e4f0ed",
-      "notes": "精致 · 翡翠绿 适合品牌、运营内容，气质偏精致、雅致、清新、自然。"
+      "notes": "编辑 · 翡翠绿 适合品牌、运营内容，气质偏精致、雅致、清新、自然。"
     },
     {
       "id": "elegant-blue",
       "group": "elegant",
-      "displayName": "精致 · 宝石蓝",
+      "displayName": "编辑 · 宝石蓝",
       "accent": "#4b6ef5",
       "renderAccent": "#496bef",
       "background": "#ffffff",
@@ -632,12 +650,12 @@
       "muted": "#767676",
       "border": "#c5d0fa",
       "codeBackground": "#e9edfd",
-      "notes": "精致 · 宝石蓝 适合品牌、运营内容，气质偏精致、雅致、专业、科技。"
+      "notes": "编辑 · 宝石蓝 适合品牌、运营内容，气质偏精致、雅致、专业、科技。"
     },
     {
       "id": "elegant-orange",
       "group": "elegant",
-      "displayName": "精致 · 暖阳橙",
+      "displayName": "编辑 · 暖阳橙",
       "accent": "#f89a3a",
       "renderAccent": "#a76827",
       "background": "#ffffff",
@@ -650,12 +668,12 @@
       "muted": "#767676",
       "border": "#e3cfba",
       "codeBackground": "#f4ede5",
-      "notes": "精致 · 暖阳橙 适合品牌、运营内容，气质偏精致、雅致、明快、亲和。"
+      "notes": "编辑 · 暖阳橙 适合品牌、运营内容，气质偏精致、雅致、明快、亲和。"
     },
     {
       "id": "elegant-red",
       "group": "elegant",
-      "displayName": "精致 · 中国红",
+      "displayName": "编辑 · 中国红",
       "accent": "#f25c54",
       "renderAccent": "#ca4d46",
       "background": "#ffffff",
@@ -668,12 +686,12 @@
       "muted": "#767676",
       "border": "#eec6c4",
       "codeBackground": "#f9eae9",
-      "notes": "精致 · 中国红 适合品牌、运营内容，气质偏精致、雅致、强调、传播。"
+      "notes": "编辑 · 中国红 适合品牌、运营内容，气质偏精致、雅致、强调、传播。"
     },
     {
       "id": "elegant-navy",
       "group": "elegant",
-      "displayName": "精致 · 深海蓝",
+      "displayName": "编辑 · 深海蓝",
       "accent": "#1f4f8a",
       "renderAccent": "#1f4f8a",
       "background": "#ffffff",
@@ -686,12 +704,12 @@
       "muted": "#767676",
       "border": "#b7c7da",
       "codeBackground": "#e4eaf1",
-      "notes": "精致 · 深海蓝 适合品牌、运营内容，气质偏精致、雅致、可信、理性。"
+      "notes": "编辑 · 深海蓝 适合品牌、运营内容，气质偏精致、雅致、可信、理性。"
     },
     {
       "id": "elegant-gray",
       "group": "elegant",
-      "displayName": "精致 · 石墨灰",
+      "displayName": "编辑 · 石墨灰",
       "accent": "#4e5969",
       "renderAccent": "#4e5969",
       "background": "#ffffff",
@@ -704,12 +722,12 @@
       "muted": "#767676",
       "border": "#c6cacf",
       "codeBackground": "#eaebed",
-      "notes": "精致 · 石墨灰 适合品牌、运营内容，气质偏精致、雅致、克制、中性。"
+      "notes": "编辑 · 石墨灰 适合品牌、运营内容，气质偏精致、雅致、克制、中性。"
     },
     {
       "id": "elegant-sky",
       "group": "elegant",
-      "displayName": "精致 · 天空蓝",
+      "displayName": "编辑 · 天空蓝",
       "accent": "#3a7fd5",
       "renderAccent": "#3777c8",
       "background": "#ffffff",
@@ -722,7 +740,7 @@
       "muted": "#767676",
       "border": "#bfd3ed",
       "codeBackground": "#e7eff8",
-      "notes": "精致 · 天空蓝 适合品牌、运营内容，气质偏精致、雅致、通透、轻盈。"
+      "notes": "编辑 · 天空蓝 适合品牌、运营内容，气质偏精致、雅致、通透、轻盈。"
     },
     {
       "id": "bold-gold",

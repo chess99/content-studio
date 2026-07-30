@@ -237,12 +237,13 @@ AI：不复杂，一行一个角色和内容即可。
 
 ## 主题矩阵
 
-内置主题严格对齐 48 个公开主题 ID。`wxp themes` 会返回每个主题的系列、适用场景、密度、对比度和强调色。
+内置主题由中性默认、具名预设和“版式 × 颜色”矩阵组成。`wxp themes` 会返回每个主题的系列、适用场景、密度、对比度和强调色。
 
-- Basic：`default`, `bytedance`, `apple`, `sports`, `chinese`, `cyber`
+- Default：`default`
+- Basic：`bytedance`, `apple`, `sports`, `chinese`, `cyber`
 - Classic：`wechat-native`, `nyt-classic`
 - Modern：`github-readme`, `sspai-red`, `mint-fresh`, `sunset-amber`
-- Extra：`ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary`
+- Extra：`warm-editorial`, `ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary`
 - Minimal：`minimal-gold`, `minimal-green`, `minimal-blue`, `minimal-orange`, `minimal-red`, `minimal-navy`, `minimal-gray`, `minimal-sky`
 - Focus：`focus-gold`, `focus-green`, `focus-blue`, `focus-orange`, `focus-red`, `focus-navy`, `focus-gray`, `focus-sky`
 - Elegant：`elegant-gold`, `elegant-green`, `elegant-blue`, `elegant-orange`, `elegant-red`, `elegant-navy`, `elegant-gray`, `elegant-sky`
@@ -413,6 +414,6 @@ curl -X POST "http://127.0.0.1:8080/api/v1/batch-upload" \
 2. 选一个开场模块。
 3. 选一到两个证据模块。
 4. 选一个收尾模块。
-5. 使用明确的 48 主题 ID 转换，例如 `theme: "default"` 或 `theme: "github-readme"`。
+5. 使用 `wxp themes` 返回的明确主题 ID 转换，例如 `theme: "default"` 或 `theme: "github-readme"`。
 6. 检查 `external_images`、`local_images` 和 `warnings`。
 7. 预览确认后再创建草稿。

@@ -4,28 +4,26 @@ import { getTheme } from "../src/converter/themes.js"
 import { getAdvancedPalette } from "../src/converter/advanced-layout/styles.js"
 
 describe("deriveStudioTheme", () => {
-  it("applies primary color, font size, font family, and code block style without mutating the base theme", () => {
+  it("applies reading settings without mutating the base theme or its palette", () => {
     const base = getTheme("github-readme")
     const derived = deriveStudioTheme(base, {
-      primaryColor: "#d66a45",
       fontSize: 17,
       fontFamily: "serif",
       codeBlockStyle: "light",
     })
 
     expect(derived.name).toBe("github-readme-studio")
-    expect(derived.styles.h2).toContain("#d66a45")
-    expect(derived.styles.h3).toContain("#d66a45")
-    expect(derived.styles.a).toContain("#d66a45")
+    expect(derived.styles.h2).toBe(base.styles.h2)
+    expect(derived.styles.h3).toBe(base.styles.h3)
+    expect(derived.styles.a).toBe(base.styles.a)
     expect(derived.styles.p).toContain("font-size:17px")
     expect(derived.styles.li).toContain("font-size:17px")
     expect(derived.styles.wrapper).toContain("Georgia")
     expect(derived.styles.pre).toContain("background:#f6f8fa")
     expect(derived.styles.preCode).toContain("color:#24292f")
-    expect(getAdvancedPalette(derived).accent).toBe("#d66a45")
-    expect(getAdvancedPalette(derived).accentSoft).toBe("rgba(214, 106, 69, 0.12)")
+    expect(getAdvancedPalette(derived).accent).toBe("#0969da")
+    expect(getAdvancedPalette(derived).accentSoft).toBe("#e1edfb")
 
-    expect(base.styles.h2).not.toContain("#d66a45")
     expect(base.styles.p).not.toContain("font-size:17px")
   })
 

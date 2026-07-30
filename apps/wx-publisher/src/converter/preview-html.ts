@@ -79,21 +79,19 @@ export function generatePreviewHtml(
 <style>
   * { box-sizing: border-box; }
   :root {
-    --paper: #faf8f3;
-    --paper-strong: #fffdf8;
+    --paper: #f8fafc;
+    --paper-strong: #ffffff;
     --ink: #18202d;
     --muted: #667085;
-    --line: #e5ded5;
-    --brand: #b45a3a;
-    --brand-soft: #f5e8df;
+    --line: #dfe3e8;
+    --brand: #2563eb;
+    --brand-soft: #eff6ff;
   }
-  html { background: #ebe8e1; overflow-x: hidden; }
+  html { background: #eef1f4; overflow-x: hidden; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
-    background:
-      radial-gradient(circle at 20% 0%, rgba(180,90,58,.12), transparent 34%),
-      linear-gradient(135deg, #f8f5ee 0%, #eef1f4 52%, #f9f7f1 100%);
+    background: #eef1f4;
     color: var(--ink);
     overflow-x: hidden;
   }
@@ -103,12 +101,10 @@ export function generatePreviewHtml(
     max-width: 1480px;
     margin: 0 auto 14px;
     padding: clamp(18px, 3vw, 28px);
-    border: 1px solid rgba(229,222,213,.9);
+    border: 1px solid rgba(223,227,232,.96);
     border-radius: 24px;
-    background:
-      linear-gradient(135deg, rgba(255,255,255,.92), rgba(250,248,243,.78)),
-      repeating-linear-gradient(135deg, rgba(180,90,58,.05) 0 1px, transparent 1px 18px);
-    box-shadow: 0 18px 50px rgba(38, 31, 24, .10);
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, .08);
   }
   .hero-grid {
     display: grid;
@@ -136,10 +132,10 @@ export function generatePreviewHtml(
     max-width: min(760px, 100%);
     margin: 12px 0 0;
     padding: 6px 10px;
-    color: #74695f;
+    color: #667085;
     font-size: 13px;
     line-height: 1.45;
-    border: 1px solid rgba(222,215,206,.95);
+    border: 1px solid rgba(208,213,221,.95);
     border-radius: 999px;
     background: rgba(255,255,255,.66);
     word-break: break-all;
@@ -150,7 +146,7 @@ export function generatePreviewHtml(
     justify-content: flex-end;
     gap: 10px;
     min-width: 280px;
-    border: 1px solid rgba(180,90,58,.18);
+    border: 1px solid rgba(37,99,235,.16);
     border-radius: 18px;
     padding: 10px;
     background: rgba(255,255,255,.72);
@@ -161,7 +157,7 @@ export function generatePreviewHtml(
     gap: 2px;
     padding: 8px 10px;
     border-radius: 12px;
-    background: rgba(250,248,243,.72);
+    background: rgba(248,250,252,.9);
   }
   .stat-label { color: #667085; font-size: 13px; }
   .stat-value { color: #18202d; font-size: 23px; font-weight: 850; font-variant-numeric: tabular-nums; }
@@ -176,9 +172,9 @@ export function generatePreviewHtml(
     gap: 16px;
     align-items: start;
     padding: 14px;
-    border: 1px solid rgba(229,222,213,.9);
+    border: 1px solid rgba(223,227,232,.96);
     border-radius: 20px;
-    background: rgba(255,253,248,.92);
+    background: rgba(255,255,255,.94);
     backdrop-filter: blur(16px);
     box-shadow: 0 14px 38px rgba(38, 31, 24, .08);
   }
@@ -192,7 +188,7 @@ export function generatePreviewHtml(
     color: #1d2531;
     background: #fff;
   }
-  .search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(180,90,58,.12); }
+  .search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
   .filter-stack { display: grid; gap: 9px; min-width: 0; }
   .filter-row {
     display: grid;
@@ -201,10 +197,10 @@ export function generatePreviewHtml(
     align-items: start;
     min-width: 0;
   }
-  .filter-label { color: #7a6f66; font-size: 12px; font-weight: 800; line-height: 28px; }
+  .filter-label { color: #667085; font-size: 12px; font-weight: 800; line-height: 28px; }
   .filter-options { display: flex; flex-wrap: wrap; gap: 7px; min-width: 0; }
   .filter-chip {
-    border: 1px solid #ded7ce;
+    border: 1px solid #d0d5dd;
     background: #fff;
     color: #475467;
     border-radius: 999px;
@@ -213,7 +209,7 @@ export function generatePreviewHtml(
     cursor: pointer;
     transition: background .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
   }
-  .filter-chip:hover { transform: translateY(-1px); border-color: rgba(180,90,58,.38); }
+  .filter-chip:hover { transform: translateY(-1px); border-color: rgba(37,99,235,.38); }
   .filter-chip.active { background: #201a17; border-color: #201a17; color: #fff; }
   .theme-grid {
     max-width: 1480px;
@@ -226,7 +222,7 @@ export function generatePreviewHtml(
     display: grid;
     grid-template-rows: auto 330px auto;
     min-height: 548px;
-    border: 1px solid #e2dcd5;
+    border: 1px solid #dfe3e8;
     border-radius: 24px;
     overflow: hidden;
     background: rgba(255,255,255,.92);
@@ -236,31 +232,31 @@ export function generatePreviewHtml(
     padding: 0;
     transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   }
-  .theme-card:hover { transform: translateY(-3px); border-color: rgba(180,90,58,.38); box-shadow: 0 26px 58px rgba(38, 31, 24, .14); }
+  .theme-card:hover { transform: translateY(-3px); border-color: rgba(37,99,235,.38); box-shadow: 0 26px 58px rgba(15, 23, 42, .13); }
   .theme-card[hidden] { display: none; }
   .theme-card-error { border-color: #efb8b8; background: #fff7f7; }
-  .card-head { padding: 18px 18px 14px; border-bottom: 1px solid #eee7df; background: linear-gradient(180deg, #fff, #fffaf5); }
+  .card-head { padding: 18px 18px 14px; border-bottom: 1px solid #e8ebef; background: linear-gradient(180deg, #fff, #f8fafc); }
   .card-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0; }
   .card-name { margin: 0; color: #171d27; font-size: 21px; line-height: 1.25; font-weight: 850; letter-spacing: 0; }
-  .card-id { margin: 7px 0 0; color: #7a6f66; font-size: 12px; font-family: "SFMono-Regular", Consolas, monospace; }
+  .card-id { margin: 7px 0 0; color: #667085; font-size: 12px; font-family: "SFMono-Regular", Consolas, monospace; }
   .accent-row { display: flex; gap: 6px; align-items: center; flex: 0 0 auto; padding-top: 3px; }
   .accent-swatch { width: 15px; height: 15px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); box-shadow: 0 0 0 3px rgba(255,255,255,.78); }
   .badge-row { margin-top: 13px; display: flex; flex-wrap: wrap; gap: 7px; }
   .meta-badge {
     border: 1px solid #e4ddd5;
-    background: #f9f6f1;
+    background: #f8fafc;
     color: #5f6b7a;
     border-radius: 999px;
     padding: 4px 9px;
     font-size: 11px;
     line-height: 1.45;
   }
-  .meta-badge.primary { border-color: rgba(180,90,58,.2); background: var(--brand-soft); color: var(--brand); font-weight: 750; }
+  .meta-badge.primary { border-color: rgba(37,99,235,.2); background: var(--brand-soft); color: var(--brand); font-weight: 750; }
   .card-preview-frame {
     position: relative;
     overflow: hidden;
-    background: #f4f1ec;
-    border-bottom: 1px solid #eee7df;
+    background: #eef1f4;
+    border-bottom: 1px solid #e8ebef;
     --preview-scale: .52;
   }
   .card-preview-frame::after {
@@ -270,7 +266,7 @@ export function generatePreviewHtml(
     right: 0;
     bottom: 0;
     height: 90px;
-    background: linear-gradient(to bottom, rgba(244,241,236,0), #f4f1ec);
+    background: linear-gradient(to bottom, rgba(238,241,244,0), #eef1f4);
     pointer-events: none;
   }
   .preview-source {
@@ -285,7 +281,7 @@ export function generatePreviewHtml(
   }
   .card-foot { padding: 14px 18px 18px; min-height: 96px; color: #586474; font-size: 13px; line-height: 1.65; }
   .tone-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .tone-chip { color: #7a3f2b; background: #f8ece4; border-radius: 999px; padding: 3px 8px; font-size: 11px; }
+  .tone-chip { color: #1d4ed8; background: #eff6ff; border-radius: 999px; padding: 3px 8px; font-size: 11px; }
   .error-box { padding: 24px; color: #9f2f2f; font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; line-height: 1.6; }
   .empty-state { max-width: 1480px; margin: 18px auto 0; color: #69717d; display: none; }
   .empty-state.visible { display: block; }
@@ -298,13 +294,13 @@ export function generatePreviewHtml(
   }
   .detail-panel.open { display: grid; grid-template-columns: minmax(320px, 430px) minmax(0, 1fr); }
   .detail-sidebar {
-    background: #fffdf8;
+    background: #ffffff;
     padding: 24px;
     overflow: auto;
-    border-right: 1px solid #e2dcd5;
+    border-right: 1px solid #dfe3e8;
   }
   .detail-close {
-    border: 1px solid #ded7ce;
+    border: 1px solid #d0d5dd;
     background: #fff;
     color: #1f2732;
     border-radius: 12px;
@@ -312,13 +308,13 @@ export function generatePreviewHtml(
     cursor: pointer;
   }
   .detail-title { margin: 24px 0 6px; font-size: 30px; line-height: 1.15; color: #15191f; }
-  .detail-id { margin: 0 0 16px; font-family: "SFMono-Regular", Consolas, monospace; color: #7a6f66; }
+  .detail-id { margin: 0 0 16px; font-family: "SFMono-Regular", Consolas, monospace; color: #667085; }
   .detail-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
   .detail-help { color: #586474; line-height: 1.7; font-size: 14px; }
   .command-box { margin-top: 18px; display: grid; gap: 9px; }
   .cover-input, .cmd-text {
     width: 100%;
-    border: 1px solid #ded7ce;
+    border: 1px solid #d0d5dd;
     background: #fff;
     border-radius: 12px;
     padding: 10px 11px;
@@ -346,7 +342,7 @@ export function generatePreviewHtml(
     .hero-grid, .toolbar { grid-template-columns: 1fr; }
     .stats-panel { justify-content: flex-start; min-width: 0; }
     .detail-panel.open { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-    .detail-sidebar { max-height: 42vh; border-right: 0; border-bottom: 1px solid #e2dcd5; }
+    .detail-sidebar { max-height: 42vh; border-right: 0; border-bottom: 1px solid #dfe3e8; }
   }
   @media (max-width: 560px) {
     .gallery-shell { padding: 16px; overflow-x: hidden; }
@@ -591,7 +587,7 @@ function renderFilterGroup(group: FilterGroup, label: string, values: string[]):
   return `<div class="filter-row" data-filter-group="${group}"><span class="filter-label">${label}</span><div class="filter-options">${chips}</div></div>`
 }
 
-const COLLECTION_ORDER = ["built-in", "classic", "modern", "extra", "minimal", "focus", "elegant", "bold", "custom"]
+const COLLECTION_ORDER = ["base", "built-in", "classic", "modern", "extra", "minimal", "focus", "elegant", "bold", "custom"]
 const SCENARIO_ORDER = ["知识", "产品", "品牌", "运营", "专题"]
 const DENSITY_ORDER = ["low", "medium", "high"]
 const CONTRAST_ORDER = ["low", "medium", "high"]
@@ -615,13 +611,14 @@ function filterValueLabel(group: FilterGroup, value: string): string {
 
 function collectionLabel(value: string): string {
   const labels: Record<string, string> = {
+    "base": "基础",
     "built-in": "原生",
     "classic": "经典",
     "modern": "精选",
     "extra": "专题",
     "minimal": "简约",
     "focus": "聚焦",
-    "elegant": "精致",
+    "elegant": "编辑",
     "bold": "醒目",
     "custom": "自定义",
   }

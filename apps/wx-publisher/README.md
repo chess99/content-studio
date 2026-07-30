@@ -66,8 +66,9 @@ wxp themes
 
 Studio 支持：
 
-- 左侧编辑 Markdown，中间手机预览，右侧设置和发布面板
-- 切换内置主题，调整主题色、字号、字体和代码块风格
+- 左侧编辑 Markdown，中间公众号预览，右侧排版和发布面板
+- 从推荐主题开始，或按“版式 × 颜色”组合主题；再调整字号、字体和代码块风格
+- 中小屏打开设置时自动保留预览并隐藏编辑器；手机端使用覆盖式设置面板
 - 复制微信富文本、复制 HTML、导出 HTML
 - 使用本地配置创建微信公众号草稿
 
@@ -96,16 +97,19 @@ wxp studio --file article.md --port 8787 --no-open
 
 ## 主题
 
-内置主题严格对齐 48 个公开主题 ID。`wxp themes` 会返回主题名、系列、适用场景、密度、对比度和强调色，方便脚本或 AI 调用方自动选型。
+内置主题以产品选型为准。`default` 是纯白背景、中性黑灰配色的通用基础主题；暖色和高视觉主题均需要主动选择。`wxp themes` 会返回主题名、系列、适用场景、密度、对比度和强调色，方便脚本或 AI 调用方自动选型。
 
-- Built-in：`default`, `bytedance`, `apple`, `sports`, `chinese`, `cyber`
+- 默认：`default`
+- Built-in：`bytedance`, `apple`, `sports`, `chinese`, `cyber`
 - Classic：`wechat-native`, `nyt-classic`
 - Modern：`github-readme`, `sspai-red`, `mint-fresh`, `sunset-amber`
-- Extra：`ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary`
+- Extra：`warm-editorial`, `ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary`
 - Minimal：`minimal-gold`, `minimal-green`, `minimal-blue`, `minimal-orange`, `minimal-red`, `minimal-navy`, `minimal-gray`, `minimal-sky`
 - Focus：`focus-gold`, `focus-green`, `focus-blue`, `focus-orange`, `focus-red`, `focus-navy`, `focus-gray`, `focus-sky`
 - Elegant：`elegant-gold`, `elegant-green`, `elegant-blue`, `elegant-orange`, `elegant-red`, `elegant-navy`, `elegant-gray`, `elegant-sky`
 - Bold：`bold-gold`, `bold-green`, `bold-blue`, `bold-orange`, `bold-red`, `bold-navy`, `bold-gray`, `bold-sky`
+
+Studio 不平铺全部主题：先提供六个推荐方案，组合主题再按“简约 / 聚焦 / 编辑 / 醒目”版式和八种强调色进行选择。完整调色板见 [主题与配色参考](./docs/theme-palette-reference.md)。
 
 ## 高级排版模块
 

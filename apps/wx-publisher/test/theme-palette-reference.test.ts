@@ -7,6 +7,7 @@ const palettePath = resolve(root, "docs/theme-palette-reference.json")
 
 const namedPaletteIds = [
   "default",
+  "warm-editorial",
   "bytedance",
   "apple",
   "sports",
@@ -59,13 +60,13 @@ function readPaletteReference(): PaletteReference {
 }
 
 describe("theme palette reference", () => {
-  it("keeps the md2wechat-aligned public catalog at exactly 48 palettes", () => {
+  it("keeps the product theme catalog complete and ordered", () => {
     const reference = readPaletteReference()
 
-    expect(reference.version).toBe(2)
+    expect(reference.version).toBe(3)
     expect(reference.usage).toBe("runtime-theme-catalog")
-    expect(reference.sourceUpdatedAt).toBe("2026-06-03")
-    expect(reference.palettes).toHaveLength(48)
+    expect(reference.sourceUpdatedAt).toBe("2026-07-30")
+    expect(reference.palettes).toHaveLength(49)
 
     const actualIds = reference.palettes.map(palette => palette.id)
     expect(new Set(actualIds).size).toBe(actualIds.length)
@@ -93,12 +94,14 @@ describe("theme palette reference", () => {
     }
   })
 
-  it("keeps known gallery corrections for previously misaligned themes", () => {
+  it("keeps the neutral default and representative palette colors", () => {
     const reference = readPaletteReference()
     const palettes = new Map(reference.palettes.map(palette => [palette.id, palette]))
 
-    expect(palettes.get("default")?.accent).toBe("#a34e2e")
-    expect(palettes.get("default")?.renderAccent).toBe("#b3593b")
+    expect(palettes.get("default")?.group).toBe("base")
+    expect(palettes.get("default")?.accent).toBe("#111827")
+    expect(palettes.get("default")?.background).toBe("#ffffff")
+    expect(palettes.get("warm-editorial")?.accent).toBe("#a34e2e")
     expect(palettes.get("bytedance")?.accent).toBe("#1677ff")
     expect(palettes.get("apple")?.accent).toBe("#007aff")
     expect(palettes.get("sports")?.accent).toBe("#00a968")

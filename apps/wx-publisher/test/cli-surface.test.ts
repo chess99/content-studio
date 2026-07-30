@@ -68,7 +68,7 @@ describe("CLI surface", () => {
     expect(payload.data.features.footnotes).toBe(true)
     expect(payload.data.features.professional_themes).toBe(true)
     expect(payload.data.features.theme_gallery).toBe(true)
-    expect(payload.data.coverage.themes.professional).toBe(48)
+    expect(payload.data.coverage.themes.professional).toBe(49)
     expect(payload.data.coverage.advanced_modules.public).toBe(43)
     expect(payload.data.coverage.advanced_modules.enhanced).toBe(3)
     expect(payload.data.commands.serve.endpoints).toContain("POST /api/v1/convert")
@@ -77,7 +77,7 @@ describe("CLI surface", () => {
     expect(payload.data.commands["publish-newspic"].optional_flags).toContain("--content")
     expect(payload.data.commands["theme-gallery"].required_flags).toEqual([])
     expect(payload.data.commands["theme-gallery"].optional_flags).toContain("--file")
-    expect(payload.data.themes).toHaveLength(48)
+    expect(payload.data.themes).toHaveLength(49)
     expect(payload.data.themes).toContain("github-readme")
     expect(payload.data.themes).not.toContain("studio")
     expect(payload.data.theme_reference).toContainEqual(expect.objectContaining({
@@ -95,7 +95,7 @@ describe("CLI surface", () => {
     const payload = JSON.parse(stdout)
 
     expect(exitCode).toBe(0)
-    expect(payload.data.count).toBe(48)
+    expect(payload.data.count).toBe(49)
     expect(payload.data.themes).toContainEqual(expect.objectContaining({
       name: "github-readme",
       displayName: "GitHub",

@@ -7,6 +7,7 @@ const THEMES_SOURCE = new URL("../src/converter/themes.ts", import.meta.url)
 
 const PROFESSIONAL_THEMES = [
   "default",
+  "warm-editorial",
   "bytedance",
   "apple",
   "sports",
@@ -57,14 +58,14 @@ const PROFESSIONAL_THEMES = [
 ]
 
 describe("professional theme matrix", () => {
-  it("exposes exactly the aligned 48-theme set", () => {
+  it("exposes the curated product theme catalog", () => {
     const themes = listThemes()
 
     expect(themes).toEqual(PROFESSIONAL_THEMES)
     for (const theme of PROFESSIONAL_THEMES) {
       expect(themes).toContain(theme)
     }
-    expect(themes).toHaveLength(48)
+    expect(themes).toHaveLength(49)
   })
 
   it("converts plain markdown, safe lists, and advanced modules with every professional theme", async () => {
@@ -98,27 +99,28 @@ describe("professional theme matrix", () => {
   it("applies distinct family visual rules", () => {
     const defaultStyles = getTheme("default").styles
     const bytedanceStyles = getTheme("bytedance").styles
-    expect(getTheme("default").accent).toBe("#a34e2e")
-    expect(defaultStyles.wrapper).toContain("background-color: rgb(250, 249, 245)")
-    expect(defaultStyles.wrapper).toContain("color: rgb(34, 34, 34)")
+    expect(getTheme("default").accent).toBe("#111827")
+    expect(defaultStyles.wrapper).toContain("background:#ffffff")
+    expect(defaultStyles.wrapper).toContain("color:#1f2937")
     expect(defaultStyles.p).toContain("font-size:16px")
     expect(defaultStyles.p).toContain("line-height:1.82")
     expect(defaultStyles.p).not.toContain("letter-spacing")
-    expect(defaultStyles.h1).toContain("text-align: center")
-    expect(defaultStyles.h1).toContain("background: rgb(200, 100, 66)")
-    expect(defaultStyles.h1).toContain("color: #ffffff")
+    expect(defaultStyles.h1).toContain("font-size: 28px")
+    expect(defaultStyles.h1).toContain("color: #111827")
+    expect(defaultStyles.h1).not.toContain("background")
     expect(defaultStyles.h1).not.toContain("border-left")
     expect(defaultStyles.h1).not.toContain("border-bottom:1px dashed")
-    expect(defaultStyles.h2).toContain("border-bottom: 1px dashed rgb(200, 100, 66)")
-    expect(defaultStyles.h2).toContain("rgb(200, 100, 66)")
+    expect(defaultStyles.h2).toContain("border-bottom: 1px solid rgba(17,24,39,0.28)")
+    expect(defaultStyles.h2).toContain("#111827")
     expect(bytedanceStyles.h1).toContain("text-align: center")
     expect(bytedanceStyles.h1).toContain("linear-gradient(to right")
     expect(bytedanceStyles.h1).not.toContain("border-left")
     expect(bytedanceStyles.h2).toContain("linear-gradient(135deg, #1677ff, #05d4cd)")
     expect(bytedanceStyles.h2).toContain("#1677ff")
-    expect(defaultStyles.code).toContain("border-radius: 999px")
+    expect(defaultStyles.code).toContain("border-radius:6px")
     expect(bytedanceStyles.code).toContain("border-radius: 999px")
-    expect(defaultStyles.pre).toContain("rgba(200, 100, 66")
+    expect(defaultStyles.pre).toContain("background:#f8fafc")
+    expect(getTheme("warm-editorial").styles.h1).toContain("background: rgb(200, 100, 66)")
     expect(bytedanceStyles.pre).toContain("rgba(22, 119, 255")
     expect(defaultStyles.preCode).toContain("overflow-wrap:anywhere")
     expect(bytedanceStyles.preCode).toContain("overflow-wrap:anywhere")
@@ -137,9 +139,10 @@ describe("professional theme matrix", () => {
     expect(getTheme("wechat-native").styles.a).toContain("#07c160")
   })
 
-  it("aligns representative h1 styles with md2wechat public themes", () => {
-    expect(getTheme("default").styles.h1).toContain("background: rgb(200, 100, 66)")
-    expect(getTheme("default").styles.h1).toContain("font-size: 22px")
+  it("keeps representative h1 styles distinct across product themes", () => {
+    expect(getTheme("default").styles.h1).not.toContain("background")
+    expect(getTheme("default").styles.h1).toContain("font-size: 28px")
+    expect(getTheme("warm-editorial").styles.h1).toContain("background: rgb(200, 100, 66)")
     expect(getTheme("bytedance").styles.h1).toContain("linear-gradient(to right")
     expect(getTheme("bytedance").styles.h1).toContain("border-bottom: 1px solid rgba(5,212,205,0.5)")
     expect(getTheme("github-readme").styles.h1).toContain("font-size: 29px")
@@ -169,7 +172,10 @@ describe("professional theme matrix", () => {
   })
 
   it("keeps theme selection metadata available for AI callers", () => {
-    expect(getTheme("default").displayName).toBe("默认主题")
+    expect(getTheme("default").displayName).toBe("基础白")
+    expect(getTheme("default").collection).toBe("base")
+    expect(getTheme("warm-editorial").displayName).toBe("暖色编辑")
+    expect(getTheme("elegant-blue").displayName).toBe("编辑 · 宝石蓝")
     expect(getTheme("github-readme").displayName).toBe("GitHub")
     expect(getTheme("bold-red").displayName).toBe("醒目 · 中国红")
     expect(getTheme("github-readme").bestFor).toContain("适合产品、知识内容")
@@ -263,13 +269,12 @@ describe("professional theme matrix", () => {
 
     const result = await convertMarkdown(markdown, { theme: "default", stripLinks: false })
 
-    expect(result.html).toContain("background-color: rgb(250, 249, 245)")
+    expect(result.html).toContain("background:#ffffff")
     expect(result.html).toContain("font-size:16px;line-height:1.82")
     expect(result.html).not.toContain("letter-spacing:0.1em")
-    expect(result.html).toContain("border-left: 4px solid rgb(200, 100, 66)")
-    expect(result.html).toContain("border-bottom: 1px dashed rgb(200, 100, 66)")
+    expect(result.html).toContain("border-bottom: 1px solid rgba(17,24,39,0.28)")
     expect(result.html).toContain('class="inline-code"')
-    expect(result.html).toContain("border-radius: 999px")
+    expect(result.html).toContain("border-radius:6px")
     expect(result.html).toContain("<br>/goal")
     expect(result.html).not.toContain("white-space:nowrap;overflow-x:auto;;white-space:nowrap")
     expect(result.html).toContain("overflow-wrap:anywhere")
@@ -277,7 +282,7 @@ describe("professional theme matrix", () => {
     expect(result.html).toContain('data-wxp-list="ordered"')
     expect(result.html).not.toMatch(/<(ul|ol|li)\b/)
     expect(result.html).toContain('data-mpa-action-id="verdict"')
-    expect(result.html).toContain("background:linear-gradient(135deg, #f1e6df 0%, #faf9f5 48%, #f7f7f7 100%)")
+    expect(result.html).toContain("background:linear-gradient(135deg, #f3f4f6 0%, #ffffff 48%, #f8fafc 100%)")
     expect(result.html).toContain("word-break:break-all")
     expect(result.html).toContain("overflow-wrap:anywhere")
   })

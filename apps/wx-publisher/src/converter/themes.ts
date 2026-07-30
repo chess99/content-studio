@@ -1,8 +1,8 @@
 /**
  * 微信公众号排版主题
  *
- * 运行时主题只暴露 48 个对齐主题。主题选择信息保留在 Theme
- * 元数据中，方便 CLI、Studio 和 AI 调用方按场景挑选。
+ * 运行时主题由中性默认、具名预设和“版式 × 颜色”矩阵组成。
+ * 主题选择信息保留在 Theme 元数据中，方便 CLI、Studio 和 AI 调用方按场景挑选。
  */
 
 export interface Theme {
@@ -109,7 +109,7 @@ export interface NodeStyles {
   td: string
 }
 
-type ThemeCollection = "built-in" | "classic" | "modern" | "extra" | "minimal" | "focus" | "elegant" | "bold"
+export type ThemeCollection = "base" | "built-in" | "classic" | "modern" | "extra" | "minimal" | "focus" | "elegant" | "bold"
 
 interface ThemeSpec {
   name: string
@@ -128,7 +128,7 @@ interface ThemeSpec {
   contrast: "low" | "medium" | "high"
 }
 
-const SOURCE_UPDATED_AT = "2026-06-03"
+const SOURCE_UPDATED_AT = "2026-07-30"
 
 const READING_FONT_FAMILY = "-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif"
 const READING_PARAGRAPH = "font-size:16px;line-height:1.82;margin:0 0 16px 0;"
@@ -136,7 +136,8 @@ const READING_LIST = "list-style:none;padding-left:0;margin:0 0 16px 0;"
 const READING_LIST_ITEM = "display:block;margin:0.22em 8px;font-size:16px;line-height:1.82;"
 
 const NAMED_THEME_SPECS: ThemeSpec[] = [
-  named("default", "built-in", "Reference Warm", "#a34e2e", "#faf9f5", "#f7f7f7", "#222222", "#737373", "#e3c6b9", "#f1e6df", "暖色技术长文基线，适合代码和判断密集的文章", "technical essays, code-heavy notes, structured long-form writing", "medium", "medium"),
+  named("default", "base", "Neutral White", "#111827", "#ffffff", "#f8fafc", "#1f2937", "#667085", "#d0d5dd", "#f3f4f6", "中性白底基础排版，适合绝大多数文章", "general publishing, knowledge writing, clean long-form reading", "low", "medium"),
+  named("warm-editorial", "extra", "Warm Editorial", "#a34e2e", "#faf9f5", "#f7f7f7", "#222222", "#737373", "#e3c6b9", "#f1e6df", "暖色编辑风，适合叙事、随笔和人物内容", "narrative essays, interviews, warm editorial writing", "medium", "medium"),
   named("bytedance", "built-in", "Product Blue", "#1677ff", "#ffffff", "#f2f3f5", "#4e5969", "#717782", "#b4d2fb", "#e3eefd", "产品蓝，现代清晰", "product updates, efficient business writing, modern operations", "medium", "medium"),
   named("apple", "built-in", "Polished Blue", "#007aff", "#ffffff", "#fafafa", "#333333", "#767676", "#add2fa", "#e0eefd", "精致系统蓝，留白充足", "brand stories, product writing, polished launches", "low", "medium"),
   named("sports", "built-in", "Energy Green", "#00a968", "#ffffff", "#f8f8f8", "#2c2c2c", "#767676", "#afd9cc", "#e1f1ec", "活力绿，节奏强", "events, campaigns, launches, time-sensitive updates", "medium", "high"),
@@ -173,7 +174,8 @@ const MATRIX_THEME_SPECS: ThemeSpec[] = [
 ]
 
 const THEME_DISPLAY_METADATA: Record<string, { displayName: string; bestFor: string }> = {
-  "default": { displayName: "默认主题", bestFor: "适合运营、知识内容，气质偏熟悉、微信原生。" },
+  "default": { displayName: "基础白", bestFor: "适合绝大多数知识、运营和长文内容，气质中性、干净。" },
+  "warm-editorial": { displayName: "暖色编辑", bestFor: "适合叙事、随笔和人物内容，气质温暖、编辑感。" },
   "bytedance": { displayName: "字节范", bestFor: "适合产品、品牌内容，气质偏科技、效率。" },
   "apple": { displayName: "苹果范", bestFor: "适合品牌、产品内容，气质偏精致、未来感。" },
   "sports": { displayName: "运动风", bestFor: "适合运营、专题内容，气质偏动感、活力。" },
@@ -205,14 +207,14 @@ const THEME_DISPLAY_METADATA: Record<string, { displayName: string; bestFor: str
   "focus-navy": { displayName: "聚焦 · 深海蓝", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、可信、理性。" },
   "focus-gray": { displayName: "聚焦 · 石墨灰", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、克制、中性。" },
   "focus-sky": { displayName: "聚焦 · 天空蓝", bestFor: "适合知识、品牌内容，气质偏聚焦、秩序、通透、轻盈。" },
-  "elegant-gold": { displayName: "精致 · 古铜金", bestFor: "适合品牌、运营内容，气质偏精致、雅致、温润、沉稳。" },
-  "elegant-green": { displayName: "精致 · 翡翠绿", bestFor: "适合品牌、运营内容，气质偏精致、雅致、清新、自然。" },
-  "elegant-blue": { displayName: "精致 · 宝石蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、专业、科技。" },
-  "elegant-orange": { displayName: "精致 · 暖阳橙", bestFor: "适合品牌、运营内容，气质偏精致、雅致、明快、亲和。" },
-  "elegant-red": { displayName: "精致 · 中国红", bestFor: "适合品牌、运营内容，气质偏精致、雅致、强调、传播。" },
-  "elegant-navy": { displayName: "精致 · 深海蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、可信、理性。" },
-  "elegant-gray": { displayName: "精致 · 石墨灰", bestFor: "适合品牌、运营内容，气质偏精致、雅致、克制、中性。" },
-  "elegant-sky": { displayName: "精致 · 天空蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、通透、轻盈。" },
+  "elegant-gold": { displayName: "编辑 · 古铜金", bestFor: "适合品牌、运营内容，气质偏精致、雅致、温润、沉稳。" },
+  "elegant-green": { displayName: "编辑 · 翡翠绿", bestFor: "适合品牌、运营内容，气质偏精致、雅致、清新、自然。" },
+  "elegant-blue": { displayName: "编辑 · 宝石蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、专业、科技。" },
+  "elegant-orange": { displayName: "编辑 · 暖阳橙", bestFor: "适合品牌、运营内容，气质偏精致、雅致、明快、亲和。" },
+  "elegant-red": { displayName: "编辑 · 中国红", bestFor: "适合品牌、运营内容，气质偏精致、雅致、强调、传播。" },
+  "elegant-navy": { displayName: "编辑 · 深海蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、可信、理性。" },
+  "elegant-gray": { displayName: "编辑 · 石墨灰", bestFor: "适合品牌、运营内容，气质偏精致、雅致、克制、中性。" },
+  "elegant-sky": { displayName: "编辑 · 天空蓝", bestFor: "适合品牌、运营内容，气质偏精致、雅致、通透、轻盈。" },
   "bold-gold": { displayName: "醒目 · 古铜金", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、温润、沉稳。" },
   "bold-green": { displayName: "醒目 · 翡翠绿", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、清新、自然。" },
   "bold-blue": { displayName: "醒目 · 宝石蓝", bestFor: "适合专题、品牌、运营内容，气质偏醒目、宣传、专业、科技。" },
@@ -224,7 +226,8 @@ const THEME_DISPLAY_METADATA: Record<string, { displayName: string; bestFor: str
 }
 
 const GALLERY_ADVANCED_PALETTES: Record<string, ThemeAdvancedPalette> = {
-  "default": { background: "#faf9f5", surface: "#faf9f5", surfaceAlt: "#f7f7f7", accentSoft: "#f1e6df", accentSofter: "#ecd9d0", accentDark: "#b3593b", border: "#e3c6b9", muted: "#737373", text: "#555555", textStrong: "#222222", mutedBorder: "rgba(202, 202, 199, 0.18)" },
+  "default": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f8fafc", accentSoft: "#f3f4f6", accentSofter: "#e5e7eb", accentDark: "#111827", border: "#d0d5dd", muted: "#667085", text: "#344054", textStrong: "#101828", mutedBorder: "rgba(152, 162, 179, 0.18)" },
+  "warm-editorial": { background: "#faf9f5", surface: "#faf9f5", surfaceAlt: "#f7f7f7", accentSoft: "#f1e6df", accentSofter: "#ecd9d0", accentDark: "#b3593b", border: "#e3c6b9", muted: "#737373", text: "#555555", textStrong: "#222222", mutedBorder: "rgba(202, 202, 199, 0.18)" },
   "bytedance": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f2f3f5", accentSoft: "#e3eefd", accentSofter: "#d0e3fc", accentDark: "#1571f1", border: "#b4d2fb", muted: "#717782", text: "#1d2129", textStrong: "#4e5969" },
   "apple": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#fafafa", accentSoft: "#e0eefd", accentSofter: "#cce3fc", accentDark: "#0072ef", border: "#add2fa", muted: "#767676", text: "#595959", textStrong: "#333333" },
   "sports": { background: "#ffffff", surface: "#ffffff", surfaceAlt: "#f8f8f8", accentSoft: "#e1f1ec", accentSofter: "#cde7df", accentDark: "#05875f", border: "#afd9cc", muted: "#767676", text: "#595959", textStrong: "#2c2c2c" },
@@ -275,7 +278,7 @@ const GALLERY_ADVANCED_PALETTES: Record<string, ThemeAdvancedPalette> = {
 }
 
 const MD2_NAMED_RAW_STYLES = {
-  "default": {
+  "warm-editorial": {
     "container": "max-width: 677px; margin: 0 auto; padding: 8px; background-color: rgb(250, 249, 245); font-family: 'PingFang SC', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif; color: rgb(34, 34, 34); line-height: 1.75; font-size: 15px; border-radius: 12px;",
     "h1": "margin: 1.5em 8px 0.75em 0px; padding: 0.8em 1.5em; background: rgb(200, 100, 66); font-size: 22px; font-weight: bold; line-height: 1.2; color: #ffffff; text-align: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(200, 100, 66, 0.2);",
     "h2": "margin: 2em 8px 0.75em 0px; padding: 0px 0px 0.5em 12px; border-left: 4px solid rgb(200, 100, 66); border-bottom: 1px dashed rgb(200, 100, 66); font-size: 20px; font-weight: bold; line-height: 1.2; color: rgb(63, 63, 63);",
@@ -1066,6 +1069,7 @@ function templateH1(spec: ThemeSpec): string {
   const primary = spec.accent
   const rgb = rgbTriplet(primary)
   switch (spec.collection) {
+    case "base":
     case "minimal":
       return `font-size: 28px; font-weight: 800; color: ${primary}; margin-top: 0; margin-bottom: 28px; line-height: 1.4em; word-break: break-all; letter-spacing: -0.03em; font-family: ${READING_FONT_FAMILY};`
     case "focus":
@@ -1082,6 +1086,7 @@ function templateH1(spec: ThemeSpec): string {
 function templateH2(spec: ThemeSpec): string {
   const primary = spec.accent
   switch (spec.collection) {
+    case "base":
     case "minimal":
       return `font-size: 22px; font-weight: 700; color: ${primary}; margin-top: 0; margin-bottom: 22px; line-height: 1.45; word-break: break-all; border-bottom: 1px solid ${colorMix(primary, 0.28)}; padding-bottom: 6px;`
     case "focus":
@@ -1112,7 +1117,7 @@ function defaultBlockquote(spec: ThemeSpec, soft: string): string {
 }
 
 function defaultImage(spec: ThemeSpec): string {
-  const radius = spec.collection === "minimal" || spec.name === "ink-minimal" ? "2px" : "8px"
+  const radius = spec.collection === "base" || spec.collection === "minimal" || spec.name === "ink-minimal" ? "2px" : "8px"
   const shadow = spec.collection === "bold" || spec.collection === "elegant" ? `box-shadow:0 6px 18px ${colorMix(spec.accent, 0.10)};` : ""
   return `max-width:100%;border-radius:${radius};display:block;margin:0 auto;${shadow}`
 }

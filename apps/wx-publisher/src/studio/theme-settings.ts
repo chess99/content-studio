@@ -4,7 +4,6 @@ export type StudioFontFamily = "system" | "serif" | "mono"
 export type StudioCodeBlockStyle = "dark" | "light"
 
 export interface StudioThemeSettings {
-  primaryColor?: string
   fontSize?: number
   fontFamily?: StudioFontFamily
   codeBlockStyle?: StudioCodeBlockStyle
@@ -18,14 +17,6 @@ const FONT_FAMILIES: Record<StudioFontFamily, string> = {
 
 export function deriveStudioTheme(baseTheme: Theme, settings: StudioThemeSettings): Theme {
   const styles: NodeStyles = { ...baseTheme.styles }
-
-  if (settings.primaryColor) {
-    const color = settings.primaryColor
-    styles.h2 = appendStyle(styles.h2, `border-left-color:${color};border-bottom-color:${color};color:${color};`)
-    styles.h3 = appendStyle(styles.h3, `color:${color};border-bottom-color:${color};`)
-    styles.blockquote = appendStyle(styles.blockquote, `border-left-color:${color};`)
-    styles.a = appendStyle(styles.a, `color:${color};`)
-  }
 
   if (settings.fontSize) {
     const size = clamp(settings.fontSize, 14, 20)
@@ -49,8 +40,6 @@ export function deriveStudioTheme(baseTheme: Theme, settings: StudioThemeSetting
     ...baseTheme,
     name: `${baseTheme.name}-studio`,
     description: `${baseTheme.description}（Studio 调整）`,
-    accent: settings.primaryColor ?? baseTheme.accent,
-    advancedPalette: settings.primaryColor ? undefined : baseTheme.advancedPalette,
     styles,
   }
 }

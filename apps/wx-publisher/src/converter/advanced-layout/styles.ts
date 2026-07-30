@@ -38,25 +38,6 @@ export function getAdvancedPalette(theme: Theme): AdvancedPalette {
       accentShadow: `0 8px 20px ${colorMix(accent, 0.1)}`,
     }
   }
-  if (theme.name === "default" && theme.collection === "built-in") {
-    return {
-      background: "#faf9f5",
-      surface: "#faf9f5",
-      surfaceAlt: "#f7f7f7",
-      accentSoft: "#ead6cc",
-      accentSofter: "#e3c6b9",
-      accent,
-      accentDark: "#b3593b",
-      border: "#dab1a1",
-      mutedBorder: "rgba(202, 202, 199, 0.18)",
-      text: "#555555",
-      textStrong: "#222222",
-      muted: "#737373",
-      shadow: "0 2px 6px rgba(85, 85, 85, 0.06)",
-      accentShadow: "0 8px 20px rgba(200, 100, 66, 0.1)",
-    }
-  }
-
   const wrapperBackground = extractCssColor(theme.styles.wrapper, "background") ?? "#ffffff"
   const surface = extractCssColor(theme.styles.table, "background") ?? wrapperBackground
   const surfaceAlt = extractCssColor(theme.styles.h2, "background") ?? surface

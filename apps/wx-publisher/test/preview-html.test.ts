@@ -5,12 +5,12 @@ import type { ThemePreviewResult } from "../src/converter/preview-html.js"
 const MOCK_RESULTS: ThemePreviewResult[] = [
   {
     theme: "default",
-    displayName: "默认主题",
-    collection: "built-in",
-    density: "medium",
+    displayName: "基础白",
+    collection: "base",
+    density: "low",
     contrast: "medium",
-    accent: "#a34e2e",
-    bestFor: "适合运营、知识内容，气质偏熟悉、微信原生。",
+    accent: "#111827",
+    bestFor: "适合绝大多数知识、运营和长文内容，气质中性、干净。",
     html: "<section>default content</section>",
   },
   {
@@ -65,14 +65,14 @@ describe("generatePreviewHtml", () => {
   it("shows Chinese theme metadata badges and accent swatches", () => {
     const html = generatePreviewHtml(MOCK_RESULTS, FILE_PATH)
 
-    expect(html).toContain("默认主题")
+    expect(html).toContain("基础白")
     expect(html).toContain("GitHub")
-    expect(html).toContain("适合运营、知识内容")
-    expect(html).toContain("原生")
+    expect(html).toContain("适合绝大多数知识、运营和长文内容")
+    expect(html).toContain("基础")
     expect(html).toContain("精选")
     expect(html).toContain("中密度")
     expect(html).toContain("高对比")
-    expect(html).toContain('class="accent-swatch" style="background:#a34e2e"')
+    expect(html).toContain('class="accent-swatch" style="background:#111827"')
     expect(html).not.toContain("medium density")
     expect(html).not.toContain("high contrast")
   })

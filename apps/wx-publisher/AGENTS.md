@@ -39,7 +39,7 @@ AI 助手完成每次明确的代码或文档迭代后，应自行运行必要�
 - 字体栈：系统字体优先，`-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif`
 - 中文正文默认不要加 `letter-spacing`；这会破坏中英文混排阅读节奏
 
-如果确实需要改阅读基线，应先证明这是全局正确行为，而不是某个主题的局部修补；实现时优先改共享常量或共享渲染逻辑，并用至少一个非 `default` 主题一起覆盖测试。`default` 只能通过主题 token 和 `GALLERY_ADVANCED_PALETTES.default` 表达暖色方向，不应拥有私有 style factory 或任何 `if (spec.name === "default") return ...` 样式分支。
+如果确实需要改阅读基线，应先证明这是全局正确行为，而不是某个主题的局部修补；实现时优先改共享常量或共享渲染逻辑，并用至少一个非 `default` 主题一起覆盖测试。`default` 必须保持纯白背景、中性黑灰配色和无实色标题底，不应拥有私有 style factory 或任何 `if (spec.name === "default") return ...` 样式分支。暖色和品牌化方向必须作为独立主题由用户主动选择。
 
 ## 使用前检查
 
@@ -201,14 +201,15 @@ API IP 白名单路径：微信开发者平台 → 我的业务与服务 → 公
 
 ## 主题
 
-运行时主题严格对齐 48 个公开主题 ID，不保留旧兼容主题名。
+运行时主题以产品选型为准，不为外部目录数量或旧主题名维持兼容。默认主题必须是中性白底；Studio 用推荐主题和“版式 × 颜色”组合降低选择成本。
 
 | 系列 | 主题 |
 |------|------|
-| Built-in | `default`, `bytedance`, `apple`, `sports`, `chinese`, `cyber` |
+| Default | `default` |
+| Built-in | `bytedance`, `apple`, `sports`, `chinese`, `cyber` |
 | Classic | `wechat-native`, `nyt-classic` |
 | Modern | `github-readme`, `sspai-red`, `mint-fresh`, `sunset-amber` |
-| Extra | `ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary` |
+| Extra | `warm-editorial`, `ink-minimal`, `lavender-dream`, `coffee-house`, `bauhaus-primary` |
 | Minimal | `minimal-gold`, `minimal-green`, `minimal-blue`, `minimal-orange`, `minimal-red`, `minimal-navy`, `minimal-gray`, `minimal-sky` |
 | Focus | `focus-gold`, `focus-green`, `focus-blue`, `focus-orange`, `focus-red`, `focus-navy`, `focus-gray`, `focus-sky` |
 | Elegant | `elegant-gold`, `elegant-green`, `elegant-blue`, `elegant-orange`, `elegant-red`, `elegant-navy`, `elegant-gray`, `elegant-sky` |

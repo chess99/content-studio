@@ -1,128 +1,67 @@
-# Theme Palette Reference
+# 主题与配色参考
 
-This file documents the 48 runtime themes exposed by `wxp themes`. The public theme surface is aligned with md2wechat's public themes: 6 built-in themes, 10 imported themes, and 4 template families across 8 color variants. Runtime support comes from `src/converter/themes.ts`; `docs/theme-palette-reference.json` is the canonical machine-readable reference for AI and script callers.
+本文档说明 `wxp themes` 暴露的产品主题目录。运行时实现位于 `src/converter/themes.ts`，`docs/theme-palette-reference.json` 是供脚本和 AI 调用方读取的完整机器参考。
 
-## Baseline
+## 产品原则
 
-- Runtime theme IDs remain the public 48-theme md2wechat-aligned catalog.
-- Palette values are maintained as the local machine-readable reference for those public themes.
-- Last local update: 2026-06-03
+- `default` 是纯白背景、中性黑灰配色的基础主题，不承载特定情绪。
+- 暖色、纸张色、品牌色和高视觉装饰都必须由用户主动选择。
+- 普通正文保持统一阅读基线；主题主要改变标题、强调、代码、引用、表格和高级模块。
+- Studio 先展示少量推荐主题，再用“版式 × 颜色”组合生成系列主题，不平铺整个目录。
+- 主题目录服务产品选型，不受外部项目的主题数量或命名约束。
 
-`accent` is the public theme color. `renderAccent`, `accentSoft`, `accentSofter`, `border`, `headingText`, and `text` describe the rendered baseline. Keep both layers: the public color is not always the same as the rendered module accent.
+最后更新：2026-07-30。
 
-The Markdown renderer also supports optional md2wechat-style extension fields on theme files, including `h5`, `h6`, `codespan`, `codePre`, `figure`, `figcaption`, `wxLink`, `footnotes`, alert blockquote fields, and the `gallery*`, `longimage*`, and `dialogue*` module fields. External theme files still only require the original base style keys; extension fields are optional.
+## 使用方式
 
-## Usage
+- CLI 和 API 使用主题 ID，例如 `--theme default`、`--theme github-readme`。
+- `wxp themes` 返回中文展示名、系列、适用场景、密度、对比度和强调色。
+- 需要完整调色板时读取 `docs/theme-palette-reference.json`。
+- 修改目录时同步更新运行时代码、JSON 参考、本文档和主题测试。
 
-- Use the theme IDs directly with `--theme`.
-- Use `wxp themes` when an AI caller needs machine-readable selection metadata: collection, best fit, density, contrast, and accent color.
-- Use `docs/theme-palette-reference.json` when an AI caller needs rendered accents, soft fills, borders, and text colors.
-- When editing the catalog, update `src/converter/themes.ts`, this document, `docs/theme-palette-reference.json`, and the theme tests together.
+## 推荐主题
 
-## Groups
+| ID | 展示名 | 适用场景 | 视觉方向 |
+| --- | --- | --- | --- |
+| `default` | 基础白 | 通用知识、运营和长文 | 中性、干净、白底 |
+| `wechat-native` | 微信公众号原生 | 稳妥的公众号内容 | 熟悉、保守 |
+| `github-readme` | GitHub | 技术教程和开发文档 | 结构化、技术感 |
+| `nyt-classic` | NYT | 报告、评论和严肃长文 | 报刊、编辑感 |
+| `ink-minimal` | 水墨 | 文字密集的知识和专题内容 | 黑白、克制 |
+| `bold-red` | 醒目 · 中国红 | 活动、专题和转化内容 | 强调、传播 |
 
-| Group | Count | Purpose |
-| --- | ---: | --- |
-| `native` | 6 | Built-in md2wechat directions for common content types. |
-| `classic` | 2 | Conservative editorial directions for familiar, serious reading. |
-| `modern` | 4 | Product, developer, media, and lifestyle directions. |
-| `extra` | 4 | Stronger expressive directions for distinct columns or campaigns. |
-| `minimal` | 8 | Low-friction template palette family. |
-| `focus` | 8 | Centered, rhythm-first template palette family. |
-| `elegant` | 8 | Layered editorial template palette family. |
-| `bold` | 8 | High-impact template palette family. |
+## 版式矩阵
 
-## Native Palettes
+组合主题由四种版式和八种强调色组成。
 
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `default` | 默认主题 | `#a34e2e` | `#b3593b` | `#222222` | 默认主题 适合运营、知识内容，气质偏熟悉、微信原生。 |
-| `bytedance` | 字节范 | `#1677ff` | `#1571f1` | `#4e5969` | 字节范 适合产品、品牌内容，气质偏科技、效率。 |
-| `apple` | 苹果范 | `#007aff` | `#0072ef` | `#333333` | 苹果范 适合品牌、产品内容，气质偏精致、未来感。 |
-| `sports` | 运动风 | `#00a968` | `#05875f` | `#2c2c2c` | 运动风 适合运营、专题内容，气质偏动感、活力。 |
-| `chinese` | 中国风 | `#8b1e22` | `#8b1e22` | `#333333` | 中国风 适合专题、品牌内容，气质偏古典、文化。 |
-| `cyber` | 赛博朋克 | `#f472b6` | `#8659ed` | `#333333` | 赛博朋克 适合专题、产品内容，气质偏赛博、实验性。 |
+| 版式 | ID 前缀 | 说明 |
+| --- | --- | --- |
+| 简约 | `minimal-*` | 最低干扰，内容优先 |
+| 聚焦 | `focus-*` | 居中强调，节奏清楚 |
+| 编辑 | `elegant-*` | 层次丰富，适合品牌长文 |
+| 醒目 | `bold-*` | 强标题，适合活动与转化 |
 
-## Classic Palettes
+可用颜色：`gold`、`green`、`blue`、`orange`、`red`、`navy`、`gray`、`sky`。
 
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `wechat-native` | 微信公众号原生 | `#07c160` | `#058844` | `#333333` | 微信公众号原生 适合运营、知识内容，气质偏熟悉、稳妥。 |
-| `nyt-classic` | NYT | `#326891` | `#326891` | `#000000` | NYT 适合知识、专题内容，气质偏报刊、严肃。 |
+## 其他风格预设
 
-## Modern Palettes
+- 产品与现代内容：`bytedance`、`apple`、`sports`、`cyber`
+- 经典与媒体：`sspai-red`、`mint-fresh`、`sunset-amber`
+- 特色风格：`warm-editorial`、`chinese`、`lavender-dream`、`coffee-house`、`bauhaus-primary`
 
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `github-readme` | GitHub | `#0969da` | `#0969da` | `#1f2328` | GitHub 适合产品、知识内容，气质偏技术、结构化。 |
-| `sspai-red` | 少数派 | `#d71a1b` | `#d71a1b` | `#333333` | 少数派 适合产品、品牌内容，气质偏媒体感、中文科技。 |
-| `mint-fresh` | 薄荷 | `#1a7a5a` | `#1a7a5a` | `#2d4a3e` | 薄荷 适合品牌、运营内容，气质偏清新、生活方式。 |
-| `sunset-amber` | 日落 | `#c0582a` | `#b85428` | `#3d2c1e` | 日落 适合专题、品牌内容，气质偏叙事、温暖。 |
+其中 `warm-editorial` 保存原来的暖色编辑方向，但不再作为默认主题。
 
-## Extra Palettes
+## 阅读基线
 
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `ink-minimal` | 水墨 | `#111111` | `#111111` | `#111111` | 水墨 适合知识、专题内容，气质偏黑白、克制。 |
-| `lavender-dream` | 薰衣草 | `#6b4c9a` | `#6b4c9a` | `#3d3155` | 薰衣草 适合品牌、专题内容，气质偏柔和、浪漫。 |
-| `coffee-house` | 咖啡 | `#6d4c41` | `#6d4c41` | `#3e2723` | 咖啡 适合专题、品牌内容，气质偏温暖、人文。 |
-| `bauhaus-primary` | Bauhaus | `#004d9f` | `#004d9f` | `#1a1a1a` | Bauhaus 适合专题、品牌、产品内容，气质偏现代主义、实验。 |
+- 正文：`16px`、`line-height:1.82`、段后 `16px`
+- 列表：与正文同字号、同行高
+- 字体：系统字体优先
+- 中文正文默认不增加字间距
+- 默认画布：`#ffffff`
 
-## Minimal Matrix
+## 维护检查
 
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `minimal-gold` | 简约 · 古铜金 | `#c8a062` | `#8f7246` | `#2c2c2c` | 简约 · 古铜金 适合知识、运营内容，气质偏克制、整洁、温润、沉稳。 |
-| `minimal-green` | 简约 · 翡翠绿 | `#2bae85` | `#218666` | `#2c2c2c` | 简约 · 翡翠绿 适合知识、运营内容，气质偏克制、整洁、清新、自然。 |
-| `minimal-blue` | 简约 · 宝石蓝 | `#4b6ef5` | `#496bef` | `#2c2c2c` | 简约 · 宝石蓝 适合知识、运营内容，气质偏克制、整洁、专业、科技。 |
-| `minimal-orange` | 简约 · 暖阳橙 | `#f89a3a` | `#a76827` | `#2c2c2c` | 简约 · 暖阳橙 适合知识、运营内容，气质偏克制、整洁、明快、亲和。 |
-| `minimal-red` | 简约 · 中国红 | `#f25c54` | `#ca4d46` | `#2c2c2c` | 简约 · 中国红 适合知识、运营内容，气质偏克制、整洁、强调、传播。 |
-| `minimal-navy` | 简约 · 深海蓝 | `#1f4f8a` | `#1f4f8a` | `#2c2c2c` | 简约 · 深海蓝 适合知识、运营内容，气质偏克制、整洁、可信、理性。 |
-| `minimal-gray` | 简约 · 石墨灰 | `#4e5969` | `#4e5969` | `#2c2c2c` | 简约 · 石墨灰 适合知识、运营内容，气质偏克制、整洁、中性。 |
-| `minimal-sky` | 简约 · 天空蓝 | `#3a7fd5` | `#3777c8` | `#2c2c2c` | 简约 · 天空蓝 适合知识、运营内容，气质偏克制、整洁、通透、轻盈。 |
-
-## Focus Matrix
-
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `focus-gold` | 聚焦 · 古铜金 | `#c8a062` | `#8f7246` | `#2c2c2c` | 聚焦 · 古铜金 适合知识、品牌内容，气质偏聚焦、秩序、温润、沉稳。 |
-| `focus-green` | 聚焦 · 翡翠绿 | `#2bae85` | `#218666` | `#2c2c2c` | 聚焦 · 翡翠绿 适合知识、品牌内容，气质偏聚焦、秩序、清新、自然。 |
-| `focus-blue` | 聚焦 · 宝石蓝 | `#4b6ef5` | `#496bef` | `#2c2c2c` | 聚焦 · 宝石蓝 适合知识、品牌内容，气质偏聚焦、秩序、专业、科技。 |
-| `focus-orange` | 聚焦 · 暖阳橙 | `#f89a3a` | `#a76827` | `#2c2c2c` | 聚焦 · 暖阳橙 适合知识、品牌内容，气质偏聚焦、秩序、明快、亲和。 |
-| `focus-red` | 聚焦 · 中国红 | `#f25c54` | `#ca4d46` | `#2c2c2c` | 聚焦 · 中国红 适合知识、品牌内容，气质偏聚焦、秩序、强调、传播。 |
-| `focus-navy` | 聚焦 · 深海蓝 | `#1f4f8a` | `#1f4f8a` | `#2c2c2c` | 聚焦 · 深海蓝 适合知识、品牌内容，气质偏聚焦、秩序、可信、理性。 |
-| `focus-gray` | 聚焦 · 石墨灰 | `#4e5969` | `#4e5969` | `#2c2c2c` | 聚焦 · 石墨灰 适合知识、品牌内容，气质偏聚焦、秩序、克制、中性。 |
-| `focus-sky` | 聚焦 · 天空蓝 | `#3a7fd5` | `#3777c8` | `#2c2c2c` | 聚焦 · 天空蓝 适合知识、品牌内容，气质偏聚焦、秩序、通透、轻盈。 |
-
-## Elegant Matrix
-
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `elegant-gold` | 精致 · 古铜金 | `#c8a062` | `#8f7246` | `#2c2c2c` | 精致 · 古铜金 适合品牌、运营内容，气质偏精致、雅致、温润、沉稳。 |
-| `elegant-green` | 精致 · 翡翠绿 | `#2bae85` | `#218666` | `#2c2c2c` | 精致 · 翡翠绿 适合品牌、运营内容，气质偏精致、雅致、清新、自然。 |
-| `elegant-blue` | 精致 · 宝石蓝 | `#4b6ef5` | `#496bef` | `#2c2c2c` | 精致 · 宝石蓝 适合品牌、运营内容，气质偏精致、雅致、专业、科技。 |
-| `elegant-orange` | 精致 · 暖阳橙 | `#f89a3a` | `#a76827` | `#2c2c2c` | 精致 · 暖阳橙 适合品牌、运营内容，气质偏精致、雅致、明快、亲和。 |
-| `elegant-red` | 精致 · 中国红 | `#f25c54` | `#ca4d46` | `#2c2c2c` | 精致 · 中国红 适合品牌、运营内容，气质偏精致、雅致、强调、传播。 |
-| `elegant-navy` | 精致 · 深海蓝 | `#1f4f8a` | `#1f4f8a` | `#2c2c2c` | 精致 · 深海蓝 适合品牌、运营内容，气质偏精致、雅致、可信、理性。 |
-| `elegant-gray` | 精致 · 石墨灰 | `#4e5969` | `#4e5969` | `#2c2c2c` | 精致 · 石墨灰 适合品牌、运营内容，气质偏精致、雅致、克制、中性。 |
-| `elegant-sky` | 精致 · 天空蓝 | `#3a7fd5` | `#3777c8` | `#2c2c2c` | 精致 · 天空蓝 适合品牌、运营内容，气质偏精致、雅致、通透、轻盈。 |
-
-## Bold Matrix
-
-| ID | Display | Accent | Render Accent | Text | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `bold-gold` | 醒目 · 古铜金 | `#c8a062` | `#8f7246` | `#2c2c2c` | 醒目 · 古铜金 适合专题、品牌、运营内容，气质偏醒目、宣传、温润、沉稳。 |
-| `bold-green` | 醒目 · 翡翠绿 | `#2bae85` | `#218666` | `#2c2c2c` | 醒目 · 翡翠绿 适合专题、品牌、运营内容，气质偏醒目、宣传、清新、自然。 |
-| `bold-blue` | 醒目 · 宝石蓝 | `#4b6ef5` | `#496bef` | `#2c2c2c` | 醒目 · 宝石蓝 适合专题、品牌、运营内容，气质偏醒目、宣传、专业、科技。 |
-| `bold-orange` | 醒目 · 暖阳橙 | `#f89a3a` | `#a76827` | `#2c2c2c` | 醒目 · 暖阳橙 适合专题、品牌、运营内容，气质偏醒目、宣传、明快、亲和。 |
-| `bold-red` | 醒目 · 中国红 | `#f25c54` | `#ca4d46` | `#2c2c2c` | 醒目 · 中国红 适合专题、品牌、运营内容，气质偏醒目、宣传、强调、传播。 |
-| `bold-navy` | 醒目 · 深海蓝 | `#1f4f8a` | `#1f4f8a` | `#2c2c2c` | 醒目 · 深海蓝 适合专题、品牌、运营内容，气质偏醒目、宣传、可信、理性。 |
-| `bold-gray` | 醒目 · 石墨灰 | `#4e5969` | `#4e5969` | `#2c2c2c` | 醒目 · 石墨灰 适合专题、品牌、运营内容，气质偏醒目、宣传、克制、中性。 |
-| `bold-sky` | 醒目 · 天空蓝 | `#3a7fd5` | `#3777c8` | `#2c2c2c` | 醒目 · 天空蓝 适合专题、品牌、运营内容，气质偏醒目、宣传、通透、轻盈。 |
-
-## Maintenance Checks
-
-- Keep `docs/theme-palette-reference.json` at exactly 48 palettes unless the public md2wechat-aligned source set changes.
-- Keep every palette ID unique and aligned with `src/converter/themes.ts`.
-- Keep all palette color values in six-digit hex format.
-- Revisit both source URLs when changing theme colors; do not infer palette values from theme names alone.
+- 所有主题 ID 必须唯一，并与 `src/converter/themes.ts` 顺序一致。
+- 组合主题必须保持四种版式 × 八种颜色完整。
+- JSON 中的颜色统一使用六位十六进制。
+- 默认主题不得引入有色画布、实色标题底或只针对 `default` 的私有样式分支。

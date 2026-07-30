@@ -6,7 +6,7 @@ import { randomUUID } from "crypto"
 import { spawn } from "child_process"
 import { fileURLToPath } from "url"
 import { convertMarkdown } from "../converter/index.js"
-import { getTheme, hasTheme, listThemes, type Theme } from "../converter/themes.js"
+import { getTheme, hasTheme, listThemeReferences, type Theme } from "../converter/themes.js"
 import { getPlaceholderCoverBase64 } from "../converter/placeholder-cover.js"
 import { loadConfig, validateConfig } from "../config/index.js"
 import { WechatClient } from "../wechat/client.js"
@@ -115,10 +115,7 @@ function buildState(articlePath: string): { success: true; data: unknown } {
         name: articlePath.split("/").pop() ?? articlePath,
         markdown: readFileSync(articlePath, "utf-8"),
       },
-      themes: listThemes().map(name => {
-        const theme = getTheme(name)
-        return { name: theme.name, description: theme.description }
-      }),
+      themes: listThemeReferences(),
       advancedModules: {
         public: PUBLIC_ADVANCED_MODULES,
         enhanced: ENHANCED_ADVANCED_MODULES,
@@ -258,7 +255,6 @@ class StudioRequestError extends Error {
 function asThemeSettings(value: unknown): StudioThemeSettings {
   if (!isRecord(value)) return {}
   return {
-    primaryColor: typeof value.primaryColor === "string" ? value.primaryColor : undefined,
     fontSize: typeof value.fontSize === "number" ? value.fontSize : undefined,
     fontFamily: value.fontFamily === "serif" || value.fontFamily === "mono" || value.fontFamily === "system" ? value.fontFamily : undefined,
     codeBlockStyle: value.codeBlockStyle === "light" || value.codeBlockStyle === "dark" ? value.codeBlockStyle : undefined,

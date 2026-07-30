@@ -43,6 +43,7 @@ describe("Studio server", () => {
       success: boolean
       data: {
         article: { markdown: string }
+        themes: Array<{ name: string; displayName: string; collection: string; bestFor: string; accent: string }>
         advancedModules: { public: string[]; enhanced: string[]; total: number }
         config: { wechat_appid: string; wechat_secret_configured: boolean }
       }
@@ -53,6 +54,13 @@ describe("Studio server", () => {
     expect(payload.data.article.markdown).toBe("# Hello")
     expect(payload.data.config.wechat_appid).toBe("wx_test_app")
     expect(payload.data.config.wechat_secret_configured).toBe(true)
+    expect(payload.data.themes[0]).toMatchObject({
+      name: "default",
+      displayName: "基础白",
+      collection: "base",
+      accent: "#111827",
+    })
+    expect(payload.data.themes[0]?.bestFor).toContain("气质中性、干净")
     expect(payload.data.advancedModules.public).toContain("hero")
     expect(payload.data.advancedModules.enhanced).toContain("dialogue")
     expect(payload.data.advancedModules.total).toBe(
