@@ -33,7 +33,7 @@ LONGFORM_DIR = TOPIC_DIR/longform/
 
 从 `TOPIC_DIR` 向上定位内容资产仓库根目录 `CONTENT_ROOT`。开始选题表达、写作、渠道适配或制作封面前，必须读取 `CONTENT_ROOT/brand/BRAND.md`，用其中的定位、栏目、语气和事实边界约束成稿。
 
-只有在制作或修改封面时再读取 `CONTENT_ROOT/brand/cover-system.md`。命名研究、Logo 探索和封面样例不自动生效；只有 `BRAND.md` 明确列为正式资产的文件才能直接复用。
+只使用 `BRAND.md` 明确列出的正式资产，不自动搜索或读取 `CONTENT_ROOT/research/`。命名讨论、Logo 探索和封面实验只有被人工确认并写入正式品牌入口后才生效。
 
 ## 阶段检测
 

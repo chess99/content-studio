@@ -17,12 +17,9 @@ IMAGE_POST_DIR = TOPIC_DIR/image-post/
 
 ## 品牌上下文
 
-从 `TOPIC_DIR` 向上定位内容资产仓库根目录 `CONTENT_ROOT`。开始写公开文案、规划图片或制作封面前，必须读取：
+从 `TOPIC_DIR` 向上定位内容资产仓库根目录 `CONTENT_ROOT`。开始写公开文案、规划图片或制作封面前，必须读取 `CONTENT_ROOT/brand/BRAND.md`。
 
-- `CONTENT_ROOT/brand/BRAND.md`
-- `CONTENT_ROOT/brand/cover-system.md`（仅在制作或修改首图、封面时）
-
-`BRAND.md` 是唯一默认生效入口。命名研究、Logo 探索和封面样例只有被它明确列为正式资产时才能直接使用；不得把探索稿、临时账号名或临时 Logo 自动套进发布图。具体主题的最终图片仍写入 `IMAGE_POST_DIR/images/`，不得复制整套品牌文件。
+`BRAND.md` 是唯一默认生效入口。只使用其中明确列出的正式资产，不自动搜索或读取 `CONTENT_ROOT/research/`，不得把调研中的候选名称、Logo 或封面样例套进发布图。具体主题的最终图片仍写入 `IMAGE_POST_DIR/images/`，不得复制整套品牌文件。
 
 ## 风险分级
 

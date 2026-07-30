@@ -14,7 +14,7 @@ description: 可追溯知识视频生产工作流。用于把文章、数据或�
 - 内容资产仓库根目录 `AGENTS.md`
 - 内容资产仓库根目录 `brand/BRAND.md`
 
-账号级 `brand/BRAND.md` 约束作者识别、栏目、语气、封面和发布包，是唯一默认生效的母品牌入口。`apps/knowledge-video-factory/themes/` 只提供版式、图表和动效预设，不得覆盖账号名、作者字标、Logo 状态、栏目或签名。制作封面时再读取内容资产仓库的 `brand/cover-system.md`。
+账号级 `brand/BRAND.md` 约束作者识别、栏目、语气、封面和发布包，是唯一默认生效的母品牌入口。只使用其中明确列出的正式资产，不自动搜索或读取内容资产仓库的 `research/`。`apps/knowledge-video-factory/themes/` 只提供版式、图表和动效预设，不得覆盖账号名、作者字标、Logo 状态、栏目或签名。
 
 ## 目录
 
