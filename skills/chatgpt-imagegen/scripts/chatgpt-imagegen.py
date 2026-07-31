@@ -276,9 +276,13 @@ def _stream(
         headers=headers,
         method="POST",
     )
-    # Initial connect timeout: shorter of remaining budget or 30s.
-    initial = max(1.0, min(30.0, deadline - time.monotonic()))
-    resp = urllib.request.urlopen(req, timeout=initial)
+    # urllib applies one timeout to connect, upload, and socket reads. Use the
+    # caller's remaining wall-clock budget here; a 30s connect cap also became
+    # a 30s image-generation read cap and made --timeout ineffective.
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise GatewayError("stream exceeded total timeout budget; aborting")
+    resp = urllib.request.urlopen(req, timeout=max(1.0, remaining))
     try:
         data_buf: list[str] = []
         for raw in resp:
@@ -348,6 +352,10 @@ def _post_for_image(
     except urllib.error.HTTPError as e:
         body_text = e.read().decode("utf-8", errors="ignore")
         raise GatewayError(f"HTTP {e.code}: {body_text[:600]}", status=e.code) from None
+    except TimeoutError:
+        raise GatewayError("stream timed out before the image was returned") from None
+    except urllib.error.URLError as e:
+        raise GatewayError(f"network error while generating image: {e.reason}") from None
 
     if not image_b64:
         types_seen = ", ".join(sorted(saw_event_types)) or "(none)"

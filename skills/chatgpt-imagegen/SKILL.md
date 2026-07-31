@@ -15,7 +15,11 @@ A standalone Python CLI that produces images via the user's ChatGPT subscription
 
 The CLI is a fallback integration, not the default image path for repository workflows.
 
-The script lives at `$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py` — always call it by that path.
+The script lives at `$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py` — always call it by that path. If the harness did not set `CLAUDE_SKILL_DIR`, resolve the directory from this skill's catalog locator and set the variable before invoking the script. From the `content-studio` repository root, PowerShell can use:
+
+```powershell
+$env:CLAUDE_SKILL_DIR = (Resolve-Path 'skills/chatgpt-imagegen').Path
+```
 
 ## Prerequisites
 
@@ -108,7 +112,8 @@ OUT=$(python "$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py" "..." --quiet)
 | `HTTP 400 requires a newer version of Codex` | local codex CLI is outdated | Tell user to run `npm i -g @openai/codex@latest` |
 | `HTTP 401` / `HTTP 403` then refresh works | Token expired and refresh succeeded | No action needed — script auto-retried |
 | `refresh_token is no longer valid — run codex login again` | Refresh token revoked or rotated | Tell user to run `codex login` again |
-| `stream exceeded total timeout budget` | Backend stuck or slow | Retry; if persistent, pass `--timeout 300` |
+| `stream exceeded total timeout budget` / `stream timed out before the image was returned` | Backend stuck, slow, or the requested budget is too short | Retry once with `--timeout 300`; do not loop |
+| Upload/write timeout with several references | Reference payload or concurrency is too large for the connection | Resize reference copies, keep originals unchanged, and reduce concurrency |
 | `no image returned. events seen: ...` | Model decided not to call the tool | Rephrase prompt to explicitly say "Use the image_generation tool to render…" |
 | `HTTP 429` | Subscription rate-limited | Wait a few minutes; do not retry in a loop |
 | `warning: --format=X but FILE.Y has .Y extension` | `-o` extension disagrees with `--format` | Fix the path or the format flag; the file IS written with the format you specified |

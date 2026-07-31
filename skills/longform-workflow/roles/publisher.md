@@ -42,7 +42,8 @@
 wxp publish \
   --file "<TOPIC_DIR>/longform/wechat/article.md" \
   --cover "<TOPIC_DIR>/longform/wechat/cover.jpg" \
-  --theme warm-tech \
+  --layout editorial \
+  --palette blue \
   --title "<标题>" \
   --digest "<120字以内摘要>"
 ```
