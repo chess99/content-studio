@@ -1,11 +1,19 @@
 ---
 name: "chatgpt-imagegen"
-description: "Generate raster images (PNG/JPEG/WebP) using the user's ChatGPT subscription via a local one-file Python CLI — no OPENAI_API_KEY, no gateway, no daemon. Use when an agent needs to create a brand-new bitmap asset for the current project (photos, illustrations, icons, hero banners, mockups, sprites, concept art) and the output should be a bitmap file saved into the workspace. Do not use when the task is better solved by editing existing SVG/vector assets, writing code-native graphics (HTML/CSS/canvas), or extending an established repo icon system."
+description: "Legacy compatibility CLI for generating raster images through a ChatGPT subscription. Use only when the user explicitly asks for this local CLI, or when running in Claude Code or another agent environment that has no native image-generation tool. In Codex with native image generation available, do not use this skill; use Codex's built-in image-generation capability instead."
 ---
 
-# chatgpt-imagegen — agent skill
+# chatgpt-imagegen — compatibility skill
 
-A standalone Python CLI that produces images via the user's ChatGPT subscription. It is a thin wrapper around ChatGPT's internal `image_generation` Responses-API tool, the same one the Codex CLI invokes. No API key, no network service, no extra config.
+A standalone Python CLI that produces images via the user's ChatGPT subscription. It is retained for Claude Code and other agent environments without native image generation.
+
+## Runtime routing
+
+- **Codex with native image generation available:** stop using this skill and call the native image-generation tool. Do not inspect `CLAUDE_SKILL_DIR`, OAuth files, or this compatibility script.
+- **Claude Code or an agent without native image generation:** use this CLI.
+- **Explicit user request for this CLI:** use this CLI even if another image tool exists.
+
+The CLI is a fallback integration, not the default image path for repository workflows.
 
 The script lives at `$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py` — always call it by that path.
 
@@ -24,12 +32,14 @@ No `OPENAI_API_KEY` is required — and setting one will not help. This is the s
 
 ## When to use
 
-- The user asks for a new photo, illustration, icon, hero banner, sprite, cover image, infographic, product mockup, concept art, or any other bitmap deliverable for the current project.
+- The runtime has no native image-generation tool and the user asks for a new bitmap asset.
+- The user explicitly asks to use `chatgpt-imagegen` or this local subscription CLI.
 - The user is happy with subscription-tier quality (`medium` quality, no native transparent backgrounds — see *Limits* below).
 - The deliverable is intended to be saved into the repo or build inputs.
 
 ## When not to use
 
+- Codex already exposes a native image-generation tool. Use that tool instead.
 - The user wants an SVG icon that matches an in-repo vector set — edit those instead.
 - The task is better solved with code (HTML/CSS, canvas, Mermaid, PlantUML).
 - The user already has an image on disk and wants to *edit* it — this skill is generate-only.

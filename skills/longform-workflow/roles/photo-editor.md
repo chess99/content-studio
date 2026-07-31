@@ -130,19 +130,22 @@ professional developer tool aesthetic, no people.
 
 如果内容资产仓库的 `brand/BRAND.md` 指向 `brand/COVER.md`，且本次图片属于“晨笙做东西”账号封面，则把账号名、系列名、精确标题和 Logo 造型参考一起交给图片模型，让模型在整张图中直接生成。不要后期叠加 SVG、确定性文字或精确 Logo，也不要添加系列编号；影响含义的错字通过重新生成候选解决。公众号横版仍遵守下述 2.35:1 尺寸要求。
 
-公众号封面最终尺寸是 `900×383`，但生图后端要求宽高都能被 16 整除，不能直接请求 `900x383`。优先请求同为 2.35:1 且可被 16 整除的 `1504x640`，再缩放为 `900×383`。这样通常不需要从 16:9 大图裁剪，能减少主体被裁掉的风险。
+公众号封面最终尺寸是 `900×383`。生图时优先请求接近 2.35:1 的横版构图；工具支持自定义尺寸时可用 `1504×640`，再缩放为 `900×383`。工具只支持固定比例时，让标题、主体和 Logo 留在中央 2.35:1 安全区，生成后再裁切，避免直接拉伸。
 
 ### 第二步：生成 4 张候选图
 
-以下命令在仓库根目录执行。先检测 chatgpt-imagegen 是否可用：
+按当前 Agent 的能力选择路径：
 
-```bash
-python3 skills/chatgpt-imagegen/scripts/chatgpt-imagegen.py --help 2>/dev/null
-```
+**路径 A — Codex 或其他运行时提供原生图片生成工具（默认）**：
 
-**路径 A — chatgpt-imagegen 可用**（需要 `codex login` 登录过 ChatGPT Plus）：
+- 直接调用原生图片生成工具，不加载或调用 `chatgpt-imagegen` skill。
+- 把第一步的完整 prompt、品牌参考图、Logo 造型参考和主题真实素材一起传入。
+- 生成 4 张候选图，分别保存为 `cover-1.png` 到 `cover-4.png`。
+- 公众号横版优先生成 2.35:1 构图；若原生工具只支持近似尺寸，确保主体与全部文字位于 2.35:1 中央安全区，再做缩放或裁切。
 
-4 张并行生成，每张约 20-40 秒：
+**路径 B — Claude Code 或其他没有原生图片生成工具的运行时**：
+
+使用保留的 `chatgpt-imagegen` 兼容 CLI。该路径需要 `codex login` 登录过 ChatGPT Plus。以下命令在仓库根目录执行，4 张并行生成：
 
 ```bash
 TOPIC_DIR="<内容资产仓库>/topics/YYYYMMDD-article-slug"
@@ -164,13 +167,13 @@ for i in 1 2 3 4; do
 done
 ```
 
-**路径 B — 未配置**：
+**路径 C — 原生工具与兼容 CLI 均不可用**：
 
 把第一步起草的 prompt 交给用户，让用户在 ChatGPT（或其他生图工具）里生成，下载后放入 `TOPIC_DIR/longform/wechat/cover-candidates/`。
 
 ### 第三步：选定候选图
 
-**STOP — 人工判断**：查看 `cover-candidates/`，确认风格方向，选定一张，告知文件名（路径 A 为 `cover-1.png` 到 `cover-4.png`，路径 B 为用户提供的文件名）。
+**STOP — 人工判断**：查看 `cover-candidates/`，确认风格方向，选定一张，告知文件名。路径 A、B 默认使用 `cover-1.png` 到 `cover-4.png`；路径 C 使用用户提供的文件名。
 
 ### 第四步：缩放到 900×383（公众号标准）
 

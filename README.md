@@ -39,7 +39,7 @@ docs/                           跨模块设计和迁移文档
 - `image-post-workflow`：小红书、抖音等图片轮播内容的分级创作流程。
 - `knowledge-video-workflow`：调用视频工厂完成知识视频脚本、分镜、配音、渲染和质检。
 - `wechat-publish`：预览公众号内容并创建文章或贴图草稿。
-- `chatgpt-imagegen`：通过本地命令生成位图。
+- `chatgpt-imagegen`：为 Claude Code 或无原生生图能力的 Agent 保留的本地位图生成兼容入口；Codex 默认使用原生图片生成工具。
 - `douyin-download`：归档用户有权访问的抖音内容。
 
 兼容入口：
