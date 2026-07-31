@@ -17,7 +17,7 @@ IMAGE_POST_DIR = TOPIC_DIR/image-post/
 
 ## 品牌上下文
 
-从 `TOPIC_DIR` 向上定位内容资产仓库根目录 `CONTENT_ROOT`。开始写公开文案、规划图片或制作封面前，必须读取 `CONTENT_ROOT/brand/BRAND.md`。
+从 `TOPIC_DIR` 向上定位内容资产仓库根目录 `CONTENT_ROOT`。开始写公开文案、规划图片或制作封面前，必须读取 `CONTENT_ROOT/brand/BRAND.md`。制作账号封面时还必须读取其中指定的 `CONTENT_ROOT/brand/COVER.md` 和正式参考图。
 
 `BRAND.md` 是唯一默认生效入口。只使用其中明确列出的正式资产，不自动搜索或读取 `CONTENT_ROOT/research/`，不得把调研中的候选名称、Logo 或封面样例套进发布图。具体主题的最终图片仍写入 `IMAGE_POST_DIR/images/`，不得复制整套品牌文件。
 
@@ -38,7 +38,7 @@ IMAGE_POST_DIR = TOPIC_DIR/image-post/
 2. 按风险决定是否创建或补充根目录 `research.md`；原始证据放 `shared/`。
 3. 写 `image-post/post.md`。标题、正文和标签可以放在同一文件中。
 4. 多图时写 `image-post/image-plan.md`，明确每张图的作用、信息、证据和顺序；单图可以省略。
-5. 收集、生成或编辑图片。表达性封面和插画优先直接生图；只有数据精确、表格对齐或文字必须完全可控时才使用程序化排版。
+5. 收集、生成或编辑图片。账号封面严格按 `brand/COVER.md` 整张模型生成，标题、系列名、作者字标和近似 Logo 都由模型完成，不用 SVG 或程序化文字覆盖，也不添加系列编号。精确数据、真实 UI、表格和证据卡放内页，可按需要使用程序化排版。
 6. 将最终发布图放入 `image-post/images/`，生图原稿或只属于本次图文的中间素材放 `image-post/source/`。
 7. 按 `references/quality-gates.md` 完成事实、视觉、隐私和发布检查。
 8. 在 `topic.md` 记录各平台使用版本。只有发生实质差异时才创建 `image-post/xiaohongshu/`、`image-post/douyin/` 或 `image-post/wechat/`。

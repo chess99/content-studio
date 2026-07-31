@@ -62,7 +62,7 @@ if (!coverOnly) {
   }
 }
 
-if (mode === "final") {
+if (mode === "final" || coverOnly) {
   if (!coverOnly) await copyFile(output, join(publishDir, "final.mp4"));
   const coverPropsPath = join(root, "tmp", `${projectKey}-cover-props.json`);
   await writeFile(coverPropsPath, `${JSON.stringify(props, null, 2)}\n`);
@@ -71,7 +71,7 @@ if (mode === "final") {
     "still",
     "src/video/index.ts",
     "KnowledgeCover",
-    join(publishDir, "cover.png"),
+    join(renderDir, "cover-preview.png"),
     `--props=${coverPropsPath}`,
     `--browser-executable=${chrome}`,
     "--frame=0",
@@ -79,7 +79,7 @@ if (mode === "final") {
   ]);
 }
 
-console.log(coverOnly ? "封面已更新。" : `已输出：${output}`);
+console.log(coverOnly ? "工程预览封面已更新。" : `已输出：${output}`);
 
 function run(command, commandArgs) {
   return new Promise((resolveRun, rejectRun) => {

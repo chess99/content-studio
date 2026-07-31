@@ -35,6 +35,8 @@ const Chart: React.FC<{points: DataPoint[]; peakLabel?: string; currentLabel?: s
 export const KnowledgeCover: React.FC<VideoProps> = (props) => {
   const cover = props.cover ?? {};
   const brand = props.brand ?? {};
+  const series = brand.series ?? "市场温度计";
+  const seriesLabel = brand.issue ? `${series} · ${brand.issue}` : series;
   const points = props.scenes.find((scene) => scene.template === "line-chart")?.visual.points ?? [];
   const titleLines = cover.titleLines ?? [props.title];
   return (
@@ -42,7 +44,7 @@ export const KnowledgeCover: React.FC<VideoProps> = (props) => {
       <div style={{position: "absolute", left: 0, top: 0, bottom: 0, width: 12, background: theme.red}} />
       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 25, borderBottom: `3px solid ${theme.ink}`}}>
         <BrandMark tagline={brand.tagline} />
-        <div style={{fontFamily: numberFontFamily, fontSize: 24, fontWeight: 850, letterSpacing: 2, color: theme.inkMuted}}>{brand.series ?? "市场温度计"} · {brand.issue ?? "001"}</div>
+        <div style={{fontFamily: numberFontFamily, fontSize: 24, fontWeight: 850, letterSpacing: 2, color: theme.inkMuted}}>{seriesLabel}</div>
       </div>
 
       <div style={{marginTop: 104}}>

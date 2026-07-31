@@ -13,7 +13,7 @@ const defaultProps: VideoProps = {
   height: 1920,
   totalFrames: 300,
   scenes: [],
-  brand: {tagline: "用数据校准判断", series: "市场温度计", issue: "001"},
+  brand: {tagline: "用数据校准判断", series: "市场温度计"},
   cover: {titleLines: ["知识视频"], stat: ""},
 };
 

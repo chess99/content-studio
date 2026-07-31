@@ -9,6 +9,8 @@ import {fontFamily, theme} from "./theme";
 
 export const KnowledgeVideo: React.FC<VideoProps> = (props) => {
   const frame = useCurrentFrame();
+  const series = props.brand?.series ?? props.seriesLabel;
+  const seriesLabel = props.brand?.issue ? `${series} · ${props.brand.issue}` : series;
 
   return (
     <AbsoluteFill style={{background: theme.paper, color: theme.ink, fontFamily}}>
@@ -16,7 +18,7 @@ export const KnowledgeVideo: React.FC<VideoProps> = (props) => {
       <div style={{position: "absolute", left: 72, right: 72, top: 62, height: 2, background: theme.ink}} />
       <div style={{position: "absolute", left: 72, right: 72, top: 78, display: "flex", justifyContent: "space-between", alignItems: "center", color: theme.ink, fontWeight: 800}}>
         <BrandMark tagline={props.brand?.tagline} compact />
-        <span style={{fontSize: 23, color: theme.inkMuted, letterSpacing: 2}}>{props.brand?.series ?? props.seriesLabel} · {props.brand?.issue ?? "001"}</span>
+        <span style={{fontSize: 23, color: theme.inkMuted, letterSpacing: 2}}>{seriesLabel}</span>
       </div>
 
       {props.scenes.map((scene) => (

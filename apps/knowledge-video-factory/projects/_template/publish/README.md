@@ -3,7 +3,7 @@
 最终应包含：
 
 - `final.mp4`
-- `cover.png`
+- `cover.png`（由上层 workflow 按账号品牌用图片模型完整生成；本 app 的 `KnowledgeCover` 预览稿不能代替）
 - `subtitles.srt`
 - `title-options.md`
 - `post-douyin.md`
