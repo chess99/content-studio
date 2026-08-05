@@ -23,7 +23,8 @@ D:\code\content\topics\20260722-superpowers-flow-tax
 ## 结构
 
 ```text
-skills/                         Agent 工作流与工具入口
+skills/                         自主开发的 Agent 工作流与工具入口
+vendor/                         第三方 skill 源码与上游同步记录
 apps/wx-publisher/              微信公众号排版与草稿应用
 apps/knowledge-video-factory/   知识视频生产与渲染应用
 labs/xhs-publisher/             小红书发布能力实验
@@ -35,6 +36,8 @@ docs/                           跨模块设计和迁移文档
 
 ## Skills
 
+自研 skills：
+
 - `longform-workflow`：博客、公众号和小红书长文的选题、研究、写作与审校。
 - `image-post-workflow`：小红书、抖音等图片轮播内容的分级创作流程。
 - `knowledge-video-workflow`：调用视频工厂完成知识视频脚本、分镜、配音、渲染和质检。
@@ -42,15 +45,36 @@ docs/                           跨模块设计和迁移文档
 - `chatgpt-imagegen`：为 Claude Code 或无原生生图能力的 Agent 保留的本地位图生成兼容入口；Codex 默认使用原生图片生成工具。
 - `douyin-download`：归档用户有权访问的抖音内容。
 
-兼容入口：
+第三方 skills：
 
-- `.agents/skills` → `../skills`
-- `.claude/skills` → `../skills`
-- `.catpaw/skills` → `../skills`
+- `human-writing`：来自 `KKKKhazix/human-writing` 的中文创作与改稿 skill，源码保存在 `vendor/KKKKhazix/human-writing/`。
+
+Agent 自动发现入口：
+
+- `.agents/skills/*`：分别软链到 `skills/*` 或 `vendor/*`。
+- `.claude/skills` → `../.agents/skills`
+- `.catpaw/skills` → `../.agents/skills`
+
+## 同步第三方 Skills
+
+`vendor/skills.json` 记录每个第三方 skill 的上游仓库、跟踪 ref、当前精确 commit、上游子目录和本地目标目录。更新已登记的 skill：
+
+```powershell
+python tools/sync_vendor_skills.py human-writing
+```
+
+需要切换到指定 tag、分支或 commit 时：
+
+```powershell
+python tools/sync_vendor_skills.py human-writing --ref <tag-or-commit>
+```
+
+脚本会先在临时目录拉取并校验 `SKILL.md`，再替换本地源码，最后把解析出的精确 commit 回写到清单。同步后应检查 Git diff，确认上游变更后再提交。
 
 ## Apps 与 Tools
 
 - `tools/transcribe_video.py`：使用 `ffmpeg` 和 `whisper.cpp` 转录本地音视频。
+- `tools/sync_vendor_skills.py`：同步 `vendor/skills.json` 中登记的第三方 Agent skills。
 - `apps/wx-publisher`：Markdown/HTML 转微信公众号内容，提供 CLI、Studio、API、文章草稿和贴图草稿。
 - `apps/knowledge-video-factory`：提供知识视频的结构化脚本、配音、字幕、Remotion 渲染和自动质检。
 - `labs/xhs-publisher`：记录小红书发布工具的实测、风险和两阶段发布接口探索。
@@ -60,7 +84,8 @@ docs/                           跨模块设计和迁移文档
 ## 验证
 
 ```powershell
-python -m py_compile tools/transcribe_video.py
+python -m py_compile tools/transcribe_video.py tools/sync_vendor_skills.py
+python -m py_compile vendor/KKKKhazix/human-writing/scripts/check_prose.py
 npm --prefix apps/wx-publisher test
 pnpm --dir apps/knowledge-video-factory check:structure
 pnpm --dir apps/knowledge-video-factory typecheck

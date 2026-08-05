@@ -8,11 +8,12 @@
 - 不保存 Hexo 文章副本、站点配置或部署脚本；这些内容属于 `D:\code\blog`。
 - 工作流通过调用方提供的 `TOPIC_DIR` 读写内容资产；工具不得把正式产物留在自己的示例或缓存目录。
 - 资产组织规范以 `D:\code\content\AGENTS.md` 为唯一来源；执行任务前读取并遵循，不在本仓库复制维护另一套规则。
-- `skills/` 保存高自由度的流程编排和面向 Agent 的工具入口。
+- `skills/` 只保存本仓库自主开发的流程编排和面向 Agent 的工具入口。
+- `vendor/` 保存第三方 skill 的可审计源码副本；来源、跟踪 ref、精确 commit 和目标目录统一登记在 `vendor/skills.json`，通过 `tools/sync_vendor_skills.py` 同步上游。
 - `apps/` 保存可独立构建、测试和运行的确定性应用；目录内存在 `AGENTS.md` 时同时遵循其局部规则。
 - `labs/` 保存尚未达到稳定调用契约的探索项目，不得被正式 workflow 当作必需依赖。
 - `tools/` 保存不值得单独建应用的小型通用工具。
-- 通用 skill 位于根目录 `skills/`；`.agents/skills`、`.claude/skills` 和 `.catpaw/skills` 只是兼容入口。
+- `.agents/skills/` 是 Agent skill 的聚合入口，目录内使用软链连接自研与第三方 skill；`.claude/skills` 和 `.catpaw/skills` 复用这个入口。
 
 ## 外部副作用
 
@@ -26,5 +27,6 @@
 - 文档主语言使用中文。
 - 修改脚本后至少执行语法检查；有测试时执行相关测试。
 - 账号凭证、Cookie、浏览器 profile、`.env`、`.wxp.json` 和 token 缓存不得进入 Git。
-- 新增或修改 skill 时运行 `skill-creator` 的 `quick_validate.py`；复杂 workflow 应使用真实样例做前向验证。
+- 新增或修改自研 skill 时运行 `skill-creator` 的 `quick_validate.py`；复杂 workflow 应使用真实样例做前向验证。
+- 第三方 skill 默认保持上游源码原样。需要本地补丁时，必须在清单或相邻文档中说明原因，并确认后续同步不会静默覆盖。
 - 每个完整迭代只提交本次修改，提交前检查暂存区。
