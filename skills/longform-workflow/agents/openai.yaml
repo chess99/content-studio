@@ -1,4 +1,4 @@
 interface:
   display_name: "长文创作工作流"
-  short_description: "面向博客、公众号和小红书长文的研究、写作、审校与适配流程"
-  default_prompt: "使用 $longform-workflow 把这个主题写成一篇经过研究和审校的长文。"
+  short_description: "按不同题材路由长文的研究、写作、审校与渠道适配流程"
+  default_prompt: "使用 $longform-workflow 按题材选择合适写法，把这个主题完成为经过研究和审校的长文。"
