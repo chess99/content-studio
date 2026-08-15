@@ -1,4 +1,4 @@
 interface:
   display_name: "图文创作工作流"
-  short_description: "按事实风险编排小红书、抖音等单图与图片轮播内容创作流程"
-  default_prompt: "使用 $image-post-workflow 制作一组可跨平台发布的图文内容。"
+  short_description: "先设计信息关系，再用模型或真实素材制作高完成度社交图文"
+  default_prompt: "使用 $image-post-workflow 设计并制作一组有实质信息、可直接发布的社交图文。"

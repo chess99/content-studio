@@ -116,7 +116,7 @@ node scripts/qa-video.mjs --project-dir $videoDir --final
 
 项目可在 `<VIDEO_DIR>/config.json` 中用 `voice.rate` 控制 Fish 生成时的自然语速；`voice.playbackRate` 只用于成片阶段的小幅无损微调。建议优先调整 `rate`，避免过度后期加速。
 
-`KnowledgeCover` 画布只生成 `renders/cover-preview.png`，用于工程预览和检查裁切，不写入正式发布包。正式发布封面由上层 `knowledge-video-workflow` 读取外部账号的 `brand/BRAND.md` 与 `brand/COVER.md` 后，用图片模型独立生成整张成品；不能使用视频抽帧，也不能把工程预览稿当成发布封面。
+`KnowledgeCover` 画布只生成 `renders/cover-preview.png`，用于工程预览和检查裁切，不自动写入正式发布包。正式发布封面由上层 `knowledge-video-workflow` 读取外部账号的 `brand/BRAND.md` 后，按内容选择最强成片关键帧、真实素材、图片模型或混合制作；不能把工程预览稿未经判断直接当成发布封面。
 
 正式渲染前按 [独立审核闸门](docs/REVIEW_WORKFLOW.md) 分别做内容审核与视觉/品牌审核。账号品牌识别规则读取外部内容仓库的 `brand/BRAND.md`；内置的 [财经编辑部预设](themes/finance-editorial/README.md) 只约束版式、图表和动效。
 
