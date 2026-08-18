@@ -16,7 +16,6 @@ import { readFileSync, writeFileSync, unlinkSync, writeSync } from "fs"
 import { dirname, isAbsolute, resolve } from "path"
 import { tmpdir } from "os"
 import { randomUUID } from "crypto"
-import { spawn } from "child_process"
 import { createServer, type IncomingMessage, type ServerResponse } from "http"
 import type { AddressInfo } from "net"
 import { convertMarkdown } from "../converter/index.js"
@@ -26,6 +25,7 @@ import { loadConfig, saveConfig, getConfigPath, validateConfig } from "../config
 import { getTheme, listThemeLayouts, listThemePalettes, listThemeReferences, listThemes, resolveThemeSelection, type Theme } from "../converter/themes.js"
 import { getPlaceholderCoverBase64 } from "../converter/placeholder-cover.js"
 import { formatCliError } from "./errors.js"
+import { tryOpenInDefaultApp } from "./open-in-default-app.js"
 import { resolveThemeOption } from "./theme-options.js"
 import { getThemeFileSchema, loadThemeFile } from "../converter/theme-file.js"
 import { createStudioServer } from "../studio/server.js"
@@ -404,6 +404,8 @@ program
           file: resolve(opts.file),
           host: server.host,
           port: server.port,
+          opened: server.opened,
+          ...(server.warning ? { warning: server.warning } : {}),
           message: "Studio 已启动。按 Ctrl+C 退出。",
         },
       }, null, 2))
@@ -732,14 +734,16 @@ program
     const { results } = await renderThemePreviewResults(sourcePath, opts.themeFile)
     const outputPath = opts.output ?? `${tmpdir()}/wxp-theme-gallery-${randomUUID()}.html`
     writeThemeGallery(outputPath, results, sourcePath)
-    openPreviewIfNeeded(outputPath, opts.open !== false)
+    const openResult = await tryOpenInDefaultApp(outputPath, opts.open !== false)
 
     ok({
       path: outputPath,
       source_file: sourcePath.replace(/\\/g, "/"),
       theme_count: listThemes().length,
       themes: results.map(r => ({ theme: r.theme, ok: !r.error, error: r.error })),
-      message: opts.open !== false ? "已在浏览器中打开主题画廊" : "主题画廊文件已生成",
+      opened: openResult.opened,
+      message: openResult.opened ? "已在浏览器中打开主题画廊" : "主题画廊文件已生成",
+      ...(openResult.warning ? { warning: openResult.warning } : {}),
     })
   })
 
@@ -755,12 +759,14 @@ program
     const { results } = await renderThemePreviewResults(absPath, opts.themeFile)
     const outputPath = opts.output ?? `${tmpdir()}/wxp-preview-${randomUUID()}.html`
     writeThemeGallery(outputPath, results, absPath)
-    openPreviewIfNeeded(outputPath, opts.open !== false)
+    const openResult = await tryOpenInDefaultApp(outputPath, opts.open !== false)
 
     ok({
       path: outputPath,
       themes: results.map(r => ({ theme: r.theme, ok: !r.error, error: r.error })),
-      message: opts.open !== false ? "已在浏览器中打开预览" : "预览文件已生成",
+      opened: openResult.opened,
+      message: openResult.opened ? "已在浏览器中打开预览" : "预览文件已生成",
+      ...(openResult.warning ? { warning: openResult.warning } : {}),
     })
   })
 
@@ -892,14 +898,6 @@ function writeThemeGallery(outputPath: string, results: ThemePreviewResult[], ar
   } catch (e) {
     fail(`写入预览文件失败: ${outputPath}`, String(e))
   }
-}
-
-function openPreviewIfNeeded(outputPath: string, shouldOpen: boolean): void {
-  if (!shouldOpen) return
-  const openCmd = process.platform === "darwin" ? "open"
-    : process.platform === "win32" ? "start"
-    : "xdg-open"
-  spawn(openCmd, [outputPath], { detached: true, stdio: "ignore" }).unref()
 }
 
 interface ConvertApiBody {

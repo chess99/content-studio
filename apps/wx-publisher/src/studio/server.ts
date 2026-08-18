@@ -3,7 +3,6 @@ import { createReadStream, existsSync, readFileSync, statSync, writeFileSync, un
 import { dirname, extname, isAbsolute, join, resolve } from "path"
 import { tmpdir } from "os"
 import { randomUUID } from "crypto"
-import { spawn } from "child_process"
 import { fileURLToPath } from "url"
 import { convertMarkdown } from "../converter/index.js"
 import { listThemeLayouts, listThemePalettes, listThemeReferences, resolveThemeSelection, type ResolvedThemeSelection } from "../converter/themes.js"
@@ -11,6 +10,7 @@ import { getPlaceholderCoverBase64 } from "../converter/placeholder-cover.js"
 import { loadConfig, validateConfig } from "../config/index.js"
 import { WechatClient } from "../wechat/client.js"
 import { formatCliError } from "../cli/errors.js"
+import { tryOpenInDefaultApp } from "../cli/open-in-default-app.js"
 import { ENHANCED_ADVANCED_MODULES, PUBLIC_ADVANCED_MODULES } from "../converter/advanced-layout/parser.js"
 import { deriveStudioTheme, type StudioThemeSettings } from "./theme-settings.js"
 
@@ -26,6 +26,8 @@ export interface StudioServer {
   host: string
   port: number
   url: string
+  opened: boolean
+  warning?: string
   close: () => Promise<void>
 }
 
@@ -64,14 +66,13 @@ export async function createStudioServer(options: CreateStudioServerOptions): Pr
   const port = await listen(server, host, options.port ?? 0)
   const url = `http://${host}:${port}`
 
-  if (options.openBrowser !== false) {
-    openUrl(url)
-  }
+  const openResult = await tryOpenInDefaultApp(url, options.openBrowser !== false)
 
   return {
     host,
     port,
     url,
+    ...openResult,
     close: () => new Promise(resolveClose => server.close(() => resolveClose())),
   }
 }
@@ -370,13 +371,6 @@ function listen(server: Server, host: string, preferredPort: number): Promise<nu
       }
     })
   })
-}
-
-function openUrl(url: string): void {
-  const cmd = process.platform === "darwin" ? "open"
-    : process.platform === "win32" ? "start"
-    : "xdg-open"
-  spawn(cmd, [url], { detached: true, stdio: "ignore" }).unref()
 }
 
 function defaultStaticDir(): string {

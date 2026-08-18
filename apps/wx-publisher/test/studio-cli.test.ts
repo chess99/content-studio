@@ -94,6 +94,7 @@ describe("CLI studio", () => {
     expect(payload.success).toBe(true)
     expect(payload.data.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/)
     expect(payload.data.file).toContain("benchmark.md")
+    expect(payload.data.opened).toBe(false)
   })
 
   it("returns JSON error when the requested port is already in use", async () => {

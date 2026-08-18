@@ -203,7 +203,7 @@ wxp theme-gallery --no-open --output /tmp/wxp-theme-gallery.html
 wxp preview --file article.md
 ```
 
-浏览器打开后进程立即退出，不阻塞终端。画廊支持搜索、按系列/密度/对比度筛选，点击主题卡片查看完整预览，填入封面图路径后可复制对应发布命令。
+浏览器打开后进程立即退出，不阻塞终端。命令的 JSON 结果通过 `data.opened` 标识浏览器是否成功唤起；如果自动打开失败，画廊文件仍会保留在 `data.path`，同时返回 `data.warning`。画廊支持搜索、按系列/密度/对比度筛选，点击主题卡片查看完整预览，填入封面图路径后可复制对应发布命令。
 
 自动化流程通常不需要预览，直接用 `--theme` 参数即可。
 
