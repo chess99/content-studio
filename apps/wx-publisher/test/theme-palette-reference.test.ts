@@ -23,9 +23,9 @@ describe("theme system reference", () => {
   it("documents presets, layouts, and palettes as separate product concepts", () => {
     const reference = readReference()
 
-    expect(reference).toMatchObject({ version: 4, usage: "theme-system-reference", sourceUpdatedAt: "2026-07-30" })
+    expect(reference).toMatchObject({ version: 5, usage: "theme-system-reference", sourceUpdatedAt: "2026-08-18" })
     expect(reference.decisionNote).toContain("组合不计为独立主题")
-    expect(reference.presets).toHaveLength(9)
+    expect(reference.presets).toHaveLength(6)
     expect(reference.layouts).toHaveLength(4)
     expect(reference.palettes).toHaveLength(6)
   })

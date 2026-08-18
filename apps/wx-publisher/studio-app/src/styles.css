@@ -492,7 +492,7 @@ h3 {
   border: 0;
   border-left: 3px solid var(--preview-accent);
   border-radius: 1px;
-  background: color-mix(in srgb, var(--preview-accent) 12%, white);
+  background: transparent;
 }
 
 .layout-preview-poster .preview-heading {
@@ -501,31 +501,9 @@ h3 {
   width: calc(100% - 12px);
   height: 16px;
   border: 0;
-  background: var(--preview-accent);
-}
-
-.theme-preview-bauhaus::before,
-.theme-preview-bauhaus::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-}
-
-.theme-preview-bauhaus::before {
-  top: 5px;
-  right: 7px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #f4c430;
-}
-
-.theme-preview-bauhaus::after {
-  top: 5px;
-  right: 24px;
-  width: 12px;
-  height: 13px;
-  background: #d32f2f;
+  border-top: 5px solid var(--preview-accent);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
 }
 
 .theme-copy {

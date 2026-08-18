@@ -5,12 +5,12 @@ const mainSource = readFileSync(new URL("../studio-app/src/main.ts", import.meta
 const styleSource = readFileSync(new URL("../studio-app/src/styles.css", import.meta.url), "utf8")
 
 describe("Studio product structure", () => {
-  it("separates theme discovery into recommendations, custom parameters, and expressive presets", () => {
+  it("separates reliable recommendations from structured customization", () => {
     expect(mainSource).toContain("RECOMMENDED_THEME_IDS")
     expect(mainSource).toContain('data-theme-list="recommended"')
     expect(mainSource).toContain("data-theme-layouts")
     expect(mainSource).toContain("data-theme-palettes")
-    expect(mainSource).toContain('data-theme-list="presets"')
+    expect(mainSource).not.toContain('data-theme-list="presets"')
     expect(mainSource).toContain("layoutPreview")
     expect(mainSource).not.toContain("MATRIX_FAMILIES")
     expect(mainSource).not.toContain("MATRIX_COLORS")

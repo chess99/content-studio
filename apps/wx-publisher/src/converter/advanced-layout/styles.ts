@@ -34,8 +34,8 @@ export function getAdvancedPalette(theme: Theme): AdvancedPalette {
       text: p.text,
       textStrong: p.textStrong,
       muted: p.muted,
-      shadow: `0 2px 6px ${colorMix(p.text, 0.06)}`,
-      accentShadow: `0 8px 20px ${colorMix(accent, 0.1)}`,
+      shadow: "none",
+      accentShadow: "none",
     }
   }
   const wrapperBackground = extractCssColor(theme.styles.wrapper, "background") ?? "#ffffff"
@@ -58,8 +58,8 @@ export function getAdvancedPalette(theme: Theme): AdvancedPalette {
     text,
     textStrong: text,
     muted,
-    shadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-    accentShadow: "0 4px 14px rgba(0, 0, 0, 0.10)",
+    shadow: "none",
+    accentShadow: "none",
   }
 }
 
@@ -87,7 +87,7 @@ export function paragraph(text: string, p: AdvancedPalette, extra = ""): string 
 
 export function label(text: string, p: AdvancedPalette, extra = ""): string {
   if (!text) return ""
-  return `<p style="display:inline-block;padding:4px 8px;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${p.accentDark};background:${p.accentSoft};border-radius:999px;margin:0;${extra}">${esc(text)}</p>`
+  return `<p style="display:inline-block;padding:0 0 3px;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${p.accentDark};background:transparent;border-bottom:2px solid ${p.accent};border-radius:0;margin:0;${extra}">${esc(text)}</p>`
 }
 
 export function sectionTitle(title: string, p: AdvancedPalette): string {
@@ -97,8 +97,8 @@ export function sectionTitle(title: string, p: AdvancedPalette): string {
 
 export function cardStyle(p: AdvancedPalette, accent = false): string {
   return accent
-    ? `background:linear-gradient(135deg, ${p.accentSoft} 0%, ${p.surface} 52%, ${p.surfaceAlt} 100%);border:1px solid ${p.border};border-radius:12px;padding:16px 14px 13px;box-shadow:${p.shadow};box-sizing:border-box;`
-    : `background:${p.surface};border:1px solid ${p.mutedBorder};border-radius:12px;padding:16px 12px 12px;box-shadow:${p.shadow};box-sizing:border-box;`
+    ? `background:${p.surface};border:1px solid ${p.border};border-left:3px solid ${p.accent};border-radius:8px;padding:16px 14px 13px;box-shadow:none;box-sizing:border-box;`
+    : `background:${p.surface};border:1px solid ${p.mutedBorder};border-radius:8px;padding:16px 12px 12px;box-shadow:none;box-sizing:border-box;`
 }
 
 export function imageTag(src: string, alt: string, style: string): string {

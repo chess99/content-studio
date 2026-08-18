@@ -219,14 +219,6 @@ root.innerHTML = `
           </div>
         </details>
 
-        <details class="preset-library setting-group">
-          <summary>
-            <span>实验风格</span>
-            <small>中国风 · Bauhaus · 赛博朋克</small>
-          </summary>
-          <div data-theme-list="presets"></div>
-        </details>
-
         <section class="setting-group typography-settings">
           <div class="group-heading">
             <div>
@@ -412,15 +404,8 @@ function renderThemePicker(): void {
     </button>
   `).join("")
 
-  renderPresetLibrary()
   renderActiveThemeSummary()
   root.querySelector<HTMLDetailsElement>(".custom-theme-builder")!.open = isCustomSelection()
-}
-
-function renderPresetLibrary(): void {
-  const container = root.querySelector<HTMLElement>('[data-theme-list="presets"]')!
-  const themes = state.themes.filter(theme => theme.collection === "expressive")
-  container.innerHTML = `<div class="theme-grid compact-theme-grid">${themes.map(themeCard).join("")}</div>`
 }
 
 function themeCard(theme: ThemeOption): string {
@@ -428,7 +413,7 @@ function themeCard(theme: ThemeOption): string {
   const layout = presetLayout(theme.name)
   return `
     <button class="theme-card ${active ? "active" : ""}" data-action="select-theme" data-theme="${escapeHtml(theme.name)}" style="--theme-accent:${safeColor(theme.accent)}" aria-pressed="${active}">
-      ${layoutPreview(layout, theme.accent, `theme-preview ${theme.name === "bauhaus-primary" ? "theme-preview-bauhaus" : ""}`)}
+      ${layoutPreview(layout, theme.accent, "theme-preview")}
       <span class="theme-copy">
         <strong>${escapeHtml(theme.displayName)}</strong>
         <small>${escapeHtml(theme.bestFor)}</small>
@@ -501,9 +486,9 @@ function currentAccent(): string {
 }
 
 function presetLayout(themeName: string): ThemeLayoutOption["name"] {
-  if (["wechat-native", "github-readme", "chinese"].includes(themeName)) return "editorial"
+  if (["wechat-native", "github-readme"].includes(themeName)) return "editorial"
   if (themeName === "nyt-classic") return "centered"
-  if (["warm-editorial", "bauhaus-primary", "cyber"].includes(themeName)) return "poster"
+  if (themeName === "warm-editorial") return "poster"
   return "clean"
 }
 

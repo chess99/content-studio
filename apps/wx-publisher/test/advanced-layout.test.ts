@@ -346,7 +346,8 @@ describe("advanced layout conversion", () => {
     )
 
     expect(result.html).toContain('data-mpa-action-id="verdict"')
-    expect(result.html).toContain("background:linear-gradient(135deg, rgba(51, 68, 85, 0.12) 0%, #ffeecc 48%, #ddeeff 100%)")
+    expect(result.html).toContain("background:#ffeecc")
+    expect(result.html).toContain("border-left:3px solid #334455")
     expect(result.html).toContain("color:#123456")
     expect(result.html).not.toContain("#ead6cc")
   })
@@ -383,7 +384,7 @@ describe("advanced layout conversion", () => {
     expect(result.html).toContain("align-items:stretch")
     expect(result.html).toContain("width:2px")
     expect(result.html).toContain('data-mpa-action-id="timeline"')
-    expect(result.html).toContain("box-shadow:0 0 0 3px")
+    expect(result.html).toContain("border:3px solid rgba(17,24,39,0.06)")
     expect(result.html).toContain('data-mpa-action-id="bridge"')
     expect(result.html).toContain("width:3px")
     expect(result.html).toContain('data-mpa-action-id="myth-fact"')
@@ -401,7 +402,8 @@ describe("advanced layout conversion", () => {
     expect(result.html).toContain("justify-content:space-between")
     expect(result.html).toContain("我相信")
     expect(result.html).toContain("我拒绝")
-    expect(result.html).toContain("background:linear-gradient(135deg, #f3f4f6 0%, #ffffff 70%, #f8fafc 100%)")
+    expect(result.html).toContain("background:#ffffff;border:1px solid #d9dee7;border-left:3px solid #111827")
+    expect(result.html).not.toContain("linear-gradient(")
   })
 
   it("matches reference structure for JSON-backed modules", async () => {

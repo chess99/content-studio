@@ -113,10 +113,9 @@ wxp studio --file article.md --port 8787 --no-open
 
 ## 主题
 
-内置目录只有 9 个真正独特的完整预设，不把排列组合计作独立主题。`default` 是纯白背景、中性黑灰的通用基础主题；暖色和高视觉风格均需要主动选择。
+内置目录只保留 6 个经过完整验收的预设，不把排列组合计作独立主题。所有预设都使用纯白正文画布，通过标题结构、规则线、字体气质和局部强调建立差异；`default` 是中性黑灰的通用基础主题。
 
-- 核心预设：`default`、`wechat-native`、`github-readme`、`nyt-classic`、`ink-minimal`、`warm-editorial`
-- 实验风格：`chinese`、`bauhaus-primary`、`cyber`
+- 完整预设：`default`、`wechat-native`、`github-readme`、`nyt-classic`、`ink-minimal`、`warm-editorial`
 - 自定义版式：`clean`、`centered`、`editorial`、`poster`
 - 自定义调色板：`neutral`、`blue`、`green`、`red`、`warm`、`purple`
 

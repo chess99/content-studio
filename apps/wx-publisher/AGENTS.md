@@ -211,8 +211,7 @@ API IP 白名单路径：微信开发者平台 → 我的业务与服务 → 公
 
 | 系列 | 主题 |
 |------|------|
-| 核心预设 | `default`, `wechat-native`, `github-readme`, `nyt-classic`, `ink-minimal`, `warm-editorial` |
-| 实验风格 | `chinese`, `bauhaus-primary`, `cyber` |
+| 完整预设 | `default`, `wechat-native`, `github-readme`, `nyt-classic`, `ink-minimal`, `warm-editorial` |
 | 自定义版式 | `clean`, `centered`, `editorial`, `poster` |
 | 自定义调色板 | `neutral`, `blue`, `green`, `red`, `warm`, `purple` |
 

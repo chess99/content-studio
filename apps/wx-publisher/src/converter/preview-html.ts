@@ -587,7 +587,7 @@ function renderFilterGroup(group: FilterGroup, label: string, values: string[]):
   return `<div class="filter-row" data-filter-group="${group}"><span class="filter-label">${label}</span><div class="filter-options">${chips}</div></div>`
 }
 
-const COLLECTION_ORDER = ["essential", "expressive", "custom"]
+const COLLECTION_ORDER = ["essential", "custom"]
 const SCENARIO_ORDER = ["知识", "产品", "品牌", "运营", "专题"]
 const DENSITY_ORDER = ["low", "medium", "high"]
 const CONTRAST_ORDER = ["low", "medium", "high"]
@@ -612,7 +612,6 @@ function filterValueLabel(group: FilterGroup, value: string): string {
 function collectionLabel(value: string): string {
   const labels: Record<string, string> = {
     "essential": "核心预设",
-    "expressive": "实验风格",
     "custom": "自定义",
   }
   return labels[value] ?? value

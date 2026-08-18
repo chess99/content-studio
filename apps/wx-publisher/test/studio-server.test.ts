@@ -63,7 +63,7 @@ describe("Studio server", () => {
       accent: "#111827",
     })
     expect(payload.data.themes[0]?.bestFor).toContain("知识文章")
-    expect(payload.data.themes).toHaveLength(9)
+    expect(payload.data.themes).toHaveLength(6)
     expect(payload.data.layouts.map(item => item.name)).toEqual(["clean", "centered", "editorial", "poster"])
     expect(payload.data.palettes.map(item => item.name)).toEqual(["neutral", "blue", "green", "red", "warm", "purple"])
     expect(payload.data.advancedModules.public).toContain("hero")

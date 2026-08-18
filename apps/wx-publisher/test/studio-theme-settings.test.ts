@@ -22,7 +22,7 @@ describe("deriveStudioTheme", () => {
     expect(derived.styles.pre).toContain("background:#f6f8fa")
     expect(derived.styles.preCode).toContain("color:#24292f")
     expect(getAdvancedPalette(derived).accent).toBe("#0969da")
-    expect(getAdvancedPalette(derived).accentSoft).toBe("#e1edfb")
+    expect(getAdvancedPalette(derived).accentSoft).toBe("rgba(9,105,218,0.06)")
 
     expect(base.styles.p).not.toContain("font-size:17px")
   })
@@ -39,6 +39,6 @@ describe("deriveStudioTheme", () => {
   it("uses the gallery advanced palette when Studio keeps the base accent", () => {
     const derived = deriveStudioTheme(getTheme("github-readme"), {})
     expect(getAdvancedPalette(derived).accent).toBe("#0969da")
-    expect(getAdvancedPalette(derived).accentSoft).toBe("#e1edfb")
+    expect(getAdvancedPalette(derived).accentSoft).toBe("rgba(9,105,218,0.06)")
   })
 })

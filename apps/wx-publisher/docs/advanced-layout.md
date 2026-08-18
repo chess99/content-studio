@@ -237,10 +237,9 @@ AI：不复杂，一行一个角色和内容即可。
 
 ## 主题系统
 
-内置目录包含 9 个完整预设；自定义主题由 4 种版式和 6 套调色板按需生成，不计作 24 个独立主题。
+内置目录包含 6 个完整预设；自定义主题由 4 种版式和 6 套调色板按需生成，不计作 24 个独立主题。所有主题统一使用纯白正文画布，差异来自标题结构、字体气质、规则线和局部强调。高级模块沿用同一语言，以白底、细边框和结构线组织信息，不使用装饰性渐变或悬浮阴影。
 
 - 核心预设：`default`、`wechat-native`、`github-readme`、`nyt-classic`、`ink-minimal`、`warm-editorial`
-- 实验风格：`chinese`、`bauhaus-primary`、`cyber`
 - 版式：`clean`、`centered`、`editorial`、`poster`
 - 调色板：`neutral`、`blue`、`green`、`red`、`warm`、`purple`
 

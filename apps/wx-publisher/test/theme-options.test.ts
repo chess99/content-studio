@@ -26,7 +26,7 @@ describe("resolveThemeOption", () => {
     const result = resolveThemeOption({ layout: "editorial", palette: "blue" }, "default")
 
     expect(result.themeName).toBe("custom:editorial:blue")
-    expect(result.themeDefinition?.styles.h1).toContain("border-left: 5px")
+    expect(result.themeDefinition?.styles.h1).toContain("border-left:3px")
   })
 
   it("rejects unknown built-in theme names", () => {

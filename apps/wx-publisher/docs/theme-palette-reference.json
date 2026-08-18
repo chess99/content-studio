@@ -1,31 +1,28 @@
 {
-  "version": 4,
+  "version": 5,
   "usage": "theme-system-reference",
-  "sourceUpdatedAt": "2026-07-30",
-  "decisionNote": "完整预设用于快速决策；版式与调色板用于按需自定义，组合不计为独立主题。",
+  "sourceUpdatedAt": "2026-08-18",
+  "decisionNote": "所有主题共享纯白画布；完整预设用于快速决策，版式与调色板用于按需自定义，组合不计为独立主题。",
   "presets": [
     { "id": "default", "displayName": "基础白", "collection": "essential", "accent": "#111827", "background": "#ffffff" },
     { "id": "wechat-native", "displayName": "微信原生", "collection": "essential", "accent": "#07c160", "background": "#ffffff" },
-    { "id": "github-readme", "displayName": "GitHub", "collection": "essential", "accent": "#0969da", "background": "#ffffff" },
-    { "id": "nyt-classic", "displayName": "报刊经典", "collection": "essential", "accent": "#326891", "background": "#fdfaf6" },
-    { "id": "ink-minimal", "displayName": "水墨极简", "collection": "essential", "accent": "#111111", "background": "#ffffff" },
-    { "id": "warm-editorial", "displayName": "暖色编辑", "collection": "essential", "accent": "#a34e2e", "background": "#faf9f5" },
-    { "id": "chinese", "displayName": "中国风", "collection": "expressive", "accent": "#8b1e22", "background": "#f8f4e9" },
-    { "id": "bauhaus-primary", "displayName": "Bauhaus", "collection": "expressive", "accent": "#004d9f", "background": "#ffffff" },
-    { "id": "cyber", "displayName": "赛博朋克", "collection": "expressive", "accent": "#f472b6", "background": "#ffffff" }
+    { "id": "github-readme", "displayName": "技术简报", "collection": "essential", "accent": "#0969da", "background": "#ffffff" },
+    { "id": "nyt-classic", "displayName": "深度阅读", "collection": "essential", "accent": "#326891", "background": "#ffffff" },
+    { "id": "ink-minimal", "displayName": "墨线札记", "collection": "essential", "accent": "#111111", "background": "#ffffff" },
+    { "id": "warm-editorial", "displayName": "人文暖调", "collection": "essential", "accent": "#a34e2e", "background": "#ffffff" }
   ],
   "layouts": [
     { "id": "clean", "displayName": "清爽", "description": "无底色标题与细分隔线，内容优先" },
-    { "id": "centered", "displayName": "居中", "description": "标题居中并用上下线组织节奏" },
-    { "id": "editorial", "displayName": "刊物", "description": "左侧竖线与浅色标题块，层次更强" },
-    { "id": "poster", "displayName": "海报", "description": "实色大标题与高对比强调" }
+    { "id": "centered", "displayName": "居中", "description": "居中标题与上下规则线" },
+    { "id": "editorial", "displayName": "刊物", "description": "左侧标记线与明确层级" },
+    { "id": "poster", "displayName": "信号", "description": "顶部粗线与大字标题，不使用实色底" }
   ],
   "palettes": [
     { "id": "neutral", "displayName": "中性黑", "accent": "#344054" },
-    { "id": "blue", "displayName": "品牌蓝", "accent": "#2563EB" },
-    { "id": "green", "displayName": "自然绿", "accent": "#168A67" },
-    { "id": "red", "displayName": "强调红", "accent": "#D64545" },
-    { "id": "warm", "displayName": "暖橙", "accent": "#C87832" },
-    { "id": "purple", "displayName": "情绪紫", "accent": "#7C5CC4" }
+    { "id": "blue", "displayName": "专业蓝", "accent": "#175cd3" },
+    { "id": "green", "displayName": "稳健绿", "accent": "#087a45" },
+    { "id": "red", "displayName": "信号红", "accent": "#b42318" },
+    { "id": "warm", "displayName": "陶土", "accent": "#9a442c" },
+    { "id": "purple", "displayName": "编辑紫", "accent": "#6941c6" }
   ]
 }
