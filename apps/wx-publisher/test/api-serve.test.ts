@@ -44,7 +44,7 @@ describe("wxp serve API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          markdown: ":::hero\ntitle: API Title\nsubtitle: API body\n:::",
+          markdown: ":::hero\ntitle: API Title\nsubtitle: API body\n:::\n\n#AI创业",
           theme: { preset: "default" },
           fontSize: "medium",
           convertVersion: "v1",
@@ -52,14 +52,29 @@ describe("wxp serve API", () => {
       })
       const payload = await res.json() as {
         success: boolean
-        data: { html: string; theme: { preset: string }; warnings: string[] }
+        data: {
+          html: string
+          theme: { preset: string }
+          warnings: string[]
+          wechat_topic_cards: {
+            detected: number
+            items: Array<{ name: string; line: number; source: string }>
+            requires_manual_conversion: boolean
+          }
+        }
       }
 
       expect(res.status).toBe(200)
       expect(payload.success).toBe(true)
       expect(payload.data.theme).toEqual({ preset: "default" })
       expect(payload.data.html).toContain('data-mpa-action-id="hero"')
-      expect(payload.data.warnings).toEqual([])
+      expect(payload.data.wechat_topic_cards).toMatchObject({
+        detected: 1,
+        items: [{ name: "AI创业", line: 6, source: "#AI创业" }],
+        requires_manual_conversion: true,
+      })
+      expect(payload.data.warnings).toHaveLength(1)
+      expect(payload.data.warnings[0]).toContain("设置为话题卡片")
     } finally {
       proc.kill()
     }

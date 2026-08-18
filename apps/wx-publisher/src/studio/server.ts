@@ -5,6 +5,7 @@ import { tmpdir } from "os"
 import { randomUUID } from "crypto"
 import { fileURLToPath } from "url"
 import { convertMarkdown } from "../converter/index.js"
+import { summarizeWechatTopicCards } from "../converter/wechat-topics.js"
 import { listThemeLayouts, listThemePalettes, listThemeReferences, resolveThemeSelection, type ResolvedThemeSelection } from "../converter/themes.js"
 import { getPlaceholderCoverBase64 } from "../converter/placeholder-cover.js"
 import { loadConfig, validateConfig } from "../config/index.js"
@@ -141,6 +142,7 @@ async function handleConvert(payload: unknown): Promise<{ success: true; data: u
     theme: resolved.theme.name,
     themeDefinition: resolved.theme,
   })
+  const topicCardSummary = summarizeWechatTopicCards(result.wechatTopics)
 
   return {
     success: true,
@@ -149,6 +151,7 @@ async function handleConvert(payload: unknown): Promise<{ success: true; data: u
       theme: resolved.selection,
       externalImages: result.externalImages,
       localImages: result.localImages,
+      ...(topicCardSummary && { wechatTopicCards: topicCardSummary }),
     },
   }
 }
@@ -175,6 +178,7 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
     theme: resolved.theme.name,
     themeDefinition: resolved.theme,
   })
+  const topicCardSummary = summarizeWechatTopicCards(converted.wechatTopics)
 
   let thumbMediaId: string
   let usedPlaceholderCover = false
@@ -223,6 +227,11 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
     need_open_comment: 0,
   }])
 
+  const warnings = [
+    ...(topicCardSummary ? [topicCardSummary.instruction] : []),
+    ...(usedPlaceholderCover ? ["未提供封面图，已使用内置占位图。建议指定真实封面图后重新发布。"] : []),
+  ]
+
   return {
     success: true,
     data: {
@@ -236,7 +245,9 @@ async function handlePublish(payload: unknown, articleDir: string): Promise<Stud
       local_images: converted.localImages,
       message: "草稿已创建，请在微信公众号后台发布",
       used_placeholder_cover: usedPlaceholderCover,
-      ...(usedPlaceholderCover && { warning: "未提供封面图，已使用内置占位图。建议指定真实封面图后重新发布。" }),
+      ...(topicCardSummary && { wechat_topic_cards: topicCardSummary }),
+      ...(warnings.length > 0 && { warnings }),
+      ...(warnings.length > 0 && { warning: warnings.join(" ") }),
     },
   }
 }

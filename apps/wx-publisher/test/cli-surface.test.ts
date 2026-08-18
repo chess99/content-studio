@@ -69,6 +69,7 @@ describe("CLI surface", () => {
     expect(payload.data.features.curated_theme_presets).toBe(true)
     expect(payload.data.features.composable_theme_customization).toBe(true)
     expect(payload.data.features.theme_gallery).toBe(true)
+    expect(payload.data.features.wechat_topic_card_markers).toBe(true)
     expect(payload.data.coverage.theme_system).toEqual({ presets: 9, layouts: 4, palettes: 6 })
     expect(payload.data.coverage.advanced_modules.public).toBe(43)
     expect(payload.data.coverage.advanced_modules.enhanced).toBe(3)

@@ -21,6 +21,7 @@ import { getTheme, type NodeStyles, type Theme } from "./themes.js"
 import { parseAdvancedLayoutBlocks } from "./advanced-layout/parser.js"
 import { renderAdvancedModules, type RenderedAdvancedBlock } from "./advanced-layout/renderers.js"
 import { collectAdvancedModuleImages } from "./advanced-layout/images.js"
+import { scanWechatTopicMarkers, type WechatTopicMarker } from "./wechat-topics.js"
 
 /**
  * hljs token 类型 → inline style 颜色映射
@@ -77,6 +78,7 @@ export interface ConvertResult {
   html: string
   externalImages: string[]
   localImages: string[]
+  wechatTopics: WechatTopicMarker[]
 }
 
 
@@ -85,6 +87,7 @@ export async function convertMarkdown(markdown: string, options: ConvertOptions 
   const theme = themeDefinition ?? getTheme(themeName)
   const externalImages: string[] = []
   const localImages: string[] = []
+  const wechatTopics = scanWechatTopicMarkers(markdown)
 
   // 剥离 Hexo/Jekyll front matter
   const stripped = markdown.replace(/^---\n[\s\S]*?\n---\n?/, "").trimStart()
@@ -108,7 +111,7 @@ export async function convertMarkdown(markdown: string, options: ConvertOptions 
   const inner = String(result)
   const html = `<section style="${escapeAttr(theme.styles.wrapper)}">${inner}</section>`
 
-  return { html, externalImages, localImages }
+  return { html, externalImages, localImages, wechatTopics }
 }
 
 function injectAdvancedBlocks(tree: Root, blocks: RenderedAdvancedBlock[]): void {

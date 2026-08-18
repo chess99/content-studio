@@ -75,19 +75,24 @@ describe("Studio server", () => {
   })
 
   it("converts Markdown through the local API and reports article image sources", async () => {
-    const server = await start("![remote](https://example.com/a.png)\n\n![local](./local.png)")
+    const server = await start("![remote](https://example.com/a.png)\n\n![local](./local.png)\n\n#AI创业")
 
     const response = await fetch(`${server.url}/api/convert`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        markdown: "![remote](https://example.com/a.png)\n\n![local](./local.png)",
+        markdown: "![remote](https://example.com/a.png)\n\n![local](./local.png)\n\n#AI创业",
         theme: { preset: "github-readme" },
       }),
     })
     const payload = await response.json() as {
       success: boolean
-      data: { html: string; externalImages: string[]; localImages: string[] }
+      data: {
+        html: string
+        externalImages: string[]
+        localImages: string[]
+        wechatTopicCards: { detected: number; requires_manual_conversion: boolean }
+      }
     }
 
     expect(response.status).toBe(200)
@@ -95,6 +100,7 @@ describe("Studio server", () => {
     expect(payload.data.html).toContain("<img")
     expect(payload.data.externalImages).toEqual(["https://example.com/a.png"])
     expect(payload.data.localImages).toEqual(["./local.png"])
+    expect(payload.data.wechatTopicCards).toMatchObject({ detected: 1, requires_manual_conversion: true })
   })
 
   it("rejects unknown runtime theme ids through the local convert API", async () => {

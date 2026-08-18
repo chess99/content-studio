@@ -30,6 +30,7 @@ import { resolveThemeOption } from "./theme-options.js"
 import { getThemeFileSchema, loadThemeFile } from "../converter/theme-file.js"
 import { createStudioServer } from "../studio/server.js"
 import { ENHANCED_ADVANCED_MODULES, PUBLIC_ADVANCED_MODULES } from "../converter/advanced-layout/parser.js"
+import { summarizeWechatTopicCards } from "../converter/wechat-topics.js"
 
 // ─── 输出格式 ─────────────────────────────────────────────────────────────────
 
@@ -123,10 +124,11 @@ program
     const client = new WechatClient({ appid: config.wechat_appid, secret: config.wechat_secret })
 
     // 转换 Markdown
-    const { html, externalImages, localImages } = await convertMarkdown(markdown, {
+    const { html, externalImages, localImages, wechatTopics } = await convertMarkdown(markdown, {
       theme,
       themeDefinition: themeOption.themeDefinition,
     })
+    const topicCardSummary = summarizeWechatTopicCards(wechatTopics)
 
     // 提取标题（从 Markdown 第一个 h1，或用文件名）
     const title = opts.title ?? extractTitle(markdown) ?? opts.file
@@ -202,6 +204,11 @@ program
       },
     ]).catch(e => fail(`创建草稿失败`, String(e)))
 
+    const warnings = [
+      ...(topicCardSummary ? [topicCardSummary.instruction] : []),
+      ...(usedPlaceholderCover ? ["未提供封面图，已使用内置占位图。建议用 --cover 或 --cover-url 指定真实封面图后重新发布。"] : []),
+    ]
+
     ok({
       media_id: draft.media_id,
       title,
@@ -213,7 +220,9 @@ program
       local_images: localImages,
       message: "草稿已创建，请在微信公众号后台发布",
       used_placeholder_cover: usedPlaceholderCover,
-      ...(usedPlaceholderCover && { warning: "未提供封面图，已使用内置占位图。建议用 --cover 或 --cover-url 指定真实封面图后重新发布。" }),
+      ...(topicCardSummary && { wechat_topic_cards: topicCardSummary }),
+      ...(warnings.length > 0 && { warnings }),
+      ...(warnings.length > 0 && { warning: warnings.join(" ") }),
     })
   })
 
@@ -289,15 +298,22 @@ program
       console.error(JSON.stringify({ warnings: themeOption.warnings }))
     }
     const theme = themeOption.themeName
-    const { html, externalImages, localImages } = await convertMarkdown(markdown, {
+    const { html, externalImages, localImages, wechatTopics } = await convertMarkdown(markdown, {
       theme,
       themeDefinition: themeOption.themeDefinition,
     })
+    const topicCardSummary = summarizeWechatTopicCards(wechatTopics)
 
     if (opts.output) {
       const { writeFileSync } = await import("fs")
       writeFileSync(resolve(opts.output), html, "utf-8")
-      ok({ output: opts.output, theme, external_images: externalImages, local_images: localImages })
+      ok({
+        output: opts.output,
+        theme,
+        external_images: externalImages,
+        local_images: localImages,
+        ...(topicCardSummary && { wechat_topic_cards: topicCardSummary }),
+      })
     } else {
       // 直接输出 HTML（不包 JSON），方便 pipe
       process.stdout.write(html)
@@ -503,6 +519,7 @@ program
         curated_theme_presets: true,
         composable_theme_customization: true,
         theme_gallery: true,
+        wechat_topic_card_markers: true,
       },
       coverage: {
         theme_system: {
@@ -598,6 +615,7 @@ program
         "文章中的外链图片和本地图片会自动上传到微信素材库",
         "本地相对图片路径按 Markdown 文件所在目录解析",
         "微信公众号草稿创建后需在后台手动发布",
+        "公众号渠道稿可用独立的 #话题名 行标记话题卡片位置；草稿创建后仍需在微信后台绑定并转换为真实话题卡片",
         "access_token 自动缓存，有效期内不重复请求",
       ],
     })
@@ -956,7 +974,6 @@ async function handleConvertApi(body: ConvertApiBody, res: ServerResponse): Prom
     return
   }
 
-  const warnings = apiWarnings(body)
   const config = loadConfig()
   const resolved = resolveApiTheme(body.theme, config.default_theme)
   const result = await convertMarkdown(body.markdown, {
@@ -964,6 +981,11 @@ async function handleConvertApi(body: ConvertApiBody, res: ServerResponse): Prom
     themeDefinition: resolved.theme,
     stripLinks: false,
   })
+  const topicCardSummary = summarizeWechatTopicCards(result.wechatTopics)
+  const warnings = [
+    ...apiWarnings(body),
+    ...(topicCardSummary ? [topicCardSummary.instruction] : []),
+  ]
 
   sendJson(res, 200, {
     success: true,
@@ -972,6 +994,7 @@ async function handleConvertApi(body: ConvertApiBody, res: ServerResponse): Prom
       theme: resolved.selection,
       external_images: result.externalImages,
       local_images: result.localImages,
+      ...(topicCardSummary && { wechat_topic_cards: topicCardSummary }),
       warnings,
     },
   })
@@ -1001,6 +1024,7 @@ async function handleDraftApi(body: ConvertApiBody, res: ServerResponse): Promis
     theme: resolved.theme.name,
     themeDefinition: resolved.theme,
   })
+  const topicCardSummary = summarizeWechatTopicCards(result.wechatTopics)
   const client = new WechatClient({ appid: config.wechat_appid, secret: config.wechat_secret })
   const finalArticle = await uploadAndRewriteArticleImages(
     result.html,
@@ -1034,7 +1058,11 @@ async function handleDraftApi(body: ConvertApiBody, res: ServerResponse): Promis
       external_images: result.externalImages,
       local_images: result.localImages,
       used_placeholder_cover: thumbMediaId.usedPlaceholder,
-      warnings: apiWarnings(body),
+      ...(topicCardSummary && { wechat_topic_cards: topicCardSummary }),
+      warnings: [
+        ...apiWarnings(body),
+        ...(topicCardSummary ? [topicCardSummary.instruction] : []),
+      ],
     },
   })
 }
