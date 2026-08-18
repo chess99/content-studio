@@ -35,6 +35,7 @@ AI 助手完成每次明确的代码或文档迭代后，应自行运行必要�
 当前共享阅读基线应保持：
 
 - 普通正文：`font-size:16px`，`line-height:1.82`，段落间距 `margin:0 0 16px 0`
+- 主题根容器：水平 `padding:0`，沿用微信公众号内容区边距，不重复缩进正文
 - 普通列表：与正文同字号、同行高，使用微信安全结构避免原生列表重复 marker
 - 字体栈：系统字体优先，`-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif`
 - 中文正文默认不要加 `letter-spacing`；这会破坏中英文混排阅读节奏

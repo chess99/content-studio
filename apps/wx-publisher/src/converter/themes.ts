@@ -368,7 +368,7 @@ function createStyles(spec: ThemeSpec): NodeStyles {
   const link = defaultLink(spec)
 
   return {
-    wrapper: `font-family:${READING_FONT_FAMILY};max-width:677px;margin:0 auto;padding:0 16px;background:#ffffff;color:${spec.text};`,
+    wrapper: `font-family:${READING_FONT_FAMILY};max-width:677px;margin:0 auto;padding:0;background:#ffffff;color:${spec.text};`,
     h1: themeH1(spec),
     h2: themeH2(spec),
     h3: `font-family:${headingFamily(spec)};font-size:19px;font-weight:700;color:${spec.textStrong};line-height:1.48;margin:28px 0 14px;word-break:break-word;`,

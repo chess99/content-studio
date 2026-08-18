@@ -82,6 +82,8 @@ describe("curated theme system", () => {
       const palette = getAdvancedPalette(theme)
 
       expect(theme.styles.wrapper).toContain("background:#ffffff")
+      expect(theme.styles.wrapper).toContain("padding:0;")
+      expect(theme.styles.wrapper).not.toContain("padding:0 16px")
       expect(theme.styles.h1).not.toMatch(/background|box-shadow/)
       expect(theme.styles.h2).not.toMatch(/background|box-shadow/)
       expect(palette.background).toBe("#ffffff")
