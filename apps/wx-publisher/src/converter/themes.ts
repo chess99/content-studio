@@ -371,10 +371,10 @@ function createStyles(spec: ThemeSpec): NodeStyles {
     wrapper: `font-family:${READING_FONT_FAMILY};max-width:677px;margin:0 auto;padding:0;background:#ffffff;color:${spec.text};`,
     h1: themeH1(spec),
     h2: themeH2(spec),
-    h3: `font-family:${headingFamily(spec)};font-size:19px;font-weight:700;color:${spec.textStrong};line-height:1.48;margin:28px 0 14px;word-break:break-word;`,
-    h4: `font-family:${headingFamily(spec)};font-size:17px;font-weight:700;color:${spec.accentText};line-height:1.5;margin:24px 0 12px;word-break:break-word;`,
-    h5: `font-size:16px;font-weight:650;color:${spec.textStrong};line-height:1.5;margin:20px 0 10px;word-break:break-word;`,
-    h6: `font-size:15px;font-weight:650;color:${spec.muted};line-height:1.5;margin:18px 0 8px;word-break:break-word;`,
+    h3: `font-family:${headingFamily(spec)};font-size:19px;font-weight:700;color:${spec.textStrong};line-height:1.48;margin:28px 0 14px;`,
+    h4: `font-family:${headingFamily(spec)};font-size:17px;font-weight:700;color:${spec.accentText};line-height:1.5;margin:24px 0 12px;`,
+    h5: `font-size:16px;font-weight:600;color:${spec.textStrong};line-height:1.5;margin:20px 0 10px;`,
+    h6: `font-size:15px;font-weight:600;color:${spec.muted};line-height:1.5;margin:18px 0 8px;`,
     p: `${READING_PARAGRAPH}color:${spec.text};`,
     strong: `font-weight:700;color:${spec.accentText};`,
     em: `font-style:italic;color:${spec.muted};`,
@@ -399,7 +399,7 @@ function createStyles(spec: ThemeSpec): NodeStyles {
     footnoteItem: `margin:0 0 8px;color:${spec.muted};font-size:14px;line-height:1.7;`,
     ...mediaModuleStyles(spec, radius),
     table: "width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;background:#ffffff;",
-    th: `background:${spec.surfaceAlt};font-weight:750;padding:9px 12px;border:1px solid ${spec.border};text-align:left;color:${spec.textStrong};`,
+    th: `background:${spec.surfaceAlt};font-weight:700;padding:9px 12px;border:1px solid ${spec.border};text-align:left;color:${spec.textStrong};`,
     td: `padding:9px 12px;border:1px solid ${spec.border};color:${spec.text};background:#ffffff;`,
   }
 }
@@ -409,7 +409,7 @@ function headingFamily(spec: ThemeSpec): string {
 }
 
 function themeH1(spec: ThemeSpec): string {
-  const common = `font-family:${headingFamily(spec)};font-size:26px;font-weight:750;color:${spec.textStrong};line-height:1.42;margin:34px 0 26px;word-break:break-word;`
+  const common = `font-family:${headingFamily(spec)};font-size:26px;font-weight:700;color:${spec.textStrong};line-height:1.42;margin:34px 0 26px;`
   switch (spec.layout) {
     case "centered":
       return `${common}padding:12px 0 14px;text-align:center;border-top:1px solid ${spec.accent};border-bottom:1px solid ${spec.accent};`
@@ -424,7 +424,7 @@ function themeH1(spec: ThemeSpec): string {
 }
 
 function themeH2(spec: ThemeSpec): string {
-  const common = `font-family:${headingFamily(spec)};font-size:22px;font-weight:720;color:${spec.textStrong};line-height:1.5;margin:32px 0 18px;word-break:break-word;`
+  const common = `font-family:${headingFamily(spec)};font-size:22px;font-weight:700;color:${spec.textStrong};line-height:1.5;margin:32px 0 18px;`
   switch (spec.layout) {
     case "centered":
       return `${common}text-align:center;color:${spec.accentText};`
@@ -447,11 +447,11 @@ function defaultPre(spec: ThemeSpec, radius: string): string {
 }
 
 function defaultPreCode(spec: ThemeSpec): string {
-  return `font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:14px;color:${spec.text};background:none;padding:0;border-radius:0;display:block;line-height:1.62;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;`
+  return `font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:14px;color:${spec.text};background:none;padding:0;border-radius:0;display:block;line-height:1.62;white-space:pre-wrap;overflow-wrap:anywhere;`
 }
 
 function defaultLink(spec: ThemeSpec): string {
-  return `color:${spec.accentText};text-decoration:none;font-weight:650;border-bottom:1px solid ${spec.border};word-break:break-all;overflow-wrap:anywhere;white-space:normal;`
+  return `color:${spec.accentText};text-decoration:none;font-weight:600;border-bottom:1px solid ${spec.border};word-break:break-all;overflow-wrap:anywhere;white-space:normal;`
 }
 
 function alertStyles(spec: ThemeSpec): Partial<NodeStyles> {
@@ -466,7 +466,7 @@ function alertStyles(spec: ThemeSpec): Partial<NodeStyles> {
     blockquoteImportant: alertBox(important),
     blockquoteWarning: alertBox(warning),
     blockquoteCaution: alertBox(caution),
-    blockquoteTitle: "margin:0 0 8px;font-size:15px;font-weight:750;line-height:1.5;",
+    blockquoteTitle: "margin:0 0 8px;font-size:15px;font-weight:700;line-height:1.5;",
     blockquoteTitleNote: `color:${note};`,
     blockquoteTitleTip: `color:${tip};`,
     blockquoteTitleImportant: `color:${important};`,
@@ -499,7 +499,7 @@ function mediaModuleStyles(spec: ThemeSpec, radius: string): Partial<NodeStyles>
     longimageImageContainer: `margin:0;overflow:hidden;border-radius:${radius};`,
     longimageCaption: `margin:8px 0 0;color:${spec.muted};font-size:13px;line-height:1.6;text-align:center;`,
     dialogueContainer: `margin:20px 0;padding:14px 0;background:#ffffff;border-top:1px solid ${spec.border};border-bottom:1px solid ${spec.border};`,
-    dialogueTitle: `margin:0 0 12px;color:${spec.accentText};font-size:16px;font-weight:750;line-height:1.4;`,
+    dialogueTitle: `margin:0 0 12px;color:${spec.accentText};font-size:16px;font-weight:700;line-height:1.4;`,
     dialogueItem: "display:flex;margin:10px 0;gap:8px;align-items:flex-start;",
     dialogueItemLeft: "justify-content:flex-start;",
     dialogueItemRight: "justify-content:flex-end;",

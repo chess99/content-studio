@@ -108,7 +108,9 @@ export async function convertMarkdown(markdown: string, options: ConvertOptions 
     .use(rehypeStringify, { allowDangerousHtml: true })
 
   const result = await processor.process(advanced.markdown)
-  const inner = String(result)
+  // rehype-stringify 会把 ' 编码为 &#x27;，但微信后台不解码 HTML 实体，
+  // 导致 style 属性中的字体会被当作非法 CSS 而整条清空。还原为原始引号。
+  const inner = String(result).replace(/&#x27;/g, "'")
   const html = `<section style="${escapeAttr(theme.styles.wrapper)}">${inner}</section>`
 
   return { html, externalImages, localImages, wechatTopics }
