@@ -1,132 +1,121 @@
 ---
 name: "chatgpt-imagegen"
-description: "Legacy compatibility CLI for generating raster images through a ChatGPT subscription. Use only when the user explicitly asks for this local CLI, or when running in Claude Code or another agent environment that has no native image-generation tool. In Codex with native image generation available, do not use this skill; use Codex's built-in image-generation capability instead."
+description: "通过普通 ChatGPT 网页 Chat 配额或兼容的 Codex 订阅端点生成并保存图片。用户提到 Chat 模式额度、Web 生图、避免 Work/Codex 额度，或在没有原生生图工具的环境中显式要求 chatgpt-imagegen 时使用。"
 ---
 
-# chatgpt-imagegen — compatibility skill
+# ChatGPT 生图
 
-A standalone Python CLI that produces images via the user's ChatGPT subscription. It is retained for Claude Code and other agent environments without native image generation.
+按用户希望使用的额度池选择后端。不得在失败后静默切换后端。
 
-## Runtime routing
+## 后端路由
 
-- **Codex with native image generation available:** stop using this skill and call the native image-generation tool. Do not inspect `CLAUDE_SKILL_DIR`, OAuth files, or this compatibility script.
-- **Claude Code or an agent without native image generation:** use this CLI.
-- **Explicit user request for this CLI:** use this CLI even if another image tool exists.
+| 后端 | 额度 | 使用场景 |
+| --- | --- | --- |
+| `chat-web` | 普通 ChatGPT Web Chat | 用户明确要求使用 Chat 模式额度，且运行环境能控制已登录的 ChatGPT 网页 |
+| 原生生图 | Codex 通用额度 | Codex 提供原生生图能力，且用户没有要求 Chat 模式额度 |
+| `codex-legacy` | Work/Codex | Claude Code 等没有原生生图能力的环境，或用户明确要求兼容 CLI |
+| 官方图片 API | API 独立计费 | 用户提供 `OPENAI_API_KEY`，或需要稳定程序化批量生成、高质量、透明背景 |
 
-The CLI is a fallback integration, not the default image path for repository workflows.
+用户要求 Chat 模式时，只能使用 `chat-web`。网页不可用、未登录或生成失败时停止并说明原因，不得回退到原生生图、`codex-legacy` 或 API。
 
-The script lives at `$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py` — always call it by that path. If the harness did not set `CLAUDE_SKILL_DIR`, resolve the directory from this skill's catalog locator and set the variable before invoking the script. From the `content-studio` repository root, PowerShell can use:
+## `chat-web` 后端
+
+### 前提
+
+- 使用 Browser 或 Chrome 控制能力操作已登录的 `https://chatgpt.com/`。
+- 实际提交提示词会创建 ChatGPT 对话并消耗 Chat 生图额度；仅在用户已经授权生图时提交。
+- 不读取浏览器 Cookie、Local Storage、Profile、OAuth token 或内部接口请求。
+- 不直接请求 ChatGPT 私有后端，也不导航到带签名的图片资源 URL。
+
+### 工作流
+
+1. 确定提示词、输出尺寸意图、格式和工作区内的目标路径。没有明确目录时使用调用方项目中合理的资源目录。
+2. 按浏览器控制 skill 连接浏览器，打开或接管 ChatGPT 首页。
+3. 检查 `Select chat surface`：必须看到 `Chat` 已选中。若 `Work` 已选中，切换到 `Chat` 后重新检查；无法确认时停止。
+4. 新建普通 Chat 对话。提示词写清主体、构图、风格、约束，并明确“只生成图片”。
+5. 如需上传参考图，先读取浏览器控制 skill 的文件上传说明，再通过网页选择器上传用户指定的文件；不要上传其他文件。
+6. 提交提示词，等待生成完成。以结果区出现 `Generated image` 图片且生成/停止按钮消失为完成信号；不要用固定长时间盲等。
+7. 用当前标签页的 `pageAssets` 能力列出资源，将结果图片元素的 `src` 与资源清单匹配，只打包对应的图片 `assetId`。不要直接抓取资源 URL。
+8. 用保存脚本把浏览器导出的文件落到目标路径：
 
 ```powershell
-$env:CLAUDE_SKILL_DIR = (Resolve-Path 'skills/chatgpt-imagegen').Path
+python "$CLAUDE_SKILL_DIR/scripts/save-chat-web-image.py" `
+  "<pageAssets bundle path>" `
+  -o "<workspace output path>" `
+  --format auto
 ```
 
-## Prerequisites
+优先使用运行环境提供的 `$CLAUDE_SKILL_DIR`。如果没有该变量，从 skill 目录定位信息解析本 skill 的绝对路径后再调用脚本，不要依赖脚本已加入 `PATH`。
 
-The user must have run, **once, ever**:
+9. 查看保存后的图片。若明显不符合要求，只做一次有针对性的提示词调整；不得盲目生成变体。
+10. 返回最终文件路径、实际提示词和 ChatGPT 对话 URL，并说明使用了普通 Chat 模式。
+
+`save-chat-web-image.py` 会识别没有扩展名的 PNG/JPEG/WebP，按目标扩展名转换格式，并默认拒绝覆盖已有文件。只有用户明确要求覆盖时才传 `--force`。
+
+### 额度验证
+
+用户要求验证额度池时：
+
+1. 生成前记录 Codex/Work Analytics 页面显示的剩余额度和重置时间。
+2. 在普通 `Chat` 已选中的页面只生成一张最小测试图。
+3. 生成后刷新 Analytics 页面并记录同一指标。
+4. 百分比可能取整，因此“数值未变”是支持证据而非单独的绝对证明；同时报告页面模式、对话 URL 和官方文档的额度边界。
+
+验证期间不得调用 `codex-legacy` 或原生生图，否则会污染对比结果。
+
+### 限制
+
+- `chat-web` 是网页工作流，不是稳定的公开 API。网页结构变化时应基于可见 DOM 重新定位，不得猜测私有接口。
+- ChatGPT Web 决定实际图片模型、质量和原始尺寸；尺寸提示属于意图，不能承诺像素级输出。
+- 不做无人值守批量生成。超过 10 张或持续生成前取得用户明确许可。
+- 生成结果通常是 PNG；JPEG/WebP 由保存脚本在本地转换。
+
+## `codex-legacy` 兼容 CLI
+
+此路径会消耗 Work/Codex 额度，不是 Chat 模式。
+
+### 前提
+
+用户需要执行一次：
 
 ```bash
 npm i -g @openai/codex
-codex login    # opens browser to sign in to ChatGPT
+codex login
 ```
 
-That writes `~/.codex/auth.json`, which this skill reads. If the file is missing, tell the user to run the two commands above and stop. Do not try to authenticate any other way.
+脚本只读取 `~/.codex/auth.json` 中 `codex login` 写入的 ChatGPT OAuth token，不使用 `OPENAI_API_KEY`。
 
-No `OPENAI_API_KEY` is required — and setting one will not help. This is the subscription path, not the API path.
-
-## When to use
-
-- The runtime has no native image-generation tool and the user asks for a new bitmap asset.
-- The user explicitly asks to use `chatgpt-imagegen` or this local subscription CLI.
-- The user is happy with subscription-tier quality (`medium` quality, no native transparent backgrounds — see *Limits* below).
-- The deliverable is intended to be saved into the repo or build inputs.
-
-## When not to use
-
-- Codex already exposes a native image-generation tool. Use that tool instead.
-- The user wants an SVG icon that matches an in-repo vector set — edit those instead.
-- The task is better solved with code (HTML/CSS, canvas, Mermaid, PlantUML).
-- The user already has an image on disk and wants to *edit* it — this skill is generate-only.
-- The user explicitly needs **true `quality=high`** or **`background=transparent`** — the subscription path caps quality at `medium` and rejects transparent. Tell the user to use the official `/v1/images/generations` API with their `OPENAI_API_KEY` for those cases.
-- The deliverable will be served to end users (e.g. a public service generating images for visitors) — that violates OpenAI's ToS for personal subscriptions. Refuse and explain.
-
-## How to invoke
+### 调用
 
 ```bash
-python "$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py" "<prompt>" [options]
+python "$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py" "<prompt>" \
+  -o "<workspace path>" \
+  --size 1024x1024 \
+  --format png \
+  --quiet
 ```
 
-`$CLAUDE_SKILL_DIR` is set by the active agent harness when the skill loads. Always use this variable — never hardcode the path or rely on the script being on `$PATH`.
+可重复传入最多五个 `--ref PATH`。常用尺寸包括 `1024x1024`、`1536x1024`、`1024x1536` 和 `1792x1024`；其他尺寸由后端决定是否接受。
 
-Useful flags:
+兼容脚本固定请求 `https://chatgpt.com/backend-api/codex/responses`，请求头使用 `originator: codex_cli_rs`，并启用 `image_generation` 工具。因此 `--model` 只改变编排模型，不会改变额度池。
 
-| Flag | When to use |
+### 常见错误
+
+| 现象 | 处理 |
 | --- | --- |
-| `-o PATH` | Always use when you know where the file should go in the repo. |
-| `--ref PATH` | Reference image for style/composition guidance (repeatable, up to 5). |
-| `--size 1024x1024` | Square icons / logos (verified) |
-| `--size 1536x1024` | Landscape hero banners, social cards (verified) |
-| `--size 1024x1536` | Portrait covers, mobile splashes (verified) |
-| `--size 1792x1024` | Wide landscape, cover images (verified) |
-| `--size 3840x2160` or similar | 4K landscape (forwarded as-is; backend may reject — fall back to a smaller verified size on failure) |
-| `--format webp` | Smaller files for web assets |
-| `--quiet` | Use this in agent contexts so stdout is *only* the saved path |
+| 找不到 OAuth token | 运行 `codex login`，API key 不能替代 |
+| HTTP 400 要求新版 Codex | 运行 `npm i -g @openai/codex@latest` |
+| refresh token 失效 | 重新运行 `codex login` |
+| HTTP 429 | Work/Codex 被限流；不要循环重试，也不要假装这是 Chat 额度 |
+| 流超时 | 最多重试一次并传 `--timeout 300` |
+| 没有返回图片 | 明确要求模型调用 `image_generation` 工具后重试一次 |
 
-The script prints **just the saved path on stdout** when `--quiet` is set; progress goes to stderr. Capture it with:
+## 官方图片 API
 
-```bash
-OUT=$(python "$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py" "..." --quiet)
-```
+需要稳定的程序化调用、明确质量、透明背景或大批量生成时，使用官方图片 API 和用户自己的 `OPENAI_API_KEY`。API 独立计费，不使用 Chat 或 Work/Codex 订阅额度。
 
-## Save-path policy
+## 保存规则
 
-1. **Always save into the workspace**, never into `/tmp`, `$HOME`, or `~/.codex/...`.
-2. If the user named a destination, pass it via `-o`.
-3. If they didn't, pick a sensible subdirectory: `assets/`, `public/`, `static/`, `docs/img/`, `web/img/`, `assets/brand/`, etc. Default to `assets/generated/` only if nothing better fits.
-4. Don't overwrite existing files unless the user asked. With `-o` the script overwrites silently; without `-o` it auto-numbers (`name.png`, `name-2.png`).
-5. After saving, **echo the final path back to the user**.
-
-## Workflow
-
-1. **Clarify** the prompt enough to write 1–3 sentences: subject, style, composition, mood, constraints. Don't over-augment when the user's prompt is already specific.
-2. **Pick size and format** based on intended use (see table above).
-3. **Pick the output path** inside the workspace.
-4. **Run** `python "$CLAUDE_SKILL_DIR/scripts/chatgpt-imagegen.py" "<prompt>" -o <path> --size <wxh> --quiet`.
-5. **Inspect the result** if you can (e.g. with a `view_image` tool or by reading the file). If clearly wrong, iterate with a single targeted prompt change — do not loop blindly (each call costs subscription quota).
-6. **Report the saved path** plus the final prompt used.
-
-## Limits
-
-- **Image quality** is chosen by the backend; this skill has no `--quality` flag, and the subscription path does not honour explicit quality requests reliably. Don't promise a specific quality level to the user. If they need explicit `quality=high`, route them to the official `/v1/images/generations` API with their own `OPENAI_API_KEY`.
-- `background: transparent` is **not supported** on the subscription path.
-- A single image takes **15–40 s**.
-- **Parallel execution is supported** — the backend handles ≥4 concurrent requests with no serialization or 429s on a Plus account. If the user asks for several distinct assets, you may fire the script in parallel (e.g. shell `&` + `wait`). Do not loop blindly for "variants of the same prompt" — that just burns quota; iterate on the prompt instead.
-- Subscription quota is **shared** with the user's interactive ChatGPT use. Don't bulk-generate (>10 images / minute sustained) without permission — you'll hit per-day caps.
-
-## Error handling
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| `~/.codex/auth.json not found` | Codex CLI never signed in | Tell user to run `npm i -g @openai/codex && codex login` |
-| `no ChatGPT OAuth access_token in ~/.codex/auth.json` | Only an API key is present, not a subscription OAuth token | Tell user to run `codex login`; an `OPENAI_API_KEY` value in that file is not a substitute |
-| `HTTP 400 requires a newer version of Codex` | local codex CLI is outdated | Tell user to run `npm i -g @openai/codex@latest` |
-| `HTTP 401` / `HTTP 403` then refresh works | Token expired and refresh succeeded | No action needed — script auto-retried |
-| `refresh_token is no longer valid — run codex login again` | Refresh token revoked or rotated | Tell user to run `codex login` again |
-| `stream exceeded total timeout budget` / `stream timed out before the image was returned` | Backend stuck, slow, or the requested budget is too short | Retry once with `--timeout 300`; do not loop |
-| Upload/write timeout with several references | Reference payload or concurrency is too large for the connection | Resize reference copies, keep originals unchanged, and reduce concurrency |
-| `no image returned. events seen: ...` | Model decided not to call the tool | Rephrase prompt to explicitly say "Use the image_generation tool to render…" |
-| `HTTP 429` | Subscription rate-limited | Wait a few minutes; do not retry in a loop |
-| `warning: --format=X but FILE.Y has .Y extension` | `-o` extension disagrees with `--format` | Fix the path or the format flag; the file IS written with the format you specified |
-
-## Internals (for maintainers / debugging)
-
-- Reads `~/.codex/auth.json` for `access_token`, `account_id`, `refresh_token`.
-- Reads `~/.codex/version.json` for the `version` header.
-- POSTs to `https://chatgpt.com/backend-api/codex/responses` with `tools: [{"type": "image_generation"}]`.
-- Streams the SSE response, extracts the `image_generation_call` output item, base64-decodes `item.result`, writes it to disk.
-- Auto-refreshes the OAuth token on 401/403 via `https://auth.openai.com/oauth/token` using `client_id=app_EMoamEEZ73f0CkXaXp7hrann`. The refreshed token is persisted back to `auth.json`.
-
-## Source
-
-Adapted from [leeguooooo/chatgpt-imagegen](https://github.com/leeguooooo/chatgpt-imagegen) (MIT).
-Script bundled at `scripts/chatgpt-imagegen.py` — no system install needed.
+- 正式产物保存到调用方工作区，不放入临时目录、用户主目录或本 skill 的示例目录。
+- 不覆盖已有文件，除非用户明确要求。
+- 完成后返回绝对路径；能查看图片时先做一次视觉检查。
