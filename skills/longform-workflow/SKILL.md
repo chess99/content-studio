@@ -43,11 +43,13 @@ LONGFORM_DIR = TOPIC_DIR/longform/
 |---|---|---|
 | 技术教程 | 复现操作、理解实现、诊断故障 | `references/technical-tutorial.md` |
 | 产品评测 | 判断产品效果、限制与适用人群 | `references/product-review.md` |
-| 行业分析 | 理解变化、参与者、成本和影响 | `references/industry-analysis.md` |
+| 行业分析 | 用跨时间、跨样本证据解释行业或市场变化 | `references/industry-analysis.md` |
 | 观点评论 | 处理争议并形成有依据的判断 | `references/opinion-commentary.md` |
 | 个人叙事 | 讲述真实经历、选择与认知变化 | `references/personal-narrative.md` |
 
-选题、研究、写作和审校阶段必须完整读取主要文体的 profile。混合题材仍只选一个主要文体；只有次要文体会实质改变取材、结构或事实边界时，才再读取一份 profile。遇到表中未覆盖的文体，写成 `其他（具体名称）`，遵循通用指南，不要硬套最接近的模板。
+选题、研究、写作和审校阶段完整读取主要文体的 profile。引用公司案例、谈到技术变化或提出机会判断，不会自动把文章变成行业分析。只有正文的核心承诺本身是解释行业或市场变化，才选择行业分析。
+
+混合题材仍只选一个主要文体，不再为全文加载第二套 profile。局部内容确有不同事实边界时，只在该处按实际材料处理。遇到表中未覆盖的文体，写成 `其他（具体名称）`，遵循通用指南，不要硬套最接近的模板。
 
 ## 阶段检测
 
@@ -57,7 +59,7 @@ LONGFORM_DIR = TOPIC_DIR/longform/
 | `longform/topic-card.md` | 素材研究员 |
 | `research.md` | 主笔 |
 | `longform/draft.md` | 同行审校；有图片素材时可先做图片编辑 |
-| `longform/review.md` | 主笔处理意见并生成 `longform/final.md` |
+| `longform/review.md` | 主笔判断并处理意见，生成 `longform/final.md` |
 | `longform/final.md`，计划发公众号但无封面 | 图片编辑制作封面 |
 | `longform/final.md` | 渠道适配 |
 
@@ -94,4 +96,8 @@ TOPIC_DIR/
 
 ## 门禁
 
-`longform/review.md` 中的 🔴 必须修改项全部处理后，才能进入渠道适配。创建平台草稿或公开发布仍需符合根目录 `AGENTS.md` 的外部副作用规则。
+审校意见是给主笔的判断材料，不是逐条改写指令。主笔可以采纳、补证、删除、留在后台说明，或写明理由后不采纳。
+
+只有仍未解决的“🔴 发布阻断”会阻止渠道适配。该级别限于会实质误导读者的事实错误或伪造材料、冒充真实经历，以及明确的侵权、隐私、合规等发布风险。普通逻辑分歧、证据强弱、语气和结构建议不阻断发布，也不能因为“可能被质疑”就升级。
+
+创建平台草稿或公开发布仍需符合根目录 `AGENTS.md` 的外部副作用规则。
