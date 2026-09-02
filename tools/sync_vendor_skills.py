@@ -95,6 +95,18 @@ def sync(names: list[str], ref_override: str | None) -> None:
     if ref_override and len(names) != 1:
         raise ValueError("--ref can only be used when syncing exactly one skill")
 
+    patched = [
+        name
+        for name in names
+        if skills[name].get("localPatches")
+        and repo_path(str(skills[name]["destination"])).exists()
+    ]
+    if patched:
+        raise RuntimeError(
+            "refusing to overwrite declared local patches for: "
+            f"{', '.join(patched)}; review and remove localPatches after rebasing them"
+        )
+
     with tempfile.TemporaryDirectory(prefix="content-studio-vendor-") as temporary:
         staging_root = Path(temporary)
         staged_items = [
