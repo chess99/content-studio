@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[{"id":"headline","type":"string","label":"Title","default":"Motion study"}]'>
+<head>
+<meta charset="utf-8">
+<title>Motion study</title>
+<script src="assets/gsap.min.js"></script>
+<style>body {margin: 0;} #main {position: relative; width: {{WIDTH}}px; height: {{HEIGHT}}px; overflow: hidden;}</style>
+</head>
+<body>
+<div id="main" data-composition-id="main" data-start="0" data-duration="{{DURATION}}" data-width="{{WIDTH}}" data-height="{{HEIGHT}}">
+  <div id="study" class="clip" data-composition-id="study" data-composition-src="compositions/study.html" data-start="0" data-duration="{{DURATION}}" data-track-index="1" data-track-kind="graphics" data-width="{{WIDTH}}" data-height="{{HEIGHT}}"></div>
+</div>
+<script>
+  window.__timelines = window.__timelines || {};
+  window.__timelines.main = gsap.timeline({paused: true});
+</script>
+</body>
+</html>

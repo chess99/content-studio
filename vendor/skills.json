@@ -16,7 +16,96 @@
             "references/formats.md"
           ]
         }
-      ]
+      ],
+      "sha256": "764868dd9fdb1281bc75ba29415dd9276e2ba8dab957a49899725284234aa4dc"
+    },
+    "guizang-product-video": {
+      "repository": "https://github.com/op7418/guizang-product-video-skill.git",
+      "ref": "main",
+      "commit": "18842e0f49a9eb2b8c00cc065ec37b314e235aaa",
+      "subdirectory": ".",
+      "destination": "vendor/op7418/guizang-product-video-skill",
+      "license": "AGPL-3.0; fallback assets BUSL-1.1",
+      "discovery": false,
+      "sha256": "56f45c4707d389045a124c695f80d0f50a1047503144ca111dad95a17ddd1118"
+    },
+    "baoyu-infographic": {
+      "repository": "https://github.com/JimLiu/baoyu-skills.git",
+      "ref": "main",
+      "commit": "1567581c26ec29f4216c6e6835415bf30343b0e3",
+      "subdirectory": "skills/baoyu-infographic",
+      "destination": "vendor/JimLiu/baoyu-skills/baoyu-infographic",
+      "license": "MIT",
+      "discovery": false,
+      "extraFiles": {
+        "LICENSE": "UPSTREAM-LICENSE"
+      },
+      "sha256": "a4dd035ee90fa6bcfd36f5a3662e25b54d637c121d03de3b30a50b3fff457f28"
+    },
+    "baoyu-comic": {
+      "repository": "https://github.com/JimLiu/baoyu-skills.git",
+      "ref": "main",
+      "commit": "1567581c26ec29f4216c6e6835415bf30343b0e3",
+      "subdirectory": "skills/baoyu-comic",
+      "destination": "vendor/JimLiu/baoyu-skills/baoyu-comic",
+      "license": "MIT",
+      "discovery": false,
+      "extraFiles": {
+        "LICENSE": "UPSTREAM-LICENSE"
+      },
+      "sha256": "1d584d53a03da185a84a786d70c461a4ff4265179658efa9f479faae074b3a38"
+    },
+    "hyperframes": {
+      "repository": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "main",
+      "commit": "3badc9bfa586d15311b498a0839ed2064906b883",
+      "subdirectory": "skills/hyperframes",
+      "destination": "vendor/heygen-com/hyperframes/hyperframes",
+      "license": "Apache-2.0",
+      "discovery": false,
+      "extraFiles": {
+        "LICENSE": "UPSTREAM-LICENSE"
+      },
+      "sha256": "44fb594defc92f8a7b121300d6c91dd9d2ba9b39fc1adc42592c9911a525a708"
+    },
+    "hyperframes-cli": {
+      "repository": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "main",
+      "commit": "3badc9bfa586d15311b498a0839ed2064906b883",
+      "subdirectory": "skills/hyperframes-cli",
+      "destination": "vendor/heygen-com/hyperframes/hyperframes-cli",
+      "license": "Apache-2.0",
+      "discovery": false,
+      "extraFiles": {
+        "LICENSE": "UPSTREAM-LICENSE"
+      },
+      "sha256": "aedbe722e684860e904edd944d04e49bb61591fc777ea5872f5889e1c68541ba"
+    },
+    "hyperframes-registry": {
+      "repository": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "main",
+      "commit": "3badc9bfa586d15311b498a0839ed2064906b883",
+      "subdirectory": "skills/hyperframes-registry",
+      "destination": "vendor/heygen-com/hyperframes/hyperframes-registry",
+      "license": "Apache-2.0",
+      "discovery": false,
+      "extraFiles": {
+        "LICENSE": "UPSTREAM-LICENSE"
+      },
+      "sha256": "51bfc2de490289cded830f2646c0c375960c1ed33d0e70abeac729bc564343b5"
+    },
+    "media-use": {
+      "repository": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "main",
+      "commit": "3badc9bfa586d15311b498a0839ed2064906b883",
+      "subdirectory": "skills/media-use",
+      "destination": "vendor/heygen-com/hyperframes/media-use",
+      "license": "Apache-2.0",
+      "discovery": false,
+      "extraFiles": {
+        "LICENSE": "UPSTREAM-LICENSE"
+      },
+      "sha256": "ad0eb5d3c9f55197c6b62ba2ebe57641559abd902318acd35d6bc979bf6bd8df"
     }
   }
 }

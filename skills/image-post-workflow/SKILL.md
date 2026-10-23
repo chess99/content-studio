@@ -5,6 +5,8 @@ description: 图片轮播和单图配文创作工作流。用于小红书图文�
 
 # 图文创作工作流
 
+信息图需要复杂关系布局、知识漫画需要角色和分格连续性时，先使用 `skills/visual-storytelling/SKILL.md` 选择叙事结构，再按本工作流的图片生成和质检要求执行。
+
 ## 硬原则
 
 先确定 `TOPIC_DIR`，读取内容资产仓库根目录的 `AGENTS.md` 与 `brand/BRAND.md`。图文目录固定为：

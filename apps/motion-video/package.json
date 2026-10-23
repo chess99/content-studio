@@ -1,0 +1,10 @@
+{
+  "name": "content-studio-motion-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "外部主题目录中的可编辑 HTML 视频工程",
+  "engines": {"node": ">=22"},
+  "scripts": {"video": "node scripts/video.mjs", "test": "node --test"},
+  "dependencies": {"hyperframes": "0.8.188", "gsap": "3.15.0"}
+}

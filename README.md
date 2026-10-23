@@ -1,92 +1,90 @@
 # Content Studio
 
-本地优先、Agent 驱动的内容生产 monorepo。统一维护长文、图文和知识视频工作流，以及生图、转录、排版、渲染和多平台发布工具。
+本地优先的内容创作工作区。把选题、产品更新和已有素材做成文章、图片或视频，保留可编辑工程，按需对接发布工具。
 
-## 项目边界
+## 从任务开始
 
-- 内容资产：`D:\code\content`
-- 博客发布：`D:\code\blog`
-- 创作能力与生产工具：本仓库
+| 想完成的内容 | 入口 |
+|---|---|
+| 还没确定形式，或要同时做文章、图文和视频 | [内容制作](skills/content-producer/SKILL.md) |
+| 博客、公众号、深度长文 | [长文工作流](skills/longform-workflow/SKILL.md) |
+| 小红书、抖音图片轮播 | [图文工作流](skills/image-post-workflow/SKILL.md) |
+| 信息图、机制图、知识漫画 | [视觉叙事](skills/visual-storytelling/SKILL.md) |
+| 产品宣传片、软件演示、自由动效、素材剪辑 | [动态视频](skills/motion-video-workflow/SKILL.md) |
+| 带来源、配音与字幕的知识视频 | [知识视频](skills/knowledge-video-workflow/SKILL.md) |
+| 预览并创建公众号草稿 | [公众号发布](skills/wechat-publish/SKILL.md) |
 
-所有工作流都接收明确的主题目录 `TOPIC_DIR`，例如：
+可以直接描述目标和提供材料，由 Agent 选择对应入口。单项修改沿用原有文件与工程。
+
+## 工作区与内容
+
+本仓库保存制作能力。具体选题、文稿、素材、工程与成片保存在独立的 `content` 仓库，博客发布副本保存在 `blog`。优先使用调用方提供的路径；常见布局为三个同级目录，支持 macOS/Linux 与 Windows。
+
+每次创作明确 `TOPIC_DIR`，先读取内容仓库的 `AGENTS.md` 与 `brand/BRAND.md`。资产组织以内容仓库规则为准；不自动将其 `research/` 中的探索结果当作生效品牌。正式产物不写入本仓库示例或缓存。
 
 ```text
-D:\code\content\topics\20260722-superpowers-flow-tax
+skills/                         自研任务入口与流程
+vendor/                         固定版本的第三方技术参考与工具
+apps/motion-video/              可编辑 HTML 视频与本地渲染
+apps/knowledge-video-factory/   结构化知识视频、配音与字幕
+apps/wx-publisher/              公众号排版、预览与草稿
+labs/xhs-publisher/             小红书发布实验
+tools/                          转录、媒体检查与工作区维护
+docs/                           模块设计和集成说明
 ```
 
-不得把具体选题产物写入本仓库，也不得重新引入 `drafts/` 或 app 内部 `projects/` 作为正式内容库。
+## 开始使用
 
-账号级品牌由内容资产仓库的 `brand/BRAND.md` 统一提供。工作流默认只读取这个生效入口及其中明确列出的正式资产，不自动读取内容仓库的 `research/`；本仓库只保存生产方法和可复用视觉预设，不复制某个账号的品牌资产。
-
-本仓库是工作流与生产工具的当前维护入口，替代旧的独立 `content-workflows` 与 `knowledge-video-factory` 工作区。旧仓库只作历史参考，不再双向同步功能修改。
-
-## 结构
-
-```text
-skills/                         自主开发的 Agent 工作流与工具入口
-vendor/                         第三方 skill 源码与上游同步记录
-apps/wx-publisher/              微信公众号排版与草稿应用
-apps/knowledge-video-factory/   知识视频生产与渲染应用
-labs/xhs-publisher/             小红书发布能力实验
-tools/                          小型通用工具
-docs/                           跨模块设计和迁移文档
+```sh
+python3 tools/workspace_doctor.py
 ```
 
-各 app 保留自己的依赖、测试、说明和局部 `AGENTS.md`。根目录不复制 app 的实现代码。
+检查 Agent 入口、上游完整性与基础媒体工具。发现失效软链时：
 
-## Skills
-
-自研 skills：
-
-- `longform-workflow`：博客、公众号和小红书长文的选题、研究、写作与审校。
-- `image-post-workflow`：小红书、抖音等图片轮播内容的分级创作流程。
-- `knowledge-video-workflow`：调用视频工厂完成知识视频脚本、分镜、配音、渲染和质检。
-- `wechat-publish`：预览公众号内容并创建文章或贴图草稿。
-- `chatgpt-imagegen`：为 Claude Code 或无原生生图能力的 Agent 保留的本地位图生成兼容入口；Codex 默认使用原生图片生成工具。
-- `douyin-download`：归档用户有权访问的抖音内容。
-
-第三方 skills：
-
-- `human-writing`：来自 `KKKKhazix/human-writing` 的中文创作与改稿 skill，源码保存在 `vendor/KKKKhazix/human-writing/`。
-
-Agent 自动发现入口：
-
-- `.agents/skills/*`：分别软链到 `skills/*` 或 `vendor/*`。
-- `.claude/skills` → `../.agents/skills`
-- `.catpaw/skills` → `../.agents/skills`
-
-## 同步第三方 Skills
-
-`vendor/skills.json` 记录每个第三方 skill 的上游仓库、跟踪 ref、当前精确 commit、上游子目录和本地目标目录。更新已登记的 skill：
-
-```powershell
-python tools/sync_vendor_skills.py human-writing
+```sh
+python3 tools/workspace_doctor.py --repair-links
 ```
 
-需要切换到指定 tag、分支或 commit 时：
+脚本保留真实目录，只修复软链。Windows 需支持 Git 软链检出及创建软链，必要时启用开发者模式。`.agents/skills/` 是发现入口，`.claude/skills` 和 `.catpaw/skills` 复用它。
 
-```powershell
-python tools/sync_vendor_skills.py human-writing --ref <tag-or-commit>
+按任务安装应用依赖即可。动态视频的快速上手与渲染命令见 [motion-video](apps/motion-video/README.md)；知识视频见 [knowledge-video-factory](apps/knowledge-video-factory/README.md)；公众号排版见 [wx-publisher](apps/wx-publisher/README.md)。
+
+## 上游能力
+
+- 归藏：真实产品组件、影片方向、配乐与审片。
+- HyperFrames：HTML 视频、时间线编辑、渲染与技术检查。
+- 宝玉：信息图布局与漫画叙事参考。
+- human-writing：中文写作与改稿。
+
+新增第三方源码由本地 workflow 按需读取，保持上游原样。许可与选型说明见 [创作能力集成](docs/creative-integrations.md)，精确 commit、内容摘要、额外许可证文件和本地补丁见 `vendor/skills.json`。
+
+```sh
+python3 tools/sync_vendor_skills.py --check
+python3 tools/sync_vendor_skills.py baoyu-infographic baoyu-comic
+python3 tools/sync_vendor_skills.py hyperframes --locked
 ```
 
-脚本会先在临时目录拉取并校验 `SKILL.md`，再替换本地源码，最后把解析出的精确 commit 回写到清单。同步后应检查 Git diff，确认上游变更后再提交。
+同步默认跟踪 ref；`--locked` 使用已登记 commit。存在本地补丁或未登记改动时停止，避免静默覆盖。升级后检查差异、运行相应测试并提交。
 
-## Apps 与 Tools
+## 常用工具
 
-- `tools/transcribe_video.py`：使用 `ffmpeg` 和 `whisper.cpp` 转录本地音视频。
-- `tools/sync_vendor_skills.py`：同步 `vendor/skills.json` 中登记的第三方 Agent skills。
-- `apps/wx-publisher`：Markdown/HTML 转微信公众号内容，提供 CLI、Studio、API、文章草稿和贴图草稿。
-- `apps/knowledge-video-factory`：提供知识视频的结构化脚本、配音、字幕、Remotion 渲染和自动质检。
-- `labs/xhs-publisher`：记录小红书发布工具的实测、风险和两阶段发布接口探索。
+- `tools/media_review.py`：媒体参数检查、带时间码的联系表，输出到指定外部目录。
+- `tools/transcribe_video.py`：通过 FFmpeg 和 whisper.cpp 转录本地音视频。
+- `chatgpt-imagegen`：供缺少原生生图能力的环境使用的兼容入口；有原生工具时优先使用原生能力。
+- `douyin-download`：归档有权访问的抖音素材。
 
-模型、大型中间文件、登录态和平台凭证保存在本地，不提交 Git。
+本地转换、检查和预览可以直接执行。创建平台草稿、公开发布各自遵循明确授权；密钥、登录态和模型缓存不进入 Git。
 
 ## 验证
 
-```powershell
-python -m py_compile tools/transcribe_video.py tools/sync_vendor_skills.py
-python -m py_compile vendor/KKKKhazix/human-writing/scripts/check_prose.py
+```sh
+python3 tools/workspace_doctor.py
+python3 -m unittest discover -s tests -v
+python3 -m py_compile tools/sync_vendor_skills.py tools/workspace_doctor.py tools/media_review.py
+npm --prefix apps/motion-video test
 npm --prefix apps/wx-publisher test
 pnpm --dir apps/knowledge-video-factory check:structure
 pnpm --dir apps/knowledge-video-factory typecheck
 ```
+
+修改自研 skill 后运行 `skill-creator` 的 `quick_validate.py`。视频流程还需实际渲染、打开抽帧、播放视频与试听；技术检查不替代内容和审美判断。

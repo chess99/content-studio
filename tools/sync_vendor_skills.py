@@ -5,9 +5,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import hashlib
+import re
 import shutil
 import subprocess
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +27,7 @@ def run(*args: str, cwd: Path | None = None) -> str:
         text=True,
         capture_output=True,
         check=False,
+        env={**os.environ, "GIT_LFS_SKIP_SMUDGE": "1"},
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
@@ -32,9 +37,63 @@ def run(*args: str, cwd: Path | None = None) -> str:
 
 def repo_path(relative: str) -> Path:
     path = (ROOT / relative).resolve()
-    if path != ROOT and ROOT not in path.parents:
+    if path == ROOT or ROOT not in path.parents:
         raise ValueError(f"path escapes repository root: {relative}")
+    if ROOT / "vendor" not in path.parents:
+        raise ValueError(f"destination must be inside vendor/: {relative}")
     return path
+
+
+def tree_digest(path: Path) -> str:
+    """Hash relative filenames and bytes; ignore generated caches, never follow links."""
+    digest = hashlib.sha256()
+    for item in sorted(path.rglob("*")):
+        relative = item.relative_to(path)
+        if any(part in {".git", "__pycache__", "node_modules"} for part in relative.parts) or item.suffix == ".pyc":
+            continue
+        if item.is_symlink():
+            raise ValueError(f"symlink in vendor source: {relative}")
+        if item.is_file():
+            digest.update(relative.as_posix().encode() + b"\0")
+            digest.update(hashlib.sha256(item.read_bytes()).digest())
+    return digest.hexdigest()
+
+
+def copy_source(checkout: Path, source: Path, staged: Path, config: dict[str, Any]) -> None:
+    tree_digest(source)  # Check symlinks before copytree can follow them.
+    shutil.copytree(source, staged, ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", "node_modules"))
+    for src, dst in config.get("extraFiles", {}).items():
+        src_path, dst_path = Path(src), Path(dst)
+        if any(p.is_absolute() or ".." in p.parts for p in (src_path, dst_path)):
+            raise ValueError("unsafe extraFiles path")
+        origin = checkout / src_path
+        if origin.is_symlink() or checkout.resolve() not in origin.resolve().parents:
+            raise ValueError("unsafe extraFiles source")
+        target = staged / dst_path
+        if target.exists():
+            raise ValueError(f"extraFiles would overwrite {dst}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(origin, target)
+
+
+def validate_config(name: str, config: dict[str, Any]) -> None:
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+        raise ValueError(f"invalid skill name: {name}")
+    repo_path(str(config["destination"]))
+    if not re.fullmatch(r"[0-9a-f]{40}", str(config.get("commit", ""))):
+        raise ValueError(f"missing pinned commit for {name}")
+    if not config.get("license"):
+        raise ValueError(f"missing license for {name}")
+
+
+def verify(name: str, config: dict[str, Any]) -> None:
+    validate_config(name, config)
+    destination = repo_path(config["destination"])
+    if not (destination / "SKILL.md").is_file():
+        raise ValueError(f"missing SKILL.md for {name}")
+    expected = config.get("sha256")
+    if not expected or tree_digest(destination) != expected:
+        raise ValueError(f"vendor content changed or unrecorded: {name}")
 
 
 def remove_path(path: Path) -> None:
@@ -64,13 +123,15 @@ def stage_skill(
         raise ValueError(f"unsafe upstream subdirectory for {name}: {source_relative}")
 
     destination = repo_path(str(config["destination"]))
-    checkout = staging_root / f"{name}-repo"
+    checkout_key = hashlib.sha256(f"{repository}\0{ref}".encode()).hexdigest()[:16]
+    checkout = staging_root / f"repo-{checkout_key}"
     staged = staging_root / f"{name}-content"
 
-    run("git", "init", "--quiet", str(checkout))
-    run("git", "-C", str(checkout), "remote", "add", "origin", repository)
-    run("git", "-C", str(checkout), "fetch", "--depth", "1", "origin", ref)
-    run("git", "-C", str(checkout), "checkout", "--quiet", "--detach", "FETCH_HEAD")
+    if not checkout.exists():
+        run("git", "init", "--quiet", str(checkout))
+        run("git", "-C", str(checkout), "remote", "add", "origin", repository)
+        run("git", "-C", str(checkout), "fetch", "--depth", "1", "origin", ref)
+        run("git", "-C", str(checkout), "checkout", "--quiet", "--detach", "FETCH_HEAD")
     commit = run("git", "-C", str(checkout), "rev-parse", "HEAD")
 
     source = (checkout / source_relative).resolve()
@@ -81,11 +142,12 @@ def stage_skill(
     if not (source / "SKILL.md").is_file():
         raise FileNotFoundError(f"{name} does not contain SKILL.md at {source_relative}")
 
-    shutil.copytree(source, staged, copy_function=shutil.copy2)
+    copy_source(checkout, source, staged, config)
     return staged, destination, commit, ref
 
 
-def sync(names: list[str], ref_override: str | None) -> None:
+def sync(names: list[str], ref_override: str | None, locked: bool = False) -> None:
+    names = list(dict.fromkeys(names))
     manifest = load_manifest()
     skills: dict[str, dict[str, Any]] = manifest["skills"]
 
@@ -94,6 +156,16 @@ def sync(names: list[str], ref_override: str | None) -> None:
         raise KeyError(f"unknown vendor skill(s): {', '.join(unknown)}")
     if ref_override and len(names) != 1:
         raise ValueError("--ref can only be used when syncing exactly one skill")
+
+    for name in names:
+        validate_config(name, skills[name])
+        if skills[name].get("sha256") and repo_path(skills[name]["destination"]).exists():
+            verify(name, skills[name])
+    destinations = [repo_path(config["destination"]) for config in skills.values()]
+    for i, destination in enumerate(destinations):
+        for other in destinations[i + 1:]:
+            if destination == other or destination in other.parents or other in destination.parents:
+                raise ValueError("vendor destinations overlap")
 
     patched = [
         name
@@ -110,27 +182,54 @@ def sync(names: list[str], ref_override: str | None) -> None:
     with tempfile.TemporaryDirectory(prefix="content-studio-vendor-") as temporary:
         staging_root = Path(temporary)
         staged_items = [
-            (name, *stage_skill(name, skills[name], ref_override, staging_root))
+            (name, *stage_skill(name, skills[name], skills[name]["commit"] if locked else ref_override, staging_root))
             for name in names
         ]
 
-        for name, staged, destination, commit, ref in staged_items:
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            replacement = destination.with_name(f".{destination.name}.sync")
-            remove_path(replacement)
-            shutil.copytree(staged, replacement, copy_function=shutil.copy2)
-            remove_path(destination)
-            replacement.replace(destination)
+        # Recheck after the network fetch: a concurrent local edit must survive.
+        if load_manifest() != manifest:
+            raise RuntimeError("vendor manifest changed during sync; retry after review")
+        for name in names:
+            if skills[name].get("sha256") and repo_path(skills[name]["destination"]).exists():
+                verify(name, skills[name])
 
-            skills[name]["commit"] = commit
-            if ref_override:
-                skills[name]["ref"] = ref
+        transaction = uuid.uuid4().hex
+        replacements: list[tuple[Path, Path, Path]] = []
+        installed: list[tuple[Path, Path]] = []
+        temporary_manifest = MANIFEST.with_name(f".skills-{transaction}.json")
+        try:
+            for name, staged, destination, commit, ref in staged_items:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                replacement = destination.with_name(f".{destination.name}.sync-{transaction}")
+                backup = destination.with_name(f".{destination.name}.backup-{transaction}")
+                replacements.append((replacement, destination, backup))
+                shutil.copytree(staged, replacement, copy_function=shutil.copy2)
+                skills[name]["sha256"] = tree_digest(replacement)
+                skills[name]["commit"] = commit
+                if ref_override:
+                    skills[name]["ref"] = ref
+
+            temporary_manifest.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            for replacement, destination, backup in replacements:
+                if destination.exists():
+                    destination.replace(backup)
+                installed.append((destination, backup))
+                replacement.replace(destination)
+            temporary_manifest.replace(MANIFEST)
+        except BaseException:
+            for destination, backup in reversed(installed):
+                remove_path(destination)
+                if backup.exists():
+                    backup.replace(destination)
+            raise
+        finally:
+            remove_path(temporary_manifest)
+            for replacement, _, _ in replacements:
+                remove_path(replacement)
+        for _, backup in installed:
+            remove_path(backup)
+        for name, _, _, commit, _ in staged_items:
             print(f"synced {name} at {commit}")
-
-    serialized = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
-    temporary_manifest = MANIFEST.with_suffix(".json.tmp")
-    temporary_manifest.write_text(serialized, encoding="utf-8")
-    temporary_manifest.replace(MANIFEST)
 
 
 def parse_args() -> argparse.Namespace:
@@ -146,14 +245,25 @@ def parse_args() -> argparse.Namespace:
         "--ref",
         help="override and persist the upstream branch, tag, or commit for one skill",
     )
-    return parser.parse_args()
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--check", action="store_true", help="verify local content without network or changes")
+    mode.add_argument("--locked", action="store_true", help="restore the recorded commit instead of following ref")
+    args = parser.parse_args()
+    if args.ref and (args.locked or args.check):
+        parser.error("--ref cannot be combined with --locked or --check")
+    return args
 
 
 def main() -> int:
     args = parse_args()
     manifest = load_manifest()
     names = args.skills or list(manifest["skills"])
-    sync(names, args.ref)
+    if args.check:
+        for name in names:
+            verify(name, manifest["skills"][name])
+            print(f"verified {name}")
+    else:
+        sync(names, args.ref, args.locked)
     return 0
 
 

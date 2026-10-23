@@ -4,15 +4,17 @@
 
 ## 边界
 
-- 不保存具体选题、草稿、图片、视频成片或发布状态；这些内容属于 `D:\code\content`。
-- 不保存 Hexo 文章副本、站点配置或部署脚本；这些内容属于 `D:\code\blog`。
+- 不保存具体选题、草稿、图片、视频成片或发布状态；这些内容属于独立的内容资产仓库 `CONTENT_ROOT`。
+- 不保存 Hexo 文章副本、站点配置或部署脚本；这些内容属于独立的博客仓库。
 - 工作流通过调用方提供的 `TOPIC_DIR` 读写内容资产；工具不得把正式产物留在自己的示例或缓存目录。
-- 资产组织规范以 `D:\code\content\AGENTS.md` 为唯一来源；执行任务前读取并遵循，不在本仓库复制维护另一套规则。
+- 路径优先使用调用方提供的 `CONTENT_ROOT`、`TOPIC_DIR` 与博客目录；未提供时可定位同级 `../content`、`../blog`。资产组织规范以实际内容仓库的 `AGENTS.md` 为唯一来源；执行任务前读取并遵循，不在本仓库复制维护另一套规则。
 - `skills/` 只保存本仓库自主开发的流程编排和面向 Agent 的工具入口。
 - `vendor/` 保存第三方 skill 的可审计源码副本；来源、跟踪 ref、精确 commit 和目标目录统一登记在 `vendor/skills.json`，通过 `tools/sync_vendor_skills.py` 同步上游。
 - `apps/` 保存可独立构建、测试和运行的确定性应用；目录内存在 `AGENTS.md` 时同时遵循其局部规则。
 - `labs/` 保存尚未达到稳定调用契约的探索项目，不得被正式 workflow 当作必需依赖。
 - `tools/` 保存不值得单独建应用的小型通用工具。
+- 新增任务优先从 `skills/content-producer/` 的任务映射选择入口；已有明确形态的请求直接使用对应工作流。
+- 第三方条目设置 `discovery: false` 时只通过自研工作流按需读取，不加入自动发现入口。
 - `.agents/skills/` 是 Agent skill 的聚合入口，目录内使用软链连接自研与第三方 skill；`.claude/skills` 和 `.catpaw/skills` 复用这个入口。
 
 ## 外部副作用

@@ -7,6 +7,8 @@ description: 可追溯知识视频生产工作流。用于把文章、数据或�
 
 ## 定位
 
+产品宣传、真实界面演示、自由动效或已有素材剪辑使用 `skills/motion-video-workflow/SKILL.md`。已有知识视频工程继续沿用本工作流。
+
 使用 `apps/knowledge-video-factory/` 作为确定性生产引擎，使用内容资产仓库作为唯一正式资产来源。执行前读取：
 
 - `apps/knowledge-video-factory/AGENTS.md`

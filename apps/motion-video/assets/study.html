@@ -1,0 +1,28 @@
+<template>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  #root { position: absolute; inset: 0; overflow: hidden; font-family: Inter, sans-serif; color: #f4f0e8; }
+  .background { position: absolute; inset: 0; background: #172422; }
+  #layout { position: absolute; inset: 12%; display: flex; flex-direction: column; justify-content: space-between; }
+  h1 { font-size: {{FONT}}px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.08; margin: 0; max-width: 80%; }
+  #orbit { position: relative; align-self: flex-end; width: {{ORB}}px; height: {{ORB}}px; border: 2px solid #8a9d91; border-radius: 50%; }
+  #dot { position: absolute; top: 40%; left: 40%; width: 20%; height: 20%; border-radius: 50%; background: #d7ed99; }
+</style>
+<div id="root" data-composition-id="study" data-start="0" data-duration="{{DURATION}}" data-width="{{WIDTH}}" data-height="{{HEIGHT}}">
+  <div class="background"></div>
+  <div id="layout" class="clip" data-start="0" data-duration="{{DURATION}}" data-track-index="1" data-track-kind="graphics">
+    <h1 id="headline" data-var-text="headline">Motion study</h1>
+    <div id="orbit"><div id="dot"></div></div>
+  </div>
+</div>
+<script>
+  const duration = {{DURATION}};
+  const tl = gsap.timeline({paused: true});
+  tl.fromTo('#headline', {y: 12}, {y: 0, duration: 0.7, ease: 'power2.out'}, 0);
+  tl.fromTo('#dot', {x: -{{TRAVEL}}}, {x: {{TRAVEL}}, duration: duration / 2, ease: 'sine.inOut'}, 0);
+  tl.to('#dot', {x: -{{TRAVEL}}, duration: duration / 2, ease: 'sine.inOut'}, duration / 2);
+  window.__timelines = window.__timelines || {};
+  window.__timelines.study = tl;
+</script>
+</template>
