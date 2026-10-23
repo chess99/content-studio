@@ -368,7 +368,7 @@ function createStyles(spec: ThemeSpec): NodeStyles {
   const link = defaultLink(spec)
 
   return {
-    wrapper: `font-family:${READING_FONT_FAMILY};max-width:677px;margin:0 auto;padding:0;background:#ffffff;color:${spec.text};`,
+    wrapper: `font-family:${READING_FONT_FAMILY};max-width:677px;margin:0 auto;padding:0;background:#ffffff;color:${spec.text};overflow-wrap:anywhere;`,
     h1: themeH1(spec),
     h2: themeH2(spec),
     h3: `font-family:${headingFamily(spec)};font-size:19px;font-weight:700;color:${spec.textStrong};line-height:1.48;margin:28px 0 14px;`,
@@ -398,9 +398,9 @@ function createStyles(spec: ThemeSpec): NodeStyles {
     footnotes: `margin-top:2em;padding-top:1.5em;border-top:1px solid ${spec.border};`,
     footnoteItem: `margin:0 0 8px;color:${spec.muted};font-size:14px;line-height:1.7;`,
     ...mediaModuleStyles(spec, radius),
-    table: "width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;background:#ffffff;",
-    th: `background:${spec.surfaceAlt};font-weight:700;padding:9px 12px;border:1px solid ${spec.border};text-align:left;color:${spec.textStrong};`,
-    td: `padding:9px 12px;border:1px solid ${spec.border};color:${spec.text};background:#ffffff;`,
+    table: "width:100%;table-layout:fixed;border-collapse:collapse;margin:18px 0;font-size:14px;background:#ffffff;",
+    th: `background:${spec.surfaceAlt};font-weight:700;padding:9px 12px;border:1px solid ${spec.border};text-align:left;color:${spec.textStrong};overflow-wrap:anywhere;word-break:break-all;`,
+    td: `padding:9px 12px;border:1px solid ${spec.border};color:${spec.text};background:#ffffff;overflow-wrap:anywhere;word-break:break-all;`,
   }
 }
 

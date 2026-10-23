@@ -42,6 +42,8 @@ export interface DraftNewsArticle {
   thumb_media_id: string
   author?: string
   digest?: string
+  /** 微信“阅读原文”入口，仅 news 支持 */
+  content_source_url?: string
   /** 是否只显示封面图，不显示正文图片 */
   show_cover_pic?: 0 | 1
   need_open_comment?: 0 | 1

@@ -12,6 +12,8 @@
  */
 
 import { program } from "commander"
+import { renderFigures } from "../publication/figures.js"
+import { preparePublication, validateSourceUrl, extractSourceUrl } from "../publication/prepare.js"
 import { readFileSync, writeFileSync, unlinkSync, writeSync } from "fs"
 import { dirname, isAbsolute, resolve } from "path"
 import { tmpdir } from "os"
@@ -80,6 +82,28 @@ program
   .description("Markdown → 微信公众号草稿，无需第三方 API Key")
   .version("0.1.0")
 
+program
+  .command("figures")
+  .description("将研究图表 JSON 渲染为可编辑 SVG 与高清 PNG")
+  .requiredOption("-f, --file <path>", "图表 JSON")
+  .requiredOption("-o, --output <dir>", "图片目录")
+  .action(async opts => {
+    try { ok(await renderFigures(opts.file, opts.output)) }
+    catch (error) { fail("图表渲染失败", String(error)) }
+  })
+
+program
+  .command("prepare")
+  .description("从单一源稿准备博客副本、微信静态稿与离线预览，不访问平台")
+  .requiredOption("-f, --file <path>", "含 front matter 和本地图片的 Markdown 源稿")
+  .requiredOption("-o, --output <dir>", "公众号渠道产物目录")
+  .option("--blog-root <path>", "同步到现有 Hexo 仓库")
+  .option("--theme <name>", "微信主题", "github-readme")
+  .action(async opts => {
+    try { ok(await preparePublication({ file: opts.file, outputDir: opts.output, blogRoot: opts.blogRoot, theme: opts.theme })) }
+    catch (error) { fail("双渠道准备失败", String(error)) }
+  })
+
 // ── publish：完整流程（转换 + 上传图片 + 创建草稿） ──────────────────────────
 
 program
@@ -93,10 +117,14 @@ program
   .option("-c, --cover <path>", "封面图本地路径（不提供则使用内置占位图）")
   .option("--cover-url <url>", "封面图 URL（与 --cover 二选一）")
   .option("--title <title>", "文章标题（默认从 Markdown h1 提取）")
+  .option("--source-url <url>", "阅读原文链接（HTTP(S)，写入 content_source_url）")
   .option("--author <author>", "作者名")
   .option("--digest <text>", "文章摘要（120 字以内，显示在转发卡片等位置）")
   .option("--no-upload-images", "不自动上传文章中的外链图片")
   .action(async (opts) => {
+    let sourceUrl: string | undefined
+    try { sourceUrl = opts.sourceUrl ? validateSourceUrl(opts.sourceUrl) : undefined }
+    catch (error) { fail("原文链接无效", String(error)) }
     const config = loadConfig()
     const errors = validateConfig(config)
     if (errors.length > 0) fail("配置不完整", errors)
@@ -110,6 +138,8 @@ program
     } catch (e) {
       fail(`读取文件失败: ${opts.file}`, String(e))
     }
+    try { sourceUrl ??= extractSourceUrl(markdown) }
+    catch (error) { fail("源稿中的原文链接无效", String(error)) }
 
     let themeOption: ReturnType<typeof resolveThemeOption>
     try {
@@ -170,8 +200,7 @@ program
           const result = await client.uploadImageFromUrl(imgUrl)
           imageMap.set(imgUrl, result.url)
         } catch (e) {
-          // 上传失败不中断，保留原 URL（微信可能无法显示）
-          console.error(JSON.stringify({ warning: `图片上传失败，保留原 URL: ${imgUrl}`, error: String(e) }))
+          fail(`正文图片上传失败，未创建草稿: ${imgUrl}`, String(e))
         }
       }
       for (const imgPath of localImages) {
@@ -180,7 +209,7 @@ program
           const result = await client.uploadImage(absPath)
           imageMap.set(imgPath, result.url)
         } catch (e) {
-          console.error(JSON.stringify({ warning: `图片上传失败，保留原路径: ${imgPath}`, error: String(e) }))
+          fail(`正文图片上传失败，未创建草稿: ${imgPath}`, String(e))
         }
       }
       // 替换 HTML 中的图片 URL
@@ -199,6 +228,7 @@ program
         thumb_media_id: thumbMediaId,
         author: opts.author,
         digest,
+        ...(sourceUrl ? { content_source_url: sourceUrl } : {}),
         show_cover_pic: 1,
         need_open_comment: 0,
       },
@@ -213,6 +243,7 @@ program
       media_id: draft.media_id,
       title,
       digest,
+      ...(sourceUrl ? { content_source_url: sourceUrl } : {}),
       theme,
       images_detected: imageCount,
       images_uploaded: uploadedImageCount,
@@ -520,6 +551,9 @@ program
         composable_theme_customization: true,
         theme_gallery: true,
         wechat_topic_card_markers: true,
+        dual_channel_prepare: true,
+        static_research_figures: true,
+        article_source_url: true,
       },
       coverage: {
         theme_system: {
@@ -536,11 +570,20 @@ program
         },
       },
       commands: {
+        figures: {
+          description: "从 JSON 生成精确研究图表 SVG/PNG，不访问平台",
+          required_flags: ["--file", "--output"],
+        },
+        prepare: {
+          description: "单一源稿生成微信静态稿、离线预览与可选 Hexo 副本，不访问平台",
+          required_flags: ["--file", "--output"],
+          optional_flags: ["--blog-root", "--theme"],
+        },
         publish: {
           description: "完整流程：Markdown → HTML → 上传图片 → 创建草稿",
           required_config: ["wechat_appid", "wechat_secret"],
           required_flags: ["--file"],
-          optional_flags: ["--theme", "--layout", "--palette", "--theme-file", "--title", "--author", "--digest", "--no-upload-images", "--cover", "--cover-url"],
+          optional_flags: ["--theme", "--layout", "--palette", "--theme-file", "--title", "--author", "--digest", "--source-url", "--no-upload-images", "--cover", "--cover-url"],
         },
         "publish-newspic": {
           description: "上传图片并创建微信公众号贴图草稿",
