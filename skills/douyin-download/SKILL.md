@@ -5,78 +5,54 @@ description: Use when a user asks to download, archive, parse, or save Douyin vi
 
 # Douyin Download
 
-下载用户有权访问和保存的抖音视频或图文。优先使用已安装的独立工具 `douyin-dl`；缺少工具时，可通过已登录浏览器保存当前作品的媒体。本仓库只有编排入口，不包含 `douyin-dl` 的实现。
+优先使用本仓库的 `tools/douyin_download.py` 保存公开普通视频和静态图集。它读取移动分享页中的作品数据，在内存中保留网站下发的游客会话，不读取浏览器登录 Cookie，不依赖解析站、签名服务或远程调试。
 
-## 使用前检查
+## 输出与运行环境
 
-1. 确认当前机器、命令和工具源码是否存在。macOS/Linux 使用 `command -v douyin-dl`，PowerShell 使用 `Get-Command douyin-dl -ErrorAction SilentlyContinue`。命令缺失只代表本机未安装，不能据此判断工具源码或抖音接口失效。
-2. 确定输出位置，遵循目标内容资产库的 `AGENTS.md`。下文 `<OUTPUT_DIR>` 是解析后的素材目录；不要把下载结果留在本工具仓库。
-3. 若命令可用，运行诊断：
+- 定位本 skill 所属仓库，在仓库根目录运行命令；从其他目录调用时使用脚本绝对路径。
+- 优先使用调用方提供的 `CONTENT_ROOT`、`TOPIC_DIR`；未提供内容根目录时可定位同级 `../content`。先读取实际内容库的 `AGENTS.md`，将 `<OUTPUT_DIR>` 解析为符合其规范的素材目录。无具体创作主题的工具测试放入调研目录，不创建虚构选题。
+- Python ≥3.10，唯一 Python 运行依赖为 `requests`。推荐 `uv run` 自动准备隔离环境；已有 Python 环境安装 requests 后也可直接运行。FFprobe 可选，存在时自动检查图像流、尺寸、时长与音轨；不存在时只检查文件头和传输长度。
+- 不把正式产物、凭证或临时媒体 URL 写入本工具仓库。
 
-```powershell
-douyin-dl doctor
-```
-
-只有 `douyin-dl` 的浏览器连接模式需要其 README 指定的远程调试设置。通过已连接的浏览器工具保存页面素材不要求另开调试端口。
-
-历史工具位置是 `D:\code\douyin-dl`，先确认目录及 README 存在再安装，不把 Windows 路径当作所有机器的路径。确有本机源码时，可在工具仓库执行：
-
-```powershell
-npm link
-```
-
-## 下载单条作品
-
-```powershell
-douyin-dl single "https://www.douyin.com/video/作品ID" -o "<OUTPUT_DIR>"
-douyin-dl single "https://www.douyin.com/note/作品ID" -o "<OUTPUT_DIR>"
-```
-
-只采集稳定元数据而不下载媒体：
-
-```powershell
-douyin-dl single "<抖音链接>" --metadata-only -o "<OUTPUT_DIR>"
-```
-
-## 缺少工具时的浏览器保存
-
-适合单条作品；不据此宣称收藏批量下载已经可用。
-
-1. 使用已连接的浏览器打开或读取用户提供的作品页，确认标题、作者和实际媒体类型。`/note/` 通常是图文，不应许诺生成 `source.mp4`。
-2. 从当前作品的 DOM 定位主图或视频，排除头像、推荐列表封面、背景音乐和页面装饰。图集需逐页检查并按作品顺序保存、去重；未核实总数时注明只保存了当前可见图片。
-3. 使用浏览器工具提供的媒体下载能力。当前 Chrome 工具支持匹配媒体元素后的 `locator.downloadMedia()`；可用 `pageAssets.list()` / `bundle()` 按确切资源 ID 保存作备选。按本次加载的工具文档调用，不在页面中运行任意网络请求或导出 Cookie。
-4. 下载能力可能返回 Downloads 或临时目录路径，将成功文件归入 `<OUTPUT_DIR>`，记录稳定元数据（作品 ID、来源页面、标题、作者、类型、保存方式、已保存文件）。不把有期限的签名 CDN 地址当作长期来源。
-5. 检查文件类型、尺寸或时长并查看内容。封面保存成功不等于视频保存成功；若视频只有 `blob:` 或下载失败，报告具体限制，不能用截图或封面充当成片。
-
-## yt-dlp 与替代工具
-
-`yt-dlp` 可作为视频候选，先探测再下载：
+## 下载单条或多条作品
 
 ```sh
-yt-dlp --ignore-config --no-cache-dir --skip-download --no-playlist --socket-timeout 20 "<视频链接>"
+uv run tools/douyin_download.py single "https://www.douyin.com/note/作品ID" -o "<OUTPUT_DIR>"
+uv run tools/douyin_download.py single "https://www.douyin.com/video/作品ID" -o "<OUTPUT_DIR>"
 ```
 
-抖音与 TikTok 的支持范围不同。抖音 `/note/` 不匹配提取器时，换成 `/video/` 不能证明图集可用；403、`Fresh cookies` 等错误也不能直接解释为作品已删除。网络解析失败应先区分环境限制。需要 Cookie 时优先复用已登录浏览器，不要求用户把凭证贴入聊天。
+同一个 `single` 命令可接多个链接，也接受一段包含链接的分享文本、`modal_id` 作品链接和纯作品 ID。分享短链会先跟随官方重定向。主页、收藏列表不能当作单作品输入。
 
-研究其他方案前，读取 [工具核验记录](references/tool-status.md)。区分官方宣称支持、源码核验和本机下载实测，不能把 README 功能表当作成功验证。
+只获取元数据和媒体数量：
 
-## 收藏列表
-
-先预览，再按用户确认的数量下载：
-
-```powershell
-douyin-dl favorites --limit 20 --dry-run
-douyin-dl favorites --limit 20 -o "<OUTPUT_DIR>"
+```sh
+uv run tools/douyin_download.py single "<作品链接>" --metadata-only -o "<OUTPUT_DIR>"
 ```
 
-只有用户明确要求完整归档时才使用 `--all`。首次枚举会写入 `inventory.jsonl` 快照，断点续跑默认复用快照；只有需要重新抓取当前收藏时才添加 `--refresh-inventory`。成功作品记录在输出根目录的 `archive.jsonl`，重复运行会自动跳过；用户明确要求重下时添加 `--force`。最终失败项写入 `errors.jsonl`。
+行为与结果：
 
-## 输出与边界
+- 每个作品保存在 `<OUTPUT_DIR>/<完整作品ID>/`，包含 `metadata.json` 和 `source.mp4` 或按原顺序编号的 `image-001.webp` 等。图片扩展名依据文件头，保留服务端实际提供的编码。
+- 图集优先读取全部图片，不能把图集的背景音乐当成视频。当前仅承诺静态图片，不承诺实况照片中的动态片段。
+- MP4 使用官方播放地址请求 1080p；实际分辨率以输出文件检查结果为准，不承诺原上传画质或 4K。
+- 首次分享页可能只有空壳但刚下发游客身份，工具会在同一会话重试，并有限地尝试两个官方域名。默认每个域名最多 3 次，可用 `--attempts 1` 至 `5` 调整；仍无数据时不把作品断言为已删除。
+- 每保存一个文件就记录字节数和 SHA-256；`complete: true` 仅在全作品保存后写入。重跑跳过已通过哈希校验的完整归档；未完成图集继续保存缺失文件，不支持媒体字节级续传。
+- 已归档文件损坏或丢失时报告错误，不静默跳过。用户要求修复或重下时使用 `--force` 替换该作品媒体；不要为普通重复运行添加此参数。
+- `--metadata-only` 写入 `metadata-preview.json`，不覆盖未完成下载的进度。已完成且校验通过的归档默认直接跳过。
+- 标准输出每条一个 JSON 结果，状态为 `downloaded`、`skipped`、`metadata` 或 `failed`。退出码 `0` 表示本次输入均成功或跳过，`1` 表示至少一条失败，`2` 表示参数错误。
 
-- `douyin-dl` 的约定输出为视频 `source.mp4`、图集 `image-001.webp` 等，同时写入 `metadata.json`。浏览器保存按实际编码使用扩展名，不把 JPEG 改名为 WebP。可选的 Whisper 转写会生成 `transcript.json`、`transcript.srt` 和必要的抽帧联系表；内容提炼由外部 AI 工作流写入 `analysis.json`，不使用仓库内置的本地大模型。
-- 输出目录服从调用方提供的 `TOPIC_DIR` 和内容资产规范。无具体创作主题的工具实测归入资产库的调研目录，不创建虚构选题。
-- 不提交下载的视频、图片、Cookie、收藏列表或临时媒体 URL，除非用户明确要求版本化媒体。
-- 不绕过付费、私密、已删除或其他访问控制；单条不可访问作品应报告具体错误。
-- 退出码 `1` 表示批量中存在内容失败，退出码 `2` 表示参数、浏览器、登录态或配置错误。
+下载后检查 `metadata.json` 的数量与验证结果；需要质量验收时打开图片，视频可额外做完整解码、抽帧与试听。没有 FFprobe 时不得把文件头检查称为完整媒体验证。
 
-`douyin-dl` 完整命令说明以实际工具仓库的 README 为准；以上历史命令在本机缺少工具时不能视为已验证能力。
+## 分享页失败时的浏览器备选
+
+1. 使用已连接的浏览器读取用户提供的作品页，核对标题、作者、类型和图集数量。
+2. 从当前作品 DOM 定位主图或视频，排除头像、推荐封面、背景音乐和装饰。图集逐页保存并核对顺序；未核实总数时注明仅保存了当前可见图片。
+3. 使用当前工具文档支持的媒体下载能力。Chrome 工具可对确切媒体元素调用 `locator.downloadMedia()`；`pageAssets.list()` / `bundle()` 可作备选。不要自行连接调试端口或在页面中导出 Cookie。
+4. 下载工具返回 Downloads 或临时路径时，将成功文件归入 `<OUTPUT_DIR>`，记录稳定来源页面与保存方式。不要覆盖主下载器格式的 `metadata.json`，除非同时遵循其完整性记录。
+5. 检查实际文件。封面成功不等于视频成功；仅有 `blob:`、验证码或下载失败时报告限制，不用截图、音频或封面冒充成片。
+
+## 收藏与其他工具
+
+- 本脚本不枚举收藏或主页。若用户要求批量收藏，先读取 [工具核验记录](references/tool-status.md) 并检查当前机器是否具备另外的枚举工具；不能假装单作品命令已支持收藏。
+- 历史 `douyin-dl` 是独立工具，源码不在本仓库。只有确认本机命令和源码存在，才按其 README 运行 `doctor`、`favorites` 等；历史 Windows 路径不代表当前机器已安装。用户明确要求完整归档时才能使用其 `--all`，否则先预览并限定数量。
+- yt-dlp 的抖音 `/note/` 与 TikTok 图集支持不同，403 或 Fresh cookies 也不能直接解释为作品不存在。候选工具要做实际下载验证，README 功能表不能充当成功证据。
+- 不绕过付费、私密、已删除等访问控制；遇到需要用户登录或完成验证码的页面应报告具体状态。

@@ -71,7 +71,7 @@ python3 tools/sync_vendor_skills.py hyperframes --locked
 - `tools/media_review.py`：媒体参数检查、带时间码的联系表，输出到指定外部目录。
 - `tools/transcribe_video.py`：通过 FFmpeg 和 whisper.cpp 转录本地音视频。
 - `chatgpt-imagegen`：供缺少原生生图能力的环境使用的兼容入口；有原生工具时优先使用原生能力。
-- `douyin-download`：归档有权访问的抖音素材。
+- `douyin-download`：通过 `uv run tools/douyin_download.py single "<作品链接>" -o "<素材目录>"` 下载公开普通视频与静态图集，无需导出登录 Cookie；支持重复运行校验与图集缺失文件续下。
 
 本地转换、检查和预览可以直接执行。创建平台草稿、公开发布各自遵循明确授权；密钥、登录态和模型缓存不进入 Git。
 
@@ -79,7 +79,7 @@ python3 tools/sync_vendor_skills.py hyperframes --locked
 
 ```sh
 python3 tools/workspace_doctor.py
-python3 -m unittest discover -s tests -v
+uv run --python 3.12 --with requests python -m unittest discover -s tests -v
 python3 -m py_compile tools/sync_vendor_skills.py tools/workspace_doctor.py tools/media_review.py
 npm --prefix apps/motion-video test
 npm --prefix apps/wx-publisher test
