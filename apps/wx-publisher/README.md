@@ -2,6 +2,10 @@
 
 Markdown → 微信公众号草稿，**无需第三方 API Key**，排版转换完全本地完成。
 
+## 博客与公众号共用源稿
+
+使用 `wxp figures` 生成静态图，`wxp prepare` 同步 Hexo 发布副本并输出公众号静态稿、图片和离线预览；不连接平台。`wxp publish` 自动把稿件的 `canonical_url` 设置为“阅读原文”，也可用 `--source-url` 指定。完整输入约定、命令和能力边界见[双渠道发布说明](docs/dual-channel-publication.md)。
+
 ## 安装
 
 ```bash
